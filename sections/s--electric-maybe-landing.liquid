@@ -1,6 +1,6 @@
 {% comment %}
   @file sections/s--electric-maybe-landing.liquid
-  @summary Electric Maybe agency homepage (ported from `old/index.html`). Media lives in `assets/em-*`. Smallchat removed; use Shopify Inbox from admin (Online store chat).
+  @summary Electric Maybe agency homepage. Logo and carousel media come from section settings and blocks (Content > Files / library). Video OR image per slide; video wins if both are set.
 {% endcomment %}
 
 {{ 'em-landing.css' | asset_url | stylesheet_tag }}
@@ -8,15 +8,21 @@
 <div class="em-landing">
   <div class="em-landing__container">
     <div class="em-landing__title-wrap">
-      <img
-        src="{{ 'em-logo.svg' | asset_url }}"
-        alt="Electric Maybe"
-        class="em-landing__logo"
-        width="120"
-        height="36"
-        loading="eager"
-        fetchpriority="high"
-      >
+      {%- assign logo_alt = section.settings.logo_alt | strip -%}
+      {%- if logo_alt == blank -%}
+        {%- assign logo_alt = 'Electric Maybe' -%}
+      {%- endif -%}
+      {%- if section.settings.logo != blank -%}
+        <span class="em-landing__logo-wrap">
+          {{
+            section.settings.logo
+            | image_url: width: 360
+            | image_tag: alt: logo_alt, class: 'em-landing__logo', loading: 'eager', fetchpriority: 'high'
+          }}
+        </span>
+      {%- else -%}
+        <span class="em-landing__logo em-landing__logo--text" role="img" aria-label="{{ logo_alt | escape }}">Electric Maybe</span>
+      {%- endif -%}
       <h1>
         <span class="em-landing__line-1">your store needs some</span>
         <span class="em-landing__line-2">electric maybe?</span>
@@ -51,108 +57,49 @@
       aria-label="Selected client work"
       tabindex="0"
     >
-      <div class="em-landing__work-item">
-        <video autoplay muted loop playsinline aria-hidden="true">
-          <source src="{{ 'em-work-nwp8.mp4' | asset_url }}" type="video/mp4">
-        </video>
-        <span>Northern Wide Plank</span>
-      </div>
-      <div class="em-landing__work-item">
-        <video autoplay muted loop playsinline aria-hidden="true">
-          <source src="{{ 'em-work-hismile3.mp4' | asset_url }}" type="video/mp4">
-        </video>
-        <span>HiSmile</span>
-      </div>
-      <div class="em-landing__work-item">
-        <img src="{{ 'em-work-hismile1.webp' | asset_url }}" alt="HiSmile project showcase" width="800" height="512" loading="lazy">
-        <span>HiSmile</span>
-      </div>
-      <div class="em-landing__work-item">
-        <img src="{{ 'em-work-hismile2.webp' | asset_url }}" alt="HiSmile project showcase" width="800" height="512" loading="lazy">
-        <span>HiSmile</span>
-      </div>
-      <div class="em-landing__work-item">
-        <video autoplay muted loop playsinline aria-hidden="true">
-          <source src="{{ 'em-work-hismile4.mp4' | asset_url }}" type="video/mp4">
-        </video>
-        <span>HiSmile</span>
-      </div>
-      <div class="em-landing__work-item">
-        <img src="{{ 'em-work-hismile5.png' | asset_url }}" alt="HiSmile project showcase" width="800" height="512" loading="lazy">
-        <span>HiSmile</span>
-      </div>
-      <div class="em-landing__work-item">
-        <video autoplay muted loop playsinline aria-hidden="true">
-          <source src="{{ 'em-work-hismile6.mp4' | asset_url }}" type="video/mp4">
-        </video>
-        <span>HiSmile</span>
-      </div>
-      <div class="em-landing__work-item">
-        <video autoplay muted loop playsinline aria-hidden="true">
-          <source src="{{ 'em-work-nwp1.mp4' | asset_url }}" type="video/mp4">
-        </video>
-        <span>Northern Wide Plank</span>
-      </div>
-      <div class="em-landing__work-item">
-        <video autoplay muted loop playsinline aria-hidden="true">
-          <source src="{{ 'em-work-nwp2.mp4' | asset_url }}" type="video/mp4">
-        </video>
-        <span>Northern Wide Plank</span>
-      </div>
-      <div class="em-landing__work-item">
-        <img src="{{ 'em-work-nwp3.png' | asset_url }}" alt="Northern Wide Plank project showcase" width="800" height="512" loading="lazy">
-        <span>Northern Wide Plank</span>
-      </div>
-      <div class="em-landing__work-item">
-        <img src="{{ 'em-work-hismile6.webp' | asset_url }}" alt="HiSmile project showcase" width="800" height="512" loading="lazy">
-        <span>HiSmile</span>
-      </div>
-      <div class="em-landing__work-item">
-        <img src="{{ 'em-work-nuuds1.png' | asset_url }}" alt="Nuuds project showcase" width="800" height="512" loading="lazy">
-        <span>Nuuds</span>
-      </div>
-      <div class="em-landing__work-item">
-        <img src="{{ 'em-work-nuuds2.png' | asset_url }}" alt="Nuuds project showcase" width="800" height="512" loading="lazy">
-        <span>Nuuds</span>
-      </div>
-      <div class="em-landing__work-item">
-        <video autoplay muted loop playsinline aria-hidden="true">
-          <source src="{{ 'em-work-nuuds3.mp4' | asset_url }}" type="video/mp4">
-        </video>
-        <span>Nuuds</span>
-      </div>
-      <div class="em-landing__work-item">
-        <img src="{{ 'em-work-nuuds6.webp' | asset_url }}" alt="Nuuds project showcase" width="800" height="512" loading="lazy">
-        <span>Nuuds</span>
-      </div>
-      <div class="em-landing__work-item">
-        <video autoplay muted loop playsinline aria-hidden="true">
-          <source src="{{ 'em-work-nuuds4.mp4' | asset_url }}" type="video/mp4">
-        </video>
-        <span>Nuuds</span>
-      </div>
-      <div class="em-landing__work-item">
-        <video autoplay muted loop playsinline aria-hidden="true">
-          <source src="{{ 'em-work-nuuds5.mp4' | asset_url }}" type="video/mp4">
-        </video>
-        <span>Nuuds</span>
-      </div>
-      <div class="em-landing__work-item">
-        <img src="{{ 'em-work-nwp4.png' | asset_url }}" alt="Northern Wide Plank project showcase" width="800" height="512" loading="lazy">
-        <span>Northern Wide Plank</span>
-      </div>
-      <div class="em-landing__work-item">
-        <img src="{{ 'em-work-nwp5.png' | asset_url }}" alt="Northern Wide Plank project showcase" width="800" height="512" loading="lazy">
-        <span>Northern Wide Plank</span>
-      </div>
-      <div class="em-landing__work-item">
-        <img src="{{ 'em-work-nwp6.png' | asset_url }}" alt="Northern Wide Plank project showcase" width="800" height="512" loading="lazy">
-        <span>Northern Wide Plank</span>
-      </div>
-      <div class="em-landing__work-item">
-        <img src="{{ 'em-work-nwp7.png' | asset_url }}" alt="Northern Wide Plank project showcase" width="800" height="512" loading="lazy">
-        <span>Northern Wide Plank</span>
-      </div>
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'slide' -%}
+          {%- assign slide_video = block.settings.video -%}
+          {%- assign slide_image = block.settings.image -%}
+          {%- if slide_video != blank or slide_image != blank -%}
+            {%- assign cap = block.settings.label | strip -%}
+            {%- if cap == blank -%}
+              {%- assign cap = 'Client work' -%}
+            {%- endif -%}
+            {%- assign img_alt = block.settings.image_alt | strip -%}
+            {%- if img_alt == blank -%}
+              {%- assign img_alt = cap -%}
+            {%- endif -%}
+            <div class="em-landing__work-item" {{ block.shopify_attributes }}>
+              <div class="em-landing__slide-media"{% if slide_video != blank %} aria-hidden="true"{% endif %}>
+                {%- if slide_video != blank -%}
+                  {{
+                    slide_video
+                    | video_tag:
+                      class: 'em-landing__slide-el',
+                      autoplay: true,
+                      loop: true,
+                      muted: true,
+                      controls: false,
+                      image_size: '1600x'
+                  }}
+                {%- else -%}
+                  {{
+                    slide_image
+                    | image_url: width: 1600
+                    | image_tag:
+                      alt: img_alt,
+                      class: 'em-landing__slide-el',
+                      loading: 'lazy',
+                      sizes: '(max-width: 680px) 85vw, 640px'
+                  }}
+                {%- endif -%}
+              </div>
+              <span>{{ cap }}</span>
+            </div>
+          {%- endif -%}
+        {%- endif -%}
+      {%- endfor -%}
     </div>
   </div>
 </div>
@@ -180,10 +127,90 @@
   "disabled_on": {
     "groups": ["header", "footer"]
   },
-  "settings": [],
+  "settings": [
+    {
+      "type": "header",
+      "content": "Logo"
+    },
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "label": "Logo image",
+      "info": "Upload SVG or PNG in Settings > Files, then select here."
+    },
+    {
+      "type": "text",
+      "id": "logo_alt",
+      "label": "Logo alt text",
+      "default": "Electric Maybe"
+    },
+    {
+      "type": "header",
+      "content": "Work carousel"
+    },
+    {
+      "type": "paragraph",
+      "content": "Add slides below. For each slide, choose a Shopify-hosted video OR an image (from Files). If both are set, the video is shown."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Slide",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Caption",
+          "default": "Client"
+        },
+        {
+          "type": "video",
+          "id": "video",
+          "label": "Video",
+          "info": "Upload MP4 etc. to Content > Files, then pick the file here."
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image",
+          "info": "Used when no video is selected."
+        },
+        {
+          "type": "text",
+          "id": "image_alt",
+          "label": "Image alt text",
+          "info": "Accessibility; defaults to caption if empty."
+        }
+      ]
+    }
+  ],
   "presets": [
     {
-      "name": "Electric Maybe home"
+      "name": "Electric Maybe home",
+      "blocks": [
+        { "type": "slide", "settings": { "label": "Northern Wide Plank" } },
+        { "type": "slide", "settings": { "label": "HiSmile" } },
+        { "type": "slide", "settings": { "label": "HiSmile" } },
+        { "type": "slide", "settings": { "label": "HiSmile" } },
+        { "type": "slide", "settings": { "label": "HiSmile" } },
+        { "type": "slide", "settings": { "label": "HiSmile" } },
+        { "type": "slide", "settings": { "label": "HiSmile" } },
+        { "type": "slide", "settings": { "label": "Northern Wide Plank" } },
+        { "type": "slide", "settings": { "label": "Northern Wide Plank" } },
+        { "type": "slide", "settings": { "label": "Northern Wide Plank" } },
+        { "type": "slide", "settings": { "label": "HiSmile" } },
+        { "type": "slide", "settings": { "label": "Nuuds" } },
+        { "type": "slide", "settings": { "label": "Nuuds" } },
+        { "type": "slide", "settings": { "label": "Nuuds" } },
+        { "type": "slide", "settings": { "label": "Nuuds" } },
+        { "type": "slide", "settings": { "label": "Nuuds" } },
+        { "type": "slide", "settings": { "label": "Nuuds" } },
+        { "type": "slide", "settings": { "label": "Northern Wide Plank" } },
+        { "type": "slide", "settings": { "label": "Northern Wide Plank" } },
+        { "type": "slide", "settings": { "label": "Northern Wide Plank" } },
+        { "type": "slide", "settings": { "label": "Northern Wide Plank" } }
+      ]
     }
   ]
 }

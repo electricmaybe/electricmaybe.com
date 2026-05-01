@@ -11,7 +11,53 @@
   "sections": {
     "electric_maybe_landing": {
       "type": "s--electric-maybe-landing",
-      "settings": {}
+      "settings": {},
+      "blocks": {
+        "em_s01": { "type": "slide", "settings": { "label": "Northern Wide Plank" } },
+        "em_s02": { "type": "slide", "settings": { "label": "HiSmile" } },
+        "em_s03": { "type": "slide", "settings": { "label": "HiSmile" } },
+        "em_s04": { "type": "slide", "settings": { "label": "HiSmile" } },
+        "em_s05": { "type": "slide", "settings": { "label": "HiSmile" } },
+        "em_s06": { "type": "slide", "settings": { "label": "HiSmile" } },
+        "em_s07": { "type": "slide", "settings": { "label": "HiSmile" } },
+        "em_s08": { "type": "slide", "settings": { "label": "Northern Wide Plank" } },
+        "em_s09": { "type": "slide", "settings": { "label": "Northern Wide Plank" } },
+        "em_s10": { "type": "slide", "settings": { "label": "Northern Wide Plank" } },
+        "em_s11": { "type": "slide", "settings": { "label": "HiSmile" } },
+        "em_s12": { "type": "slide", "settings": { "label": "Nuuds" } },
+        "em_s13": { "type": "slide", "settings": { "label": "Nuuds" } },
+        "em_s14": { "type": "slide", "settings": { "label": "Nuuds" } },
+        "em_s15": { "type": "slide", "settings": { "label": "Nuuds" } },
+        "em_s16": { "type": "slide", "settings": { "label": "Nuuds" } },
+        "em_s17": { "type": "slide", "settings": { "label": "Nuuds" } },
+        "em_s18": { "type": "slide", "settings": { "label": "Northern Wide Plank" } },
+        "em_s19": { "type": "slide", "settings": { "label": "Northern Wide Plank" } },
+        "em_s20": { "type": "slide", "settings": { "label": "Northern Wide Plank" } },
+        "em_s21": { "type": "slide", "settings": { "label": "Northern Wide Plank" } }
+      },
+      "block_order": [
+        "em_s01",
+        "em_s02",
+        "em_s03",
+        "em_s04",
+        "em_s05",
+        "em_s06",
+        "em_s07",
+        "em_s08",
+        "em_s09",
+        "em_s10",
+        "em_s11",
+        "em_s12",
+        "em_s13",
+        "em_s14",
+        "em_s15",
+        "em_s16",
+        "em_s17",
+        "em_s18",
+        "em_s19",
+        "em_s20",
+        "em_s21"
+      ]
     }
   },
   "order": ["electric_maybe_landing"]
