@@ -16,150 +16,168 @@
           "type": "slide",
           "settings": {
             "label": "Northern Wide Plank",
-            "video": "shopify://files/videos/nwp1.mp4",
-            "image_alt": ""
+            "video": "shopify://files/videos/nwp8.mp4",
+            "image_alt": "Northern Wide Plank showcase"
           }
         },
         "em_s02": {
           "type": "slide",
           "settings": {
             "label": "HiSmile",
-            "image": "shopify://shop_images/hismile1.webp",
-            "image_alt": ""
+            "video": "shopify://files/videos/hismile3.mp4",
+            "image_alt": "HiSmile showcase"
           }
         },
         "em_s03": {
           "type": "slide",
           "settings": {
             "label": "HiSmile",
-            "image": "shopify://shop_images/hismile2.webp",
-            "image_alt": ""
+            "image": "shopify://shop_images/hismile1.webp",
+            "image_alt": "HiSmile showcase"
           }
         },
         "em_s04": {
           "type": "slide",
           "settings": {
             "label": "HiSmile",
-            "image_alt": ""
+            "image": "shopify://shop_images/hismile2.webp",
+            "image_alt": "HiSmile showcase"
           }
         },
         "em_s05": {
           "type": "slide",
           "settings": {
             "label": "HiSmile",
-            "image_alt": ""
+            "video": "shopify://files/videos/hismile4.mp4",
+            "image_alt": "HiSmile showcase"
           }
         },
         "em_s06": {
           "type": "slide",
           "settings": {
             "label": "HiSmile",
-            "image_alt": ""
+            "image": "shopify://shop_images/hismile5.png",
+            "image_alt": "HiSmile showcase"
           }
         },
         "em_s07": {
           "type": "slide",
           "settings": {
             "label": "HiSmile",
-            "image_alt": ""
+            "video": "shopify://files/videos/hismile6.mp4",
+            "image_alt": "HiSmile showcase"
           }
         },
         "em_s08": {
           "type": "slide",
           "settings": {
             "label": "Northern Wide Plank",
-            "image_alt": ""
+            "video": "shopify://files/videos/nwp1.mp4",
+            "image_alt": "Northern Wide Plank showcase"
           }
         },
         "em_s09": {
           "type": "slide",
           "settings": {
             "label": "Northern Wide Plank",
-            "image_alt": ""
+            "video": "shopify://files/videos/nwp2.mp4",
+            "image_alt": "Northern Wide Plank showcase"
           }
         },
         "em_s10": {
           "type": "slide",
           "settings": {
             "label": "Northern Wide Plank",
-            "image_alt": ""
+            "image": "shopify://shop_images/nwp3.png",
+            "image_alt": "Northern Wide Plank showcase"
           }
         },
         "em_s11": {
           "type": "slide",
           "settings": {
             "label": "HiSmile",
-            "image_alt": ""
+            "image": "shopify://shop_images/hismile6.webp",
+            "image_alt": "HiSmile showcase"
           }
         },
         "em_s12": {
           "type": "slide",
           "settings": {
             "label": "Nuuds",
-            "image_alt": ""
+            "image": "shopify://shop_images/nuuds1.png",
+            "image_alt": "Nuuds showcase"
           }
         },
         "em_s13": {
           "type": "slide",
           "settings": {
             "label": "Nuuds",
-            "image_alt": ""
+            "image": "shopify://shop_images/nuuds2.png",
+            "image_alt": "Nuuds showcase"
           }
         },
         "em_s14": {
           "type": "slide",
           "settings": {
             "label": "Nuuds",
-            "image_alt": ""
+            "video": "shopify://files/videos/nuuds3.mp4",
+            "image_alt": "Nuuds showcase"
           }
         },
         "em_s15": {
           "type": "slide",
           "settings": {
             "label": "Nuuds",
-            "image_alt": ""
+            "image": "shopify://shop_images/nuuds6.webp",
+            "image_alt": "Nuuds showcase"
           }
         },
         "em_s16": {
           "type": "slide",
           "settings": {
             "label": "Nuuds",
-            "image_alt": ""
+            "video": "shopify://files/videos/nuuds4.mp4",
+            "image_alt": "Nuuds showcase"
           }
         },
         "em_s17": {
           "type": "slide",
           "settings": {
             "label": "Nuuds",
-            "image_alt": ""
+            "video": "shopify://files/videos/nuuds5.mp4",
+            "image_alt": "Nuuds showcase"
           }
         },
         "em_s18": {
           "type": "slide",
           "settings": {
             "label": "Northern Wide Plank",
-            "image_alt": ""
+            "image": "shopify://shop_images/nwp4.png",
+            "image_alt": "Northern Wide Plank showcase"
           }
         },
         "em_s19": {
           "type": "slide",
           "settings": {
             "label": "Northern Wide Plank",
-            "image_alt": ""
+            "image": "shopify://shop_images/nwp5.png",
+            "image_alt": "Northern Wide Plank showcase"
           }
         },
         "em_s20": {
           "type": "slide",
           "settings": {
             "label": "Northern Wide Plank",
-            "image_alt": ""
+            "image": "shopify://shop_images/nwp6.png",
+            "image_alt": "Northern Wide Plank showcase"
           }
         },
         "em_s21": {
           "type": "slide",
           "settings": {
             "label": "Northern Wide Plank",
-            "image_alt": ""
+            "image": "shopify://shop_images/nwp7.png",
+            "image_alt": "Northern Wide Plank showcase"
           }
         }
       },
@@ -192,7 +210,5 @@
       }
     }
   },
-  "order": [
-    "electric_maybe_landing"
-  ]
+  "order": ["electric_maybe_landing"]
 }
