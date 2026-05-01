@@ -1,0 +1,7 @@
+root: .
+
+extends: theme-check:recommended
+
+ignore:
+  - node_modules/*
+  - _styles/

@@ -1,139 +1,168 @@
-## Roadmap
-- [ ] Add partner logos to site
-  - Logos are loaded
-  - Needs to be added to the front page
-  - Adjust svg widths accordingly
-- [ ] Add our branding
+# ⚡️ Voldt Shopify Theme
 
+Modern Shopify theme for Voldt built with Tailwind CSS v4, a custom JavaScript build system, and Shopify CLI. It focuses on responsive design, performance optimization, and modular component architecture.
+## Tech Stack
 
-# A sample company website built with [Gatsby](https://www.gatsbyjs.org/) & [Sanity.io](https://www.sanity.io)
-
-This examples combines [Gatsby](https://www.gatsbyjs.org/) site generation with [Sanity](https://www.sanity.io) content management in a neat little company website. Read [the blog post](https://www.sanity.io/blog/get-started-with-gatsby-and-structured-content) and [see the getting started video](https://www.youtube.com/watch?v=qU4lFYp3KiQ).
-
-- [Features](#features)
-- [Installation](#installation)
-- [Enable Gatsby watch mode for drafts](#enable-gatsby-watch-mode-for-drafts)
-- [Usage example](#usage-example)
-- [Development setup](#development-setup)
-  - [Run it](#run-it)
-  - [Development workflow](#development-workflow)
-- [Deployment](#deployment)
-- [Contributing](#contributing)
-- [License](#license)
-
-[![Watch a video about the company website built with Gatsby using Sanity.io as a headless CMS](https://cdn.sanity.io/images/3do82whm/production/4f652e6d114e7010aa633b81cbcb97c335980fc8-1920x1080.png?w=500)](https://www.youtube.com/watch?v=STtpXBvJmDA)
-
-[See the example up and running](https://www.youtube.com/watch?v=STtpXBvJmDA)
-
-## Features
-
-**A company website built with Gatsby**
-  * 📡 Real-time content preview in development
-  * ⏱ Fast & frugal builds
-  * 🗃 No accidental missing fields/types
-  * 🧰 Full Render Control with Portable Text
-  * 📸 gatsby-image support
-  * 🔧 Minimal configuration
-
-**Sanity Studio with a schema for**
-  * 🏢 Company info
-  * 📃 Pages
-  * 👨🏼‍🎨 Projects
-  * 👩🏾‍💻 People
-  * 📰 Blog posts
+- **Shopify CLI** - Theme development and deployment
+- **Tailwind CSS v4** - Utility-first CSS framework with CLI
+- **Custom Build System** - JavaScript bundling and processing
+- **Liquid** - Shopify templating language
+- **PostCSS** - CSS processing and optimization
 
 ## Installation
+### 1. Install Shopify CLI
+- Make sure you have [Homebrew](https://brew.sh/) installed
+- Open your terminal app
+- Run `brew tap shopify/shopify`
+- Run `brew install shopify-cli`
+- After the installation is completed, run `shopify version`, if this outputs a version number you've successfully installed the CLI.
 
-Read the [step-by-step blog post](https://www.sanity.io/blog/how-to-quickly-set-up-a-gatsby-js-jamstack-website-with-a-headless-cms).
+### 2. Authenticate Shopify CLI
 
-```sh
-git clone git@github.com:sanity-io/example-company-website-gatsby-sanity-combo.git
-cd example-company-website-gatsby-sanity-combo
-npm install
+Authenticate with the Voldt Shopify store:
 
-# Install or upgrade the Sanity CLI to
-# make sure you are on v0.140.0 or higher
-npm install -g @sanity/cli
-# Set up Sanity.io account and project (≈ 45s)
-npm run init
-
+```shell
+$ shopify login --store=<your-voldt-store>.myshopify.com
 ```
 
-See the [getting started video](https://www.youtube.com/watch?v=qU4lFYp3KiQ) for a walkthrough of the installation.
+When prompted, open the provided URL in your browser and log in with your Shopify partner account.
 
-## Enable Gatsby watch mode for drafts
+### 3. Clone and Setup
 
-We have enabled the watch mode in the `gatsby-source-sanity` plugin, which means that your frontend will automatically update with content changes whenever you publish them. If you want the frontend to show content changes in real time, you must do the following:
+Clone this repository and install dependencies:
 
-* Go to [manage.sanity.io](https://manage.sanity.io) and find your project (or run the command `sanity manage` in the studio folder)
-* Navigate to Settings->API and scroll down to the **Tokens** section
-* Add a new token and give it **read** privileges.
-* Copy the `.env-example` file to a file called `.env` in the `/web` folder
-* Add your new token to the key: `SANITY_TOKEN="<token here>"`
-
-If you restart the local development server, it will now show unpublished changes from the Studio. Note that the `.env` file is ignored by Git, because the token gives access to unpublished content in the API.
-
-## Usage example
-
-This project demos Sanity.io with Gatsby using our [source plugin](https://www.gatsbyjs.org/packages/gatsby-source-sanity). It's a good starter for a simple company site, a portfolio site for an agency or a personal blog with an attached portfolio.
-
-We tried to strike a balance between a useful example and a minimal footprint to make it easier to iterate on design and content model. [Let us know](https://slack.sanity.io) should you have questions!
-
-## Development setup
-
-### Run it
-
-```sh
-npm start
-# Studio at http://localhost:3333
-# Web frontend at http://localhost:8000
-# GraphiQL explorer at http://localhost:8000/___graphql
+```shell
+$ git clone https://github.com/electricmaybe/electricmaybe.com.git
+$ cd electricmaybe.com
+$ npm install
 ```
 
+## Development
 
+### Start Development Server
 
-
-### Development workflow
-
-We wrote a [blog post](https://www.sanity.io/blog/get-started-with-gatsby-and-structured-content) about how to use this example, but if you would like to just start tinkering:
-
-- The Sanity Studio keeps its schemas in `./studio/schemas`. We will hot reload the editor when you edit them so just start experimenting. [Read more about our schemas here](https://www.sanity.io/docs/content-studio/the-schema).
-- We followed Gatsby conventions and [you can read all about them here](https://www.gatsbyjs.org/tutorial/).
-- If you want Gatsby to not throw errors on missing fields for unpopulated data you need to redeploy the GraphQL API so we can generate schemas – `npm run graphql-deploy`
-
-
-## Deployment
-
-```sh
-# Deploy a GraphQL API and schema to Sanity
-npm run graphql-deploy
-
-# Deploy the Sanity Studio to *.sanity.studio
-npm run sanity-deploy
-
-# Build & deploy to Zeit's Now. Remember to set `basePath` to "/studio" in sanity.json
-npm run now-deploy
+```shell
+$ npm run tailwind:watch
 ```
 
-> **Deploy on Netlify:** If you want to deploy the Gatsby site to Netlify we added a netlify.toml config for you.
->
-> Fork or clone the example to your GitHub account. After adding your repo to Netlify you’ll get automatic builds & deploys when pushing to master. You can also add a [webhook](https://www.sanity.io/docs/webhooks) to get deploys on content changes.
+This command runs:
+- Tailwind CSS compilation with watch mode
+- JavaScript build system with file watching
+- Shopify theme development server
+- All processes run concurrently for optimal development experience
 
+### Build for Production
 
-**Deploy on Cloudflare:** If you want to deploy the Gatsby site to Cloudflare we added a wrangler.toml and `workers-site/` to both studio and web.
+```shell
+$ npm run tailwind:build
+```
 
-* Follow quickstart for wrangler: https://developers.cloudflare.com/workers/quickstart
-* Edit wrangler.toml's according to where you'd like studio and web to get deployed to
-* Run `npm run worker-deploy`
+Generates minified CSS and optimized JavaScript bundles for production deployment.
 
-## Contributing
+### Available Scripts
 
-1. [Fork it](https://https://github.com/sanity-io/example-company-website-gatsby-sanity-combo/fork)
-2. Create your feature branch (`git checkout -b feature/fooBar`)
-3. Commit your changes (`git commit -am 'Add some fooBar'`)
-4. Push to the branch (`git push origin feature/fooBar`)
-5. Create a new Pull Request
+- `npm run shopify:serve` - Start Shopify development server only
+- `npm run scripts:build` - Build JavaScript files once
+- `npm run scripts:watch` - Watch and rebuild JavaScript files
+- `npm run lint:liquid` - Lint Liquid templates
+- `npm run lint:js` - Lint JavaScript files  
+- `npm run lint:css` - Lint CSS files
 
-## License
+## Architecture
 
-MIT
+### Build System
+
+The theme uses a custom JavaScript build system (`build-scripts.js`) that:
+- Processes ES6 imports from `_scripts/` directory
+- Concatenates files in dependency order
+- Outputs bundled JavaScript to `assets/index.js`
+
+**Entry Point:** `_scripts/main.js`
+**Output:** `assets/index.js`
+
+### CSS Processing
+
+Tailwind CSS v4 with CLI processes styles:
+- Source: `_styles/main.css`
+- Output: `assets/style.css`
+- Includes PostCSS processing and autoprefixing
+
+## Git Workflow
+
+### Branch Strategy
+- `main` - Production branch synced with live theme
+- Feature branches for development
+- Pull requests required for main branch
+
+### Issue Tracking
+Issues tracked via project management system.
+
+### Commit Convention
+
+Follow conventional commit format with emoji prefixes:
+
+```
+<emoji> <type>: <description>
+```
+
+**Types:**
+- 🔨 `fix:` - Bug fixes
+- 🚀 `feat:` - New features  
+- 🏗️ `refactor:` - Code refactoring
+- 🎨 `style:` - UI/styling changes
+- 🔥 `remove:` - Code removal
+- 🤖 `chore:` - Maintenance tasks
+- 📝 `docs:` - Documentation
+- ⬆️ `upgrade:` - Dependencies
+
+**Example:**
+```
+🔨 fix: modal close button not working
+
+Click event was failing due to querySelector typo
+```
+
+## Project Structure
+
+```text
+Voldt/
+├── _scripts/                  📁 JavaScript source files
+│   ├── main.js               📄 Build system entry point
+│   ├── utils/                📁 Utility functions
+│   └── *.js                  📄 Component scripts
+├── _styles/                   📁 CSS source files  
+│   ├── main.css              📄 Tailwind entry point
+│   ├── atoms/                📁 Atomic design components
+│   ├── molecules/            📁 Molecular design components
+│   └── core/                 📁 Base styles
+├── assets/                    📁 Compiled assets & static files
+│   ├── index.js              📄 Compiled JavaScript bundle
+│   ├── style.css             📄 Compiled CSS
+│   └── *.{woff2,png,js}      📄 Fonts, images, vendor scripts
+├── blocks/                    📁 Theme blocks (Shopify 2.0)
+├── config/                    📁 Theme settings
+├── layout/                    📁 Layout templates
+├── locales/                   📁 Translation files
+├── sections/                  📁 Theme sections
+│   ├── s--*.liquid           📄 Standalone sections
+│   ├── api--*.liquid         📄 API/AJAX sections
+│   └── *.liquid              📄 Standard sections
+├── snippets/                  📁 Reusable code snippets
+│   ├── a--*.liquid           📄 Atomic components
+│   ├── m--*.liquid           📄 Molecular components
+│   └── *.liquid              📄 Utility snippets
+├── templates/                 📁 Page templates
+├── build-scripts.js           📄 Custom JavaScript build system
+├── nodemon.json              📄 File watcher configuration
+└── package.json              📄 Dependencies and scripts
+```
+
+### Naming Conventions
+
+- `s--` prefix for standalone sections
+- `api--` prefix for AJAX/API sections  
+- `<template>--` prefix for template specific sections
+- `a--` prefix for atomic components
+- `m--` prefix for molecular components
+- `_` prefix for source directories (not deployed)
+- test

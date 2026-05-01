@@ -1,0 +1,41 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin language editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "general": {
+    "cart": {
+      "title": "Din varukorg"
+    }
+  },
+  "sections": {
+    "cart": {
+      "cart": "Varukorg",
+      "title": "Din varukorg",
+      "caption": "Artiklar",
+      "remove_title": "Ta bort {{ title }}",
+      "subtotal": "Delsumma",
+      "new_subtotal": "Ny delsumma",
+      "total": "Totalt",
+      "shipping_text": "Beräknas i kassan",
+      "shipping": "Frakt",
+      "note": "Orderkommentar",
+      "checkout": "Till kassan",
+      "empty": "Din varukorg är tom",
+      "add_items": "Lägg till produkter för att fortsätta",
+      "cart_error": "Fel vid uppdatering av varukorg. Försök igen.",
+      "cart_quantity_error_html": "Du kan endast lägga till {{ quantity }} st",
+      "savings": "Besparing",
+      "store_credit": "Butikskredit (om tillämpligt)",
+      "store_credit_text_html": "Du har <span class=\"text-green\">{{ amount }}</span> i kredit",
+      "add_a_gift_message": "Lägg till presentmeddelande",
+      "add_a_gift_message_tooltip": "Mottagaren får e-post vid leverans. Returinfo ingår. Presentkort skickas inom 2 timmar.",
+      "checkout_button_usp_text": "100 dagars retur & 3 års garanti"
+    }
+  }
+}

@@ -1,0 +1,61 @@
+<!--
+  ___| | ___  ___| |_ _ __(_) ___ _ __ ___   __ _ _   _| |__   ___ 
+ / _ \ |/ _ \/ __| __| '__| |/ __| '_ ` _ \ / _` | | | | '_ \ / _ \
+|  __/ |  __/ (__| |_| |  | | (__| | | | | | (_| | |_| | |_) |  __/
+ \___|_|\___|\___|\__|_|  |_|\___|_| |_| |_|\__,_|\__, |_.__/ \___|
+                                                  |___/            
+https://www.electricmaybe.com
+We're hiring!
+-->
+<!doctype html>
+<html class="no-js" lang="{{ request.locale.iso_code }}">
+  {% # theme-check-disable ContentForHeaderModification %}
+  <head>
+    <meta name="google-site-verification" content="c2SHw2l-68EwnmEuSAcyrPviydYHl8jPLH1ziaA3UCA" />
+    {%- liquid
+      render '_head-urgent-script'
+      render '_script-blocker'
+      render '_meta-tags'
+      render '_meta-sharing'
+      render '_head-seo'
+      render '_head-typography'
+      render '_head-style'
+      render '_head-script'
+      # remove jam script from production
+      render '_jam-script'
+      echo content_for_header
+    -%}
+    {%- if template.name == 'index' -%}
+      {% render '_head-electric-maybe-landing' %}
+    {%- endif -%}
+  </head>
+  {% # theme-check-enable ContentForHeaderModification %}
+  <body
+    id="{{ page_title | handle }}"
+    class="text-body font-body overflow-x-hidden bg-surface {{ template.name }} template-{{ request.page_type | handle }}"
+    data-instant-allow-query-string
+  >
+    {%- liquid
+      comment
+      render '_body-splash-screen'
+      endcomment
+      echo 'accessibility.skip_to_text' | t | link_to: '#MainContent', class: 'sr-only focus:z-9999 w-auto h-auto'
+      if template.name != 'index'
+        sections 'header-group'
+        sections 'overlay-groups'
+      endif
+      echo '<main id="MainContent" role="main" class="main-content" tabindex="-1">'
+      echo content_for_layout
+      echo '</main>'
+      if template.name != 'index'
+        sections 'footer-group'
+      endif
+      render '_body-script'
+    -%}
+    <style>
+      .hidden! {
+      display: none !important;
+    }
+    </style>
+  </body>
+</html>

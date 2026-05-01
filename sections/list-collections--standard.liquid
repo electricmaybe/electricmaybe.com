@@ -1,0 +1,161 @@
+{%- liquid
+  assign selected_collections = section.settings.collection_list
+  assign max_items = section.settings.max_items | default: 24
+  assign show_product_count = section.settings.show_product_count | default: true
+  assign desktop_columns = section.settings.desktop_columns | default: '4'
+  assign desktop_grid_class = 'lg:grid-cols-4'
+
+  case desktop_columns
+    when '3'
+      assign desktop_grid_class = 'lg:grid-cols-3'
+    when '4'
+      assign desktop_grid_class = 'lg:grid-cols-4'
+    when '5'
+      assign desktop_grid_class = 'lg:grid-cols-5'
+  endcase
+-%}
+
+<section class="section-collections-standard px-s-outer" aria-label="{{ 'sections.collections_standard.aria_label' | t }}">
+  <div class="px-s-inner">
+    <header class="mb-b-base">
+      <h1 class="h2">{{ 'sections.collections_standard.heading' | t }}</h1>
+    </header>
+
+    {%- if selected_collections != blank -%}
+      <ul class="grid grid-cols-2 md:grid-cols-3 gap-x-b-base gap-y-b-base {{ desktop_grid_class }}" role="list">
+        {%- for card_collection in selected_collections limit: max_items -%}
+          {%- liquid
+            assign card_image = card_collection.featured_image
+            if card_image == blank and card_collection.products.first != blank
+              assign card_image = card_collection.products.first.featured_image
+            endif
+          -%}
+          <li>
+            <a href="{{ card_collection.url }}" class="group block transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
+              <div class="bg-subtle overflow-hidden">
+                {% if card_image != blank %}
+                  <img
+                    src="{{ card_image | image_url: width: 800 }}"
+                    alt="{{ card_collection.title | escape }}"
+                    loading="lazy"
+                    width="400"
+                    height="320"
+                    class="w-full aspect-[1.25] object-cover"
+                  >
+                {% else %}
+                  <div class="w-full aspect-[1.25] bg-emphasis"></div>
+                {% endif %}
+              </div>
+              <div class="pt-b-sm">
+                <h2 class="text-ui-base">{{ card_collection.title }}</h2>
+                {% if show_product_count %}
+                  <p class="text-ui-base text-secondary font-heading">
+                    {{ 'sections.collections_standard.product_count' | t: count: card_collection.products_count }}
+                  </p>
+                {% endif %}
+              </div>
+            </a>
+          </li>
+        {%- endfor -%}
+      </ul>
+    {%- else -%}
+      {% paginate collections by max_items %}
+        <ul class="grid grid-cols-2 md:grid-cols-3 gap-x-b-base gap-y-b-base {{ desktop_grid_class }} pb-b-base" role="list">
+          {%- for card_collection in collections -%}
+            {%- if card_collection.handle == 'all' -%}
+              {%- continue -%}
+            {%- endif -%}
+            {%- liquid
+              assign card_image = card_collection.featured_image
+              if card_image == blank and card_collection.products.first != blank
+                assign card_image = card_collection.products.first.featured_image
+              endif
+            -%}
+            <li>
+              <a href="{{ card_collection.url }}" class="group block transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
+                <div class="bg-subtle overflow-hidden">
+                  {% if card_image != blank %}
+                    <img
+                      src="{{ card_image | image_url: width: 800 }}"
+                      alt="{{ card_collection.title | escape }}"
+                      loading="lazy"
+                      width="400"
+                      height="320"
+                      class="w-full aspect-[1.25] object-cover"
+                    >
+                  {% else %}
+                    <div class="w-full aspect-[1.25] bg-emphasis"></div>
+                  {% endif %}
+                </div>
+                <div class="pt-b-sm">
+                  <h2 class="font-heading text-primary text-ui-base">{{ card_collection.title }}</h2>
+                  {% if show_product_count %}
+                    <p class="font-heading text-secondary text-ui-base">
+                      {{ 'sections.collections_standard.product_count' | t: count: card_collection.products_count }}
+                    </p>
+                  {% endif %}
+                </div>
+              </a>
+            </li>
+          {%- endfor -%}
+        </ul>
+
+        {% render 'm--search-pagination', paginate: paginate %}
+      {% endpaginate %}
+    {%- endif -%}
+
+    {%- if selected_collections == blank and collections.size == 0 -%}
+      <p class="text-secondary text-ui-base mt-b-base">{{ 'sections.collections_standard.empty' | t }}</p>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Collections standard",
+  "tag": "section",
+  "class": "full-spaced-section",
+  "enabled_on": {
+    "templates": ["list-collections"]
+  },
+  "settings": [
+    {
+      "type": "collection_list",
+      "id": "collection_list",
+      "label": "Collections",
+      "info": "Optional. Leave empty to show all collections."
+    },
+    {
+      "type": "range",
+      "id": "max_items",
+      "min": 4,
+      "max": 48,
+      "step": 1,
+      "default": 24,
+      "label": "Maximum collections"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_product_count",
+      "label": "Show product count",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "desktop_columns",
+      "label": "Desktop columns",
+      "default": "4",
+      "options": [
+        { "value": "3", "label": "3" },
+        { "value": "4", "label": "4" },
+        { "value": "5", "label": "5" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+        "name": "Collections standard"
+    }
+  ]
+}
+{% endschema %}

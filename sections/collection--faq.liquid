@@ -1,0 +1,274 @@
+{%- liquid
+  assign heading = section.settings.heading
+  assign image = section.settings.image
+  assign link_url = section.settings.link_url
+  assign link_text = section.settings.link_text
+
+  # Collection FAQs (1..6) - each metafield is a single FAQ metaobject entry.
+  assign faq_1 = collection.metafields.custom.faq1.value | default: collection.metafields.custom.faq1
+  assign faq_2 = collection.metafields.custom.faq2.value | default: collection.metafields.custom.faq2
+  assign faq_3 = collection.metafields.custom.faq3.value | default: collection.metafields.custom.faq3
+  assign faq_4 = collection.metafields.custom.faq4.value | default: collection.metafields.custom.faq4
+  assign faq_5 = collection.metafields.custom.faq5.value | default: collection.metafields.custom.faq5
+  assign faq_6 = collection.metafields.custom.faq6.value | default: collection.metafields.custom.faq6
+  assign shop_faq_list = shop.metafields.custom.faq.value | default: shop.metafields.custom.faq
+
+  assign has_any_faq = false
+  if faq_1 != blank or faq_2 != blank or faq_3 != blank or faq_4 != blank or faq_5 != blank or faq_6 != blank or shop_faq_list != blank
+    assign has_any_faq = true
+  endif
+-%}
+
+{%- if has_any_faq -%}
+  <div class="px-s-whole py-s-base grid grid-cols-1 md:grid-cols-12 w-full gap-y-s-xl md:gap-x-b-base">
+    {%- if heading != blank -%}
+      <h2 class="display-2 md:col-span-12">
+        {{ heading }}
+      </h2>
+    {%- endif -%}
+
+    <div class="md:col-span-4 space-y-b-base">
+      {% render 'a--image', image: image, cols: 4, aspect_ratio: 1.5 %}
+      {% if link_url != blank and link_text != blank %}
+        <a href="{{ link_url }}" class="text-ui-small flex gap-x-b-base items-center">
+          {{ link_text }}
+          {% render 'a--icon', icon: 'arrow-right-l', width: '24px', height: '24px' %}
+        </a>
+      {% endif %}
+    </div>
+
+    <div class="lg:col-start-7 md:col-span-8 lg:col-span-8">
+      {%- liquid
+        assign seen = '||'
+        assign idx = 0
+
+        assign faq_obj = faq_1
+        if faq_obj != blank
+          assign faq_key = faq_obj.system.handle | default: faq_obj.system.id | default: faq_obj.question | default: '' | append: ''
+          assign faq_key = '||' | append: faq_key | append: '||'
+          unless seen contains faq_key
+            assign seen = seen | append: faq_key
+            assign idx = idx | plus: 1
+            assign q = faq_obj.question | default: faq_obj.question.value | default: faq_obj.question_text | default: ''
+            assign a = faq_obj.answer | metafield_tag
+            if faq_obj.system.url != blank
+              capture a
+                echo a
+                echo ' <a href="'
+                echo faq_obj.system.url
+                echo '" class="w-full inline-flex justify-end items-center gap-x-b-xs align-baseline">'
+                render 'a--icon', icon: 'arrow-right-l'
+                echo '</a>'
+              endcapture
+            endif
+            if q != blank or a != blank
+              render 'm--accordion', block: faq_obj, heading: q, body: a, title_size: 'text-base', index: idx, title_height: 'py-b-base', class: 'border-t-0 border-b!'
+            endif
+          endunless
+        endif
+
+        assign faq_obj = faq_2
+        if faq_obj != blank
+          assign faq_key = faq_obj.system.handle | default: faq_obj.system.id | default: faq_obj.question | default: '' | append: ''
+          assign faq_key = '||' | append: faq_key | append: '||'
+          unless seen contains faq_key
+            assign seen = seen | append: faq_key
+            assign idx = idx | plus: 1
+            assign q = faq_obj.question | default: faq_obj.question.value | default: faq_obj.question_text | default: ''
+            assign a = faq_obj.answer | metafield_tag
+            if faq_obj.system.url != blank
+              capture a
+                echo a
+                echo ' <a href="'
+                echo faq_obj.system.url
+                echo '" class="w-full inline-flex justify-end items-center gap-x-b-xs align-baseline">'
+                render 'a--icon', icon: 'arrow-right-l'
+                echo '</a>'
+              endcapture
+            endif
+            if q != blank or a != blank
+              render 'm--accordion', block: faq_obj, heading: q, body: a, title_size: 'text-base', index: idx, title_height: 'py-b-base', class: 'border-t-0 border-b!'
+            endif
+          endunless
+        endif
+
+        assign faq_obj = faq_3
+        if faq_obj != blank
+          assign faq_key = faq_obj.system.handle | default: faq_obj.system.id | default: faq_obj.question | default: '' | append: ''
+          assign faq_key = '||' | append: faq_key | append: '||'
+          unless seen contains faq_key
+            assign seen = seen | append: faq_key
+            assign idx = idx | plus: 1
+            assign q = faq_obj.question | default: faq_obj.question.value | default: faq_obj.question_text | default: ''
+            assign a = faq_obj.answer | metafield_tag
+            if faq_obj.system.url != blank
+              capture a
+                echo a
+                echo ' <a href="'
+                echo faq_obj.system.url
+                echo '" class="w-full inline-flex justify-end items-center gap-x-b-xs align-baseline">'
+                render 'a--icon', icon: 'arrow-right-l'
+                echo '</a>'
+              endcapture
+            endif
+            if q != blank or a != blank
+              render 'm--accordion', block: faq_obj, heading: q, body: a, title_size: 'text-base', index: idx, title_height: 'py-b-base', class: 'border-t-0 border-b!'
+            endif
+          endunless
+        endif
+
+        assign faq_obj = faq_4
+        if faq_obj != blank
+          assign faq_key = faq_obj.system.handle | default: faq_obj.system.id | default: faq_obj.question | default: '' | append: ''
+          assign faq_key = '||' | append: faq_key | append: '||'
+          unless seen contains faq_key
+            assign seen = seen | append: faq_key
+            assign idx = idx | plus: 1
+            assign q = faq_obj.question | default: faq_obj.question.value | default: faq_obj.question_text | default: ''
+            assign a = faq_obj.answer | metafield_tag
+            if faq_obj.system.url != blank
+              capture a
+                echo a
+                echo ' <a href="'
+                echo faq_obj.system.url
+                echo '" class="w-full inline-flex justify-end items-center gap-x-b-xs align-baseline">'
+                render 'a--icon', icon: 'arrow-right-l'
+                echo '</a>'
+              endcapture
+            endif
+            if q != blank or a != blank
+              render 'm--accordion', block: faq_obj, heading: q, body: a, title_size: 'text-base', index: idx, title_height: 'py-b-base', class: 'border-t-0 border-b!'
+            endif
+          endunless
+        endif
+
+        assign faq_obj = faq_5
+        if faq_obj != blank
+          assign faq_key = faq_obj.system.handle | default: faq_obj.system.id | default: faq_obj.question | default: '' | append: ''
+          assign faq_key = '||' | append: faq_key | append: '||'
+          unless seen contains faq_key
+            assign seen = seen | append: faq_key
+            assign idx = idx | plus: 1
+            assign q = faq_obj.question | default: faq_obj.question.value | default: faq_obj.question_text | default: ''
+            assign a = faq_obj.answer | metafield_tag
+            if faq_obj.system.url != blank
+              capture a
+                echo a
+                echo ' <a href="'
+                echo faq_obj.system.url
+                echo '" class="w-full inline-flex justify-end items-center gap-x-b-xs align-baseline">'
+                render 'a--icon', icon: 'arrow-right-l'
+                echo '</a>'
+              endcapture
+            endif
+            if q != blank or a != blank
+              render 'm--accordion', block: faq_obj, heading: q, body: a, title_size: 'text-base', index: idx, title_height: 'py-b-base', class: 'border-t-0 border-b!'
+            endif
+          endunless
+        endif
+
+        assign faq_obj = faq_6
+        if faq_obj != blank
+          assign faq_key = faq_obj.system.handle | default: faq_obj.system.id | default: faq_obj.question | default: '' | append: ''
+          assign faq_key = '||' | append: faq_key | append: '||'
+          unless seen contains faq_key
+            assign seen = seen | append: faq_key
+            assign idx = idx | plus: 1
+            assign q = faq_obj.question | default: faq_obj.question.value | default: faq_obj.question_text | default: ''
+            assign a = faq_obj.answer | metafield_tag
+            if faq_obj.system.url != blank
+              capture a
+                echo a
+                echo ' <a href="'
+                echo faq_obj.system.url
+                echo '" class="w-full inline-flex justify-end items-center gap-x-b-xs align-baseline">'
+                render 'a--icon', icon: 'arrow-right-l'
+                echo '</a>'
+              endcapture
+            endif
+            if q != blank or a != blank
+              render 'm--accordion', block: faq_obj, heading: q, body: a, title_size: 'text-base', index: idx, title_height: 'py-b-base', class: 'border-t-0 border-b!'
+            endif
+          endunless
+        endif
+
+        # Global shop FAQs (new): shop.metafields.custom.faq (metaobject list)
+        if shop_faq_list != blank
+          for faq_obj in shop_faq_list
+            if faq_obj == blank
+              continue
+            endif
+            assign faq_key = faq_obj.system.handle | default: faq_obj.system.id | default: faq_obj.question | default: '' | append: ''
+            assign faq_key = '||' | append: faq_key | append: '||'
+            unless seen contains faq_key
+              assign seen = seen | append: faq_key
+              assign idx = idx | plus: 1
+              assign q = faq_obj.question | default: faq_obj.question.value | default: faq_obj.question_text | default: ''
+              assign a = faq_obj.answer | metafield_tag
+              if faq_obj.system.url != blank
+                capture a
+                  echo a
+                  echo ' <a href="'
+                  echo faq_obj.system.url
+                  echo '" class="w-full inline-flex justify-end items-center gap-x-b-xs align-baseline">'
+                  render 'a--icon', icon: 'arrow-right-l'
+                  echo '</a>'
+                endcapture
+              endif
+              if q != blank or a != blank
+                render 'm--accordion', block: faq_obj, heading: q, body: a, title_size: 'text-base', index: idx, title_height: 'py-b-base', class: 'border-t-0 border-b!'
+              endif
+            endunless
+          endfor
+        endif
+      -%}
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Collection FAQ",
+  "tag": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "default": "Voldt® will integrate with your electric vehicle seamlessly.",
+      "label": "Heading"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "header",
+      "content": "Link below image"
+    },
+    {
+      "type": "url",
+      "id": "link_url",
+      "label": "URL"
+    },
+    {
+      "type": "text",
+      "id": "link_text",
+      "label": "Label"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Collection FAQ"
+    }
+  ]
+}
+{% endschema %}
+

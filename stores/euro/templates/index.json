@@ -1,0 +1,295 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "hero_vol37_car_search": {
+      "type": "s--hero-car-search",
+      "name": "Hero car search",
+      "blocks": {
+        "card_THFTAg": {
+          "type": "card",
+          "settings": {
+            "heading": "{{ metaobjects.standard_title[\"ev-charging-cables\"].title.value }}",
+            "description": "<p>{{ metaobjects.standard_title[\"charge-your-car-at-every-charging-station-in-europe\"].title.value }}</p>",
+            "button_label": "{{ metaobjects.standard_title[\"buy-ev-charging-cables\"].title.value }}",
+            "button_url": "shopify://collections/ev-charging-cables",
+            "image": "shopify://shop_images/image_3dbfda36-98f4-4050-a8c5-ecef96f95174.webp"
+          }
+        },
+        "card_t7HkxG": {
+          "type": "card",
+          "settings": {
+            "heading": "{{ metaobjects.standard_title[\"portable-charging-cables\"].title.value }}",
+            "description": "<p>{{ metaobjects.standard_title[\"charge-your-car-at-a-regular-wall-socket\"].title.value }}</p>",
+            "button_label": "{{ metaobjects.standard_title[\"buy-portable-chargers\"].title.value }}",
+            "button_url": "shopify://collections/auto-contact",
+            "image": "shopify://shop_images/Voldt_portable_chargers.webp"
+          }
+        }
+      },
+      "block_order": [
+        "card_THFTAg",
+        "card_t7HkxG"
+      ],
+      "settings": {
+        "overlay_header": true,
+        "sub_heading": "{{ metaobjects.standard_title[\"premium-european-quality\"].title.value }}",
+        "heading": "{{ metaobjects.standard_title[\"ev-charging-cables\"].title.value }}",
+        "body": "",
+        "search_placeholder": "{{ metaobjects.standard_title[\"search-your-car-or-product\"].title.value }}",
+        "search_aria_label": "search",
+        "height": "h-96",
+        "height_md": "md:h-80",
+        "height_lg": "lg:h-[24vw]",
+        "image_mobile": "shopify://shop_images/Voldt-website-main-page-main-visual-2_1.jpg",
+        "image_tablet": "shopify://shop_images/Voldt-website-main-page-main-visual-2_1.jpg",
+        "image_desktop": "shopify://shop_images/voldt-website-main-page-main-visual-1_1_282f51ce-1719-49c5-8cbf-9789bedc32ca.jpg",
+        "position_mobile": "items-center justify-center text-center",
+        "position_tablet": "md:items-center md:justify-center md:text-center",
+        "position_desktop": "lg:items-center lg:justify-start lg:text-left",
+        "overlay_color": "#000000",
+        "overlay_opacity": 30,
+        "overlay_blur": 0
+      }
+    },
+    "s_featured_collections_DNWqbH": {
+      "type": "s--featured-collections",
+      "blocks": {
+        "collection_MccCLw": {
+          "type": "collection",
+          "settings": {
+            "collection": "type-2",
+            "tab_title": ""
+          }
+        },
+        "collection_mnL98k": {
+          "type": "collection",
+          "settings": {
+            "collection": "auto-contact",
+            "tab_title": ""
+          }
+        },
+        "collection_hcFDWf": {
+          "type": "collection",
+          "settings": {
+            "collection": "accessoires",
+            "tab_title": ""
+          }
+        },
+        "collection_hn4wEt": {
+          "type": "collection",
+          "settings": {
+            "collection": "components",
+            "tab_title": ""
+          }
+        },
+        "collection_G7h3JM": {
+          "type": "collection",
+          "settings": {
+            "collection": "dc-fastcharging",
+            "tab_title": ""
+          }
+        }
+      },
+      "block_order": [
+        "collection_MccCLw",
+        "collection_mnL98k",
+        "collection_hcFDWf",
+        "collection_hn4wEt",
+        "collection_G7h3JM"
+      ],
+      "name": "Featured collections",
+      "settings": {}
+    },
+    "s_find_your_cable_PVk9GM": {
+      "type": "s--find-your-cable",
+      "name": "Find Your Cable",
+      "settings": {
+        "main_heading": "{{ metaobjects.standard_title[\"find-your-cable\"].title.value }}",
+        "search_heading": "Search your car",
+        "search_description": "",
+        "search_placeholder": "{{ metaobjects.standard_title[\"search-your-car-or-product\"].title.value }}",
+        "socket_heading": "{{ metaobjects.standard_title[\"or-pick-your-station-socket-1\"].title.value }}",
+        "socket_description": "",
+        "station_sockets": [
+          "type-2-1",
+          "type-3",
+          "cee-32-a-22-k-w",
+          "cee-16-a-11-k-w",
+          "cee-32-a-7-4-k-w",
+          "cee-16-a-3-7-k-w",
+          "schuko-type-f",
+          "3-pin-type-g"
+        ],
+        "car_sockets": [
+          "type-2",
+          "type-1",
+          "type-3"
+        ],
+        "car_socket_heading": "Pick your car socket",
+        "car_socket_description": ""
+      }
+    },
+    "s_reviews_akJV9y": {
+      "type": "s--reviews",
+      "name": "Reviews",
+      "settings": {
+        "heading": "{{ metaobjects.standard_title[\"join-20-000-ev-drivers-across-europe-from-the-netherlands-to-norway-who-trust-voldt-to-keep-them-powered-every-day-everywhere\"].title.value }}"
+      }
+    },
+    "s_featured_collection_bC7j8R": {
+      "type": "s--featured-collection",
+      "name": "Featured collection",
+      "settings": {
+        "use_related_products": false,
+        "collection": "accessoires",
+        "title": "{{ metaobjects.standard_title[\"complete-your-charging-setup\"].title.value }}",
+        "products_to_show": 12
+      }
+    },
+    "s_blog_articles_TPmRTF": {
+      "type": "s--blog-articles",
+      "name": "Blog articles",
+      "settings": {
+        "heading": "Blog articles",
+        "view_all_label": "View all",
+        "blog": "news"
+      }
+    },
+    "s_history_of_voldt_D36yYg": {
+      "type": "s--history-of-voldt",
+      "name": "History of Voldt",
+      "settings": {
+        "heading": "",
+        "body_text": "{{ metaobjects.home_page_content[\"home-page-content-asztuhoq\"][\"1st_block\"] | metafield_tag }}",
+        "image_1": "shopify://shop_images/Frame_31457259.png"
+      }
+    },
+    "s_become_a_partner_zUqBek": {
+      "type": "s--become-a-partner",
+      "name": "Become a partner",
+      "settings": {
+        "heading": "Become an Official Voldt® Reseller in the UK",
+        "body": "<p>Reliable stock, flexible dropshipping, high margins, and full support for your business growth.</p>",
+        "button_label": "Apply now",
+        "button_url": "shopify://pages/become-a-partner",
+        "image": "shopify://shop_images/214daf6cbe7e4699f469b26a82b05fd0e0018856.png",
+        "benefits": "Order directly from European manufacturer\nUp to 40% discount & 2-3 year warranty\nTailored products in your brand & color\nOptional dropshipping to 15 EU countries\n30-day invoice payment terms"
+      }
+    },
+    "s_featured_collection_ziAxhi": {
+      "type": "s--featured-collection",
+      "name": "Featured collection",
+      "settings": {
+        "use_related_products": false,
+        "collection": "accessoires",
+        "title": "",
+        "products_to_show": 12
+      }
+    },
+    "s_faq_list_Rewm74": {
+      "type": "s--faq-list",
+      "name": "t:global.faq_list",
+      "settings": {
+        "faq_list": [
+          "why-cant-you-extend-an-ev-charging-cable",
+          "what-is-the-difference-between-the-male-and-female-sides-of-an-ev-charging-cable-plug",
+          "in-what-order-do-you-charge-your-electric-car",
+          "what-is-mode-3-charging-ev",
+          "do-voldt-charging-cables-lose-power-due-to-their-length",
+          "what-warranty-do-i-get",
+          "do-the-cables-fit-all-uk-stations",
+          "what-is-the-difference-between-mode-1-mode-2-mode-3-and-mode-4-charging",
+          "what-is-temperature-protection-in-ev-charging-cables",
+          "what-is-grounding-protection-earth-protection-in-ev-charging"
+        ],
+        "shrink_others": true,
+        "heading": "{{ metaobjects.standard_title[\"voldt-will-integrate-with-your-electric-vehicle-seamlessly\"].title.value }}",
+        "image": "shopify://shop_images/voldt-page-cover-2_3.png",
+        "link_url": "shopify://pages/faq",
+        "link_text": "{{ metaobjects.standard_title[\"all-frequently-asked-questions\"].title.value }}"
+      }
+    },
+    "s_split_content_blocks_kyKrer": {
+      "type": "s--split-content-blocks",
+      "blocks": {
+        "split_block_apjUdD": {
+          "type": "split_block",
+          "settings": {
+            "layout": "text_left",
+            "theme": "light",
+            "title": "",
+            "description": "{{ metaobjects.home_page_content[\"home-page-content-asztuhoq\"][\"2nd_block\"] | metafield_tag }}",
+            "button_label": "",
+            "button_url": "",
+            "image": "shopify://shop_images/voldt-CEE-cable-visual.jpg"
+          }
+        },
+        "split_block_UWABBV": {
+          "type": "split_block",
+          "settings": {
+            "layout": "image_left",
+            "theme": "light",
+            "title": "",
+            "description": "{{ metaobjects.home_page_content[\"home-page-content-asztuhoq\"][\"3rd_block\"] | metafield_tag }}",
+            "button_label": "",
+            "button_url": "",
+            "image": "shopify://shop_images/voldt-thank-you-card-front-lifestyle-image_1.png"
+          }
+        },
+        "split_block_WzNxVY": {
+          "type": "split_block",
+          "settings": {
+            "layout": "text_left",
+            "theme": "light",
+            "title": "",
+            "description": "{{ metaobjects.home_page_content[\"home-page-content-asztuhoq\"][\"4th_block\"] | metafield_tag }}",
+            "button_label": "",
+            "button_url": "",
+            "image": "shopify://shop_images/voldt-standard-cable-charging-pole-image-2.jpg"
+          }
+        },
+        "split_block_XwYncJ": {
+          "type": "split_block",
+          "settings": {
+            "layout": "image_left",
+            "theme": "light",
+            "title": "",
+            "description": "{{ metaobjects.home_page_content[\"home-page-content-asztuhoq\"][\"5th_block\"] | metafield_tag }}",
+            "button_label": "",
+            "button_url": "",
+            "image": "shopify://shop_images/voldt-amazon-a-plus-page-lifestyle-image-minimal.jpg"
+          }
+        }
+      },
+      "block_order": [
+        "split_block_apjUdD",
+        "split_block_UWABBV",
+        "split_block_WzNxVY",
+        "split_block_XwYncJ"
+      ],
+      "name": "Split content blocks",
+      "settings": {}
+    }
+  },
+  "order": [
+    "hero_vol37_car_search",
+    "s_featured_collections_DNWqbH",
+    "s_find_your_cable_PVk9GM",
+    "s_reviews_akJV9y",
+    "s_featured_collection_bC7j8R",
+    "s_blog_articles_TPmRTF",
+    "s_history_of_voldt_D36yYg",
+    "s_become_a_partner_zUqBek",
+    "s_featured_collection_ziAxhi",
+    "s_faq_list_Rewm74",
+    "s_split_content_blocks_kyKrer"
+  ]
+}

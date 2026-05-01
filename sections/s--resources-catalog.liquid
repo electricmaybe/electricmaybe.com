@@ -1,0 +1,159 @@
+{%- liquid
+  assign title = section.settings.title
+  assign description = section.settings.description
+  assign button_label = section.settings.button_label
+  assign pdf_url = section.settings.pdf_url
+  assign image = section.settings.image
+  assign overlay_title = section.settings.overlay_title
+  assign overlay_subtitle = section.settings.overlay_subtitle
+  assign overlay_label = section.settings.overlay_label
+  assign overlay_logo = section.settings.overlay_logo
+  assign download_url = pdf_url
+  assign overlay_logo_alt = overlay_title | default: shop.name | escape
+-%}
+
+<section class="px-s-outer py-s-base">
+  <div class="px-s-inner">
+      <div class="flex flex-col gap-y-s-base md:grid md:grid-cols-12 md:items-start md:gap-x-s-xl">
+       <div class="flex flex-col gap-y-s-base order-last md:order-0 md:col-span-6 md:col-start-1 lg:col-span-6 lg:col-start-1">
+        {%- if title != blank -%}
+          <h2 class="h3 text-primary">
+            {{ title | escape }}
+          </h2>
+        {%- endif -%}
+        {%- if description != blank -%}
+          <div class="rte text-body text-primary">
+            {{ description }}
+          </div>
+        {%- endif -%}
+        {%- if download_url != blank and button_label != blank -%}
+          <a
+            href="{{ download_url }}"
+            class="flex items-center gap-x-b-base h-14 px-b-lg rounded-full color-schema-contrast bg-surface border-2 border-primary text-ui-base leading-[1.2] w-fit max-lg:w-full max-lg:justify-center"
+            target="_blank"
+            rel="noopener"
+          >
+            <span>{{ button_label | escape }}</span>
+            <span class="w-6 h-6">
+              {%- render 'a--icon', icon: 'download', class: 'w-full h-full text-on-accent' -%}
+            </span>
+          </a>
+        {%- endif -%}
+      </div>
+
+       <div class="hidden lg:block lg:col-span-2 lg:col-start-7" aria-hidden="true"></div>
+        <div class="order-first md:order-0 md:col-span-6 md:col-start-7 lg:col-span-4 lg:col-start-9">
+        <div class="relative overflow-hidden">
+          {%- if image != blank -%}
+            {%- render 'a--image',
+              image: image,
+              cols: 6,
+              aspect_ratio: 1.25,
+              picture_class: 'w-full aspect-square md:aspect-[5/6] overflow-hidden',
+              image_class: 'w-full h-full object-cover',
+              object_fit: 'object-cover',
+              crop: 'center'
+            -%}
+          {%- endif -%}
+          <div class="absolute inset-0 bg-black/20"></div>
+          <div class="absolute inset-0 flex flex-col text-on-accent text-center px-s-inner z-10 py-s-xs gap-y-s-base">
+            <div class="flex-1 flex flex-col items-center justify-center gap-y-s-xs">
+              {%- if overlay_title != blank -%}
+                <p class="h2">
+                  {{ overlay_title | escape }}
+                </p>
+              {%- endif -%}
+              {%- if overlay_subtitle != blank -%}
+                <p class="h5">
+                  {{ overlay_subtitle | escape }}
+                </p>
+              {%- endif -%}
+              {%- if overlay_label != blank -%}
+                <p class="h5">
+                  {{ overlay_label | escape }}
+                </p>
+              {%- endif -%}
+            </div>
+            {%- if overlay_logo != blank -%}
+              <div class="flex justify-center pb-s-base pointer-events-none">
+                {{
+                  overlay_logo
+                  | image_url: width: 280
+                  | image_tag: loading: 'lazy', alt: overlay_logo_alt, class: 'w-36 h-auto object-contain [filter:brightness(0)_invert(1)]'
+                }}
+              </div>
+            {%- endif -%}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Resources catalog",
+  "tag": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "Cable catalog"
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "Description",
+      "default": "<p>Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum</p>"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Download brochure"
+    },
+    {
+      "type": "url",
+      "id": "pdf_url",
+      "label": "PDF URL"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "overlay_title",
+      "label": "Overlay title",
+      "default": "Voldt Cables"
+    },
+    {
+      "type": "text",
+      "id": "overlay_subtitle",
+      "label": "Overlay subtitle",
+      "default": "Flexible and durable charging cable"
+    },
+    {
+      "type": "text",
+      "id": "overlay_label",
+      "label": "Overlay label",
+      "default": "Catalog"
+    },
+    {
+      "type": "image_picker",
+      "id": "overlay_logo",
+      "label": "Overlay logo"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Resources catalog"
+    }
+  ]
+}
+{% endschema %}

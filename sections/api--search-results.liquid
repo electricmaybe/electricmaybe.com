@@ -1,0 +1,18 @@
+{%- liquid
+  layout none
+  echo '<div data-search-results-container>'
+  render 'm--search-results', results: search
+  echo '</div>'
+-%}
+
+{% schema %}
+{
+  "name": "API - Search results",
+  "tag": "section",
+  "enabled_on": {
+    "templates": ["search"]
+  },
+  "settings": []
+}
+{% endschema %}
+

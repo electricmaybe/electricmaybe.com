@@ -1,0 +1,74 @@
+/* ============================================
+   PRICE RANGE COMPONENT
+   Native dual-range slider implementation
+   ============================================ */
+
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+.price-range-slider::-webkit-slider-thumb {
+  @apply pointer-events-auto appearance-none cursor-pointer;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background: var(--fill-color-primary);
+  border: 2px solid var(--background-color-contrast);
+  position: relative;
+  z-index: 2;
+}
+
+/* Larger thumbs on mobile/touch devices */
+@media (pointer: coarse) {
+  .price-range-slider::-webkit-slider-thumb {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+/* Firefox */
+.price-range-slider::-moz-range-thumb {
+  @apply pointer-events-auto cursor-pointer border-0;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background: var(--fill-color-primary);
+  border: 2px solid var(--background-color-contrast);
+  position: relative;
+  z-index: 2;
+}
+
+/* Larger thumbs on mobile/touch devices */
+@media (pointer: coarse) {
+  .price-range-slider::-moz-range-thumb {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+/* Remove default tracks */
+.price-range-slider::-webkit-slider-runnable-track {
+  @apply appearance-none bg-transparent border-0;
+}
+
+.price-range-slider::-moz-range-track {
+  @apply appearance-none bg-transparent border-0;
+}
+
+.price-range-slider:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2);
+}
+
+.price-range-slider:focus::-moz-range-thumb {
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Active range bar */
+.price-range-active {
+  background: linear-gradient(
+    to right, 
+    transparent var(--range-min), 
+    var(--fill-color-primary) var(--range-min), 
+    var(--fill-color-primary) var(--range-max), 
+    transparent var(--range-max)
+  );
+}
+

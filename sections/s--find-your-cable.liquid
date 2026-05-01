@@ -1,0 +1,580 @@
+{%- liquid
+  assign station_sockets = section.settings.station_sockets
+  assign car_sockets = section.settings.car_sockets
+-%}
+<find-your-cable id="find-your-cable" class="flex flex-col items-center justify-center px-s-outer py-s-base lg:items-start lg:justify-start gap-y-s-base">
+  {% if section.settings.main_heading != blank %}
+    <h2 class="h1 text-center lg:text-left px-s-inner w-full mb-0 pb-0">{{ section.settings.main_heading }}</h2>
+  {% endif %}
+  <div class="flex flex-col gap-y-s-xl lg:gap-y-s-base px-s-inner w-full lg:flex-row lg:gap-x-b-base lg:items-start">
+    {%- comment -%} Search Your Car Section {%- endcomment -%}
+    <div class="flex flex-col gap-y-b-base items-center justify-center lg:flex-1 lg:items-start lg:text-left">
+      <div class="flex flex-col gap-y-b-base items-center text-center lg:items-start lg:text-left">
+        <h2 class="h2">{{ section.settings.search_heading | default: 'Search your car' }}</h2>
+        {% if section.settings.search_description != blank %}
+          <div class="text-base lg:text-lg text-secondary max-w-md lg:max-w-[448px] [&_p]:m-0">
+            {{ section.settings.search_description }}
+          </div>
+        {% endif %}
+      </div>
+      
+      <find-my-car class="w-full m-auto lg:m-0 max-w-[384px] lg:max-w-[448px] relative flex justify-end items-center gap-x-b-sm self-stretch h-[52px] py-b-xs px-b-lg lg:h-16 lg:py-b-xs lg:pr-b-xs lg:pl-b-lg lg:gap-x-b-sm rounded-[48px] border border-secondary bg-white shadow-[0_2px_4px_0_rgba(0,0,0,0.15)] focus-within:border-secondary group z-(--layer-dropdown)">
+        <input type="text" placeholder="{{ section.settings.search_placeholder | default: 'Search' }}" class="w-full h-full bg-transparent h5 font-light text-secondary placeholder:text-secondary placeholder:opacity-70 z-10 relative aria-expanded:rounded-b-none focus:outline-none peer" aria-label="{{ section.settings.search_placeholder | default: 'Search for your car type' }}" aria-autocomplete="list" aria-expanded="false" autocomplete="off">
+        <div class="absolute top-2 right-2 h-[36px] w-[36px] lg:h-12 lg:w-12 rounded-full bg-subtle flex items-center justify-center group-hover:brightness-90 peer-focus:brightness-90 z-10">
+          {%- render 'a--icon', icon: 'search', width: 32, class: 'w-[20px] h-[20px] lg:w-[24px] lg:h-[24px]' %}
+        </div>
+      </find-my-car>
+    </div>
+
+    {%- comment -%} Pick Station Socket Section {%- endcomment -%}
+    <div class="flex flex-col gap-y-b-base items-center justify-center lg:flex-1 lg:items-start lg:text-left">
+      <div class="flex flex-col gap-y-b-base items-center text-center lg:items-start lg:text-left">
+        <h2 class="h2">{{ section.settings.socket_heading | default: 'OR pick your station socket' }}</h2>
+        {% if section.settings.socket_description != blank %}
+          <div class="text-base lg:text-lg text-secondary max-w-md lg:max-w-[448px] [&_p]:m-0">
+            {{ section.settings.socket_description }}
+          </div>
+        {% endif %}
+      </div>
+      
+      <div class="flex flex-wrap gap-y-b-xs gap-x-b-base items-center justify-center lg:justify-start w-full" data-socket-list="station">
+        {%- for socket in station_sockets -%}
+          {%- liquid
+            assign socket_title = socket.title.value | default: socket.title | default: socket.name.value | default: socket.name | default: socket.socket_title.value | default: socket.socket_title
+            assign socket_image = socket.image.value | default: socket.image | default: socket.icon.value | default: socket.icon
+            assign socket_id = socket.system.id | default: socket.id | default: socket.handle
+          -%}
+          <button
+            type="button"
+            class="bg-white flex gap-1 lg:gap-2 items-center justify-center overflow-clip cursor-pointer py-b-xs px-b-xs lg:px-b-sm rounded-full shadow-[0_2px_4px_0_rgba(0,0,0,0.15)] hover:brightness-95 transition-colors shrink-0 min-w-[115px] lg:min-w-[135px]"
+            data-socket-button
+            data-socket-type="station"
+            data-socket-id="{{ socket_id }}"
+            data-socket-handle="{{ socket.handle }}"
+            data-socket-title="{{ socket_title | escape }}"
+          >
+            {% if socket_image != blank %}
+              <div class="h-12 w-12 shrink-0 rounded-full">
+                <img
+                  src="{{ socket_image | image_url: width: 96 }}"
+                  alt="{{ socket_title | default: 'Socket' | escape }}"
+                  width="48"
+                  height="40"
+                  class="w-full h-full object-contain pointer-events-none -mix-blend-darken"
+                >
+              </div>
+            {% endif %}
+            {% if socket_title != blank %}
+              <span class="font-body text-sm lg:text-lg lg:text-ui-base text-primary leading-[1.5]">{{ socket_title }}</span>
+            {% endif %}
+          </button>
+        {%- endfor -%}
+      </div>
+    </div>
+  </div>
+
+  <div class="fixed inset-0 hidden flex z-(--layer-modal) items-center justify-center" data-find-your-cable-modal aria-hidden="true">
+    <div class="absolute inset-0 bg-(--color-dune-950) opacity-20" data-modal-overlay></div>
+    <div class="relative w-full h-full flex items-center justify-center px-s-outer py-b-base">
+      <div class="py-b-base px-b-base lg:py-b-xl lg:px-b-xl w-full max-w-4xl bg-surface  p-b-base lg:p-b-xl relative shadow-[0_2px_12px_0_rgba(0,0,0,0.15)] max-h-full overflow-y-auto">
+        <button type="button" class="absolute top-0 right-0 w-12 h-12 bg-subtle text-background1 flex items-center justify-center" data-modal-close aria-label="{{ 'accessibility.close' | t }}">
+          {%- render 'a--icon', icon: 'close', width: 24 -%}
+        </button>
+        <div class="flex flex-col gap-y-s-base">
+          <div class="pr-8">
+            <h2 class="h2">{{ section.settings.socket_heading | default: 'OR pick your station socket' }}</h2>
+            {% if section.settings.socket_description != blank %}
+              <div class="text-base lg:text-lg text-secondary max-w-md lg:max-w-[448px] [&_p]:m-0">
+                {{ section.settings.socket_description }}
+              </div>
+            {% endif %}
+          </div>
+          <div class="flex flex-wrap gap-y-b-xs gap-x-b-base items-center" data-popup-station-list></div>
+          <div class="flex flex-col gap-y-b-base">
+            <h2 class="h2">{{ section.settings.car_socket_heading | default: 'Pick your car socket' }}</h2>
+            {% if section.settings.car_socket_description != blank %}
+              <div class="text-base lg:text-lg text-secondary max-w-md lg:max-w-[448px] [&_p]:m-0">
+                {{ section.settings.car_socket_description }}
+              </div>
+            {% endif %}
+            <div class="flex flex-wrap gap-y-b-xs gap-x-b-base items-center" data-popup-car-list></div>
+          </div>
+          <button
+            type="button"
+            class="w-full h-16 rounded-full bg-emphasis text-background1 text-ui-base font-body leading-[1.2] transition-colors opacity-60 cursor-not-allowed"
+            data-action-button
+            aria-disabled="true"
+            data-label-default="{{ 'sections.find_your_cable.select_car_socket' | t }}"
+            data-label-template="{{ 'sections.find_your_cable.shop_cables' | t: from: '%%FROM%%', to: '%%TO%%' }}"
+          >
+            {{ 'sections.find_your_cable.select_car_socket' | t }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="application/json" data-station-sockets>
+    [
+      {%- assign station_index = 0 -%}
+      {%- for socket in station_sockets -%}
+        {%- liquid
+          assign socket_title = socket.title.value | default: socket.title | default: socket.name.value | default: socket.name | default: socket.socket_title.value | default: socket.socket_title
+          assign socket_image = socket.image.value | default: socket.image | default: socket.icon.value | default: socket.icon
+          assign socket_id = socket.system.id | default: socket.id | default: socket.handle
+        -%}
+        {% if station_index > 0 %},{% endif %}
+        {
+          "id": {{ socket_id | json }},
+          "handle": {{ socket.handle | json }},
+          "title": {{ socket_title | json }},
+          "image": {{ socket_image | image_url: width: 96 | json }}
+        }
+        {%- assign station_index = station_index | plus: 1 -%}
+      {%- endfor -%}
+    ]
+  </script>
+  <script type="application/json" data-car-sockets>
+    [
+      {%- assign car_index = 0 -%}
+      {%- for socket in car_sockets -%}
+        {%- liquid
+          assign socket_title = socket.title.value | default: socket.title | default: socket.name.value | default: socket.name | default: socket.socket_title.value | default: socket.socket_title
+          assign socket_image = socket.image.value | default: socket.image | default: socket.icon.value | default: socket.icon
+          assign socket_id = socket.system.id | default: socket.id | default: socket.handle
+        -%}
+        {% if car_index > 0 %},{% endif %}
+        {
+          "id": {{ socket_id | json }},
+          "handle": {{ socket.handle | json }},
+          "title": {{ socket_title | json }},
+          "image": {{ socket_image | image_url: width: 96 | json }}
+        }
+        {%- assign car_index = car_index | plus: 1 -%}
+      {%- endfor -%}
+    ]
+  </script>
+  <script type="application/json" data-type-map>
+    [
+      {%- assign map_index = 0 -%}
+      {%- for type_item in shop.metaobjects.type.values -%}
+        {%- liquid
+          assign station_socket = type_item.station_socket.value | default: type_item.station_socket
+          assign car_socket = type_item.car_socket.value | default: type_item.car_socket
+          assign mapped_collection = type_item.combination_collection.value | default: type_item.combination_collection | default: type_item.collection.value | default: type_item.collection | default: type_item.cable_collection.value | default: type_item.cable_collection | default: type_item.products_collection.value | default: type_item.products_collection
+        -%}
+        {% if station_socket != blank and car_socket != blank %}
+          {% if map_index > 0 %},{% endif %}
+          {
+            "station_socket_id": {{ station_socket.system.id | default: station_socket.id | default: station_socket.handle | json }},
+            "station_socket_handle": {{ station_socket.handle | json }},
+            "car_socket_id": {{ car_socket.system.id | default: car_socket.id | default: car_socket.handle | json }},
+            "car_socket_handle": {{ car_socket.handle | json }},
+            "collection_url": {{ mapped_collection.url | default: '' | json }}
+          }
+          {%- assign map_index = map_index | plus: 1 -%}
+        {% endif %}
+      {%- endfor -%}
+    ]
+  </script>
+  <script>
+    class FindYourCable extends HTMLElement {
+      #isConnected = false;
+      #abortController = null;
+      #elements = null;
+      #handleClickBound = null;
+      #stationSockets = [];
+      #carSockets = [];
+      #typeMap = [];
+      #selectedStation = null;
+      #selectedCar = null;
+      #selectedCollectionUrl = '';
+      #previousFocus = null;
+
+      connectedCallback() {
+        if (this.#isConnected) return;
+
+        try {
+          this.#setupDOM();
+          this.#setupData();
+          this.#setupEventListeners();
+          this.#isConnected = true;
+        } catch (error) {
+          console.error('FindYourCable: Error in connectedCallback', error);
+        }
+      }
+
+      disconnectedCallback() {
+        if (!this.#isConnected) return;
+        this.#abortController?.abort();
+        this.#isConnected = false;
+      }
+
+      #setupDOM() {
+        this.#elements = {
+          stationButtons: this.querySelectorAll('[data-socket-button][data-socket-type="station"]'),
+          modal: this.querySelector('[data-find-your-cable-modal]'),
+          modalClose: this.querySelector('[data-modal-close]'),
+          popupStationList: this.querySelector('[data-popup-station-list]'),
+          popupCarList: this.querySelector('[data-popup-car-list]'),
+          actionButton: this.querySelector('[data-action-button]')
+        };
+      }
+
+      #setupData() {
+        this.#stationSockets = this.#parseJSON('[data-station-sockets]');
+        this.#carSockets = this.#parseJSON('[data-car-sockets]');
+        this.#typeMap = this.#parseJSON('[data-type-map]');
+      }
+
+      #setupEventListeners() {
+        this.#abortController = new AbortController();
+        const { signal } = this.#abortController;
+        this.#handleClickBound = this.#handleClick.bind(this);
+        this.addEventListener('click', this.#handleClickBound, { signal });
+
+        this.#elements.modalClose?.addEventListener('click', () => this.#closeModal(), { signal });
+        this.#elements.actionButton?.addEventListener('click', () => this.#handleActionClick(), { signal });
+        this.#elements.modal?.addEventListener('click', (event) => {
+          if (event.target?.closest?.('[data-modal-overlay]')) {
+            this.#closeModal();
+          }
+        }, { signal });
+
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape' && this.#elements.modal?.classList.contains('hidden') === false) {
+            this.#closeModal();
+          }
+        }, { signal });
+      }
+
+      #handleClick(event) {
+        const button = event.target.closest('[data-socket-button][data-socket-type="station"]');
+        if (!button || !this.contains(button)) return;
+        const socketId = button.dataset.socketId || button.dataset.socketHandle;
+        if (!socketId) return;
+        this.#openModal(socketId);
+      }
+
+      #parseJSON(selector) {
+        const node = this.querySelector(selector);
+        if (!node) return [];
+        try {
+          return JSON.parse(node.textContent || '[]');
+        } catch (error) {
+          console.error('FindYourCable: Failed to parse JSON', error);
+          return [];
+        }
+      }
+
+      #openModal(socketId) {
+        if (!this.#elements.modal) return;
+        this.#selectedStation = socketId;
+        this.#selectedCar = null;
+        this.#selectedCollectionUrl = '';
+        this.#renderStationSockets();
+        this.#renderCarSockets();
+        this.#updateActionButton();
+
+        this.#previousFocus = document.activeElement;
+        this.#elements.modal.classList.remove('hidden');
+        this.#elements.modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('overflow-hidden');
+        this.#focusFirst();
+      }
+
+      #closeModal() {
+        this.#elements.modal?.classList.add('hidden');
+        this.#elements.modal?.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('overflow-hidden');
+        this.#previousFocus?.focus?.();
+      }
+
+      #renderStationSockets() {
+        if (!this.#elements.popupStationList) return;
+        this.#elements.popupStationList.innerHTML = '';
+
+        const fragment = document.createDocumentFragment();
+        for (const socket of this.#stationSockets) {
+          fragment.appendChild(this.#buildSocketButton(socket, 'station'));
+        }
+        this.#elements.popupStationList.appendChild(fragment);
+      }
+
+      #renderCarSockets() {
+        if (!this.#elements.popupCarList) return;
+        this.#elements.popupCarList.innerHTML = '';
+
+        const fragment = document.createDocumentFragment();
+        const availableCarIds = new Set();
+        for (const item of this.#typeMap) {
+          const stationMatches = this.#matchSocket(item.station_socket_id, item.station_socket_handle, this.#selectedStation);
+          if (stationMatches) {
+            availableCarIds.add(String(item.car_socket_id || ''));
+            if (item.car_socket_handle) {
+              availableCarIds.add(String(item.car_socket_handle));
+            }
+          }
+        }
+
+        for (const socket of this.#carSockets) {
+          const socketId = String(socket.id || '');
+          const socketHandle = String(socket.handle || '');
+          if (
+            availableCarIds.has(socketId) ||
+            (socketHandle && availableCarIds.has(socketHandle))
+          ) {
+            fragment.appendChild(this.#buildSocketButton(socket, 'car'));
+          }
+        }
+        this.#elements.popupCarList.appendChild(fragment);
+      }
+
+      #buildSocketButton(socket, type) {
+        const socketIdentifier = String(socket.id || socket.handle || '');
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = this.#getSocketButtonClass(type, socketIdentifier);
+        button.dataset.socketId = socketIdentifier;
+        button.dataset.socketHandle = String(socket.handle || '');
+        button.dataset.socketType = type;
+        button.dataset.socketTitle = socket.title || '';
+
+        if (socket.image) {
+          const imageWrap = document.createElement('div');
+          imageWrap.className = 'h-8 w-8 lg:h-12 lg:w-12 shrink-0';
+          const image = document.createElement('img');
+          image.src = socket.image;
+          image.alt = socket.title || 'Socket';
+          image.width = 48;
+          image.height = 40;
+          image.className = 'w-full h-full object-cover pointer-events-none -mix-blend-darken';
+          imageWrap.appendChild(image);
+          button.appendChild(imageWrap);
+        }
+
+        if (socket.title) {
+          const label = document.createElement('span');
+          label.className = 'font-body text-sm lg:text-lg lg:text-ui-base text-primary leading-[1.5]';
+          label.textContent = socket.title;
+          button.appendChild(label);
+        }
+
+        button.addEventListener('click', () => {
+          if (type === 'station') {
+            this.#selectedStation = socketIdentifier;
+            this.#selectedCar = null;
+            this.#selectedCollectionUrl = '';
+            this.#refreshButtonStates();
+            this.#renderCarSockets();
+            this.#updateActionButton();
+          } else {
+            this.#selectedCar = socketIdentifier;
+            this.#updateActionButton();
+            this.#refreshButtonStates();
+          }
+        }, { signal: this.#abortController?.signal });
+
+        return button;
+      }
+
+      #refreshButtonStates() {
+        const stationButtons = this.#elements.popupStationList?.querySelectorAll('button') || [];
+        const carButtons = this.#elements.popupCarList?.querySelectorAll('button') || [];
+
+        for (const button of stationButtons) {
+          button.className = this.#getSocketButtonClass('station', button.dataset.socketId);
+        }
+        for (const button of carButtons) {
+          button.className = this.#getSocketButtonClass('car', button.dataset.socketId);
+        }
+      }
+
+      #getSocketButtonClass(type, socketId) {
+        const isSelected = (type === 'station' && String(socketId) === String(this.#selectedStation)) ||
+          (type === 'car' && String(socketId) === String(this.#selectedCar));
+        return [
+          'bg-white flex gap-1 lg:gap-2 items-center justify-center overflow-clip py-b-xs px-b-xs lg:px-b-sm rounded-full shadow-[0_2px_4px_0_rgba(0,0,0,0.15)] cursor-pointer',
+          'transition-colors shrink-0 min-w-[115px] lg:min-w-[135px] border',
+          isSelected ? 'border-primary border! border-primary!' : 'border-transparent'
+        ].join(' ');
+      }
+
+      #updateActionButton() {
+        const button = this.#elements.actionButton;
+        if (!button) return;
+
+        if (this.#selectedStation && this.#selectedCar) {
+          const collectionUrl = this.#getSelectedCollectionUrl();
+          const fromTitle = this.#getSocketTitle(this.#selectedStation, this.#stationSockets);
+          const toTitle = this.#getSocketTitle(this.#selectedCar, this.#carSockets);
+          const template = button.dataset.labelTemplate || '';
+          button.textContent = template.replace('%%FROM%%', fromTitle).replace('%%TO%%', toTitle);
+          this.#selectedCollectionUrl = collectionUrl;
+
+          if (collectionUrl) {
+            button.classList.remove('opacity-60', 'cursor-not-allowed', 'bg-emphasis');
+            button.classList.add('bg-subtle', 'cursor-pointer');
+            button.setAttribute('aria-disabled', 'false');
+            button.disabled = false;
+          } else {
+            button.classList.add('opacity-60', 'cursor-not-allowed', 'bg-emphasis');
+            button.classList.remove('bg-subtle', 'cursor-pointer');
+            button.setAttribute('aria-disabled', 'true');
+            button.disabled = true;
+          }
+        } else {
+          button.textContent = button.dataset.labelDefault || '';
+          button.classList.add('opacity-60', 'cursor-not-allowed', 'bg-emphasis');
+          button.classList.remove('bg-subtle', 'cursor-pointer');
+          button.setAttribute('aria-disabled', 'true');
+          button.disabled = true;
+          this.#selectedCollectionUrl = '';
+        }
+      }
+
+      #getSocketTitle(socketId, list) {
+        const match = list.find((socket) => this.#matchSocket(socket.id, socket.handle, socketId));
+        return match?.title || '';
+      }
+
+      #matchSocket(socketId, socketHandle, selectedSocket) {
+        const selectedValue = String(selectedSocket || '');
+        if (!selectedValue) return false;
+        return String(socketId || '') === selectedValue || String(socketHandle || '') === selectedValue;
+      }
+
+      #getSelectedCollectionUrl() {
+        for (const item of this.#typeMap) {
+          const stationMatches = this.#matchSocket(item.station_socket_id, item.station_socket_handle, this.#selectedStation);
+          const carMatches = this.#matchSocket(item.car_socket_id, item.car_socket_handle, this.#selectedCar);
+          if (stationMatches && carMatches) {
+            return item.collection_url || '';
+          }
+        }
+
+        return '';
+      }
+
+      #handleActionClick() {
+        if (!this.#selectedCollectionUrl) return;
+
+        try {
+          window.location.assign(this.#selectedCollectionUrl);
+        } catch (error) {
+          console.error('FindYourCable: Failed to redirect to collection', error);
+        }
+      }
+
+      #focusFirst() {
+        const focusable = this.#elements.modal?.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        if (focusable?.length) {
+          focusable[0].focus();
+        }
+      }
+    }
+
+    if (!customElements.get('find-your-cable')) {
+      customElements.define('find-your-cable', FindYourCable);
+    }
+  </script>
+</find-your-cable>
+
+{% schema %}
+{
+  "name": "Find Your Cable",
+  "tag": "section",
+  "class": "section-find-your-cable",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Main Heading"
+    },
+    {
+      "type": "text",
+      "id": "main_heading",
+      "label": "Main Heading",
+      "default": "Find your cable"
+    },
+    {
+      "type": "header",
+      "content": "Search Your Car"
+    },
+    {
+      "type": "text",
+      "id": "search_heading",
+      "label": "Search Heading",
+      "default": "Search your car"
+    },
+    {
+      "type": "richtext",
+      "id": "search_description",
+      "label": "Search Description",
+      "default": "<p>Over 95% of EVs in Europe use a Type 2 cable but if you're unsure, just search your vehicle below.</p>"
+    },
+    {
+      "type": "text",
+      "id": "search_placeholder",
+      "label": "Search Placeholder",
+      "default": "Search"
+    },
+    {
+      "type": "header",
+      "content": "Pick Station Socket"
+    },
+    {
+      "type": "text",
+      "id": "socket_heading",
+      "label": "Socket Heading",
+      "default": "OR pick your station socket"
+    },
+    {
+      "type": "richtext",
+      "id": "socket_description",
+      "label": "Socket Description",
+      "default": "<p>We will show suitable car sockets afterwards to find the cables you can use.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Station Sockets"
+    },
+    {
+      "type": "metaobject_list",
+      "id": "station_sockets",
+      "label": "Station sockets",
+      "metaobject_type": "socket"
+    },
+    {
+      "type": "header",
+      "content": "Car Sockets"
+    },
+    {
+      "type": "metaobject_list",
+      "id": "car_sockets",
+      "label": "Car sockets",
+      "metaobject_type": "socket"
+    },
+    {
+      "type": "header",
+      "content": "Car Socket Text"
+    },
+    {
+      "type": "text",
+      "id": "car_socket_heading",
+      "label": "Car socket heading",
+      "default": "Pick your car socket"
+    },
+    {
+      "type": "richtext",
+      "id": "car_socket_description",
+      "label": "Car socket description",
+      "default": "<p>lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum</p>"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Find Your Cable"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,174 @@
+{%- doc -%}
+  Renders images in an optimized way. If no image is sent, placeholder svg is displayed.
+
+  @param {object} image - Image object to render.
+  @param {boolean} [retina] - Whether to output a 2x srcset variant.
+  @param {number} [cols] - Number of grid columns to derive image width from.
+  @param {number} [height] - Explicit image height in px.
+  @param {string} [alt] - Alt text override.
+  @param {boolean} [lazyload] - Whether to lazy load the image.
+  @param {string} [fetchpriority] - Fetch priority value ('high', 'low', or 'auto').
+  @param {string} [mask] - Optional mask modifier class suffix.
+  @param {string} [object_fit] - Object-fit utility class, e.g. 'object-cover'.
+  @param {number} [aspect_ratio] - Aspect ratio override used for sizing.
+  @param {string} [crop] - Crop mode for Shopify image_url.
+  @param {string} [wrapper_properties] - Additional attributes for the picture element.
+  @param {string} [wrapper_style] - Inline style additions for the picture element.
+  @param {string} [picture_class] - Additional classes for the picture wrapper.
+  @param {string} [image_class] - Additional classes for the img element.
+  @param {string} [placeholder_picture_class] - Extra classes when rendering placeholder wrapper.
+  @param {string} [placeholder_class] - Extra classes for placeholder SVG output.
+  @param {string} [placeholder] - Placeholder SVG key, defaults to 'image'.
+  @param {object} [section] - Section object used for loading strategy checks.
+  @param {object} [block] - Block object used for settings and Shopify attributes.
+  @param {string} [overlay_content] - HTML/Liquid content rendered above the image.
+  @param {boolean} [preload] - Whether to append a preload link on first section render.
+  @example
+  {% render 'a--image' image: section.settings.image
+  %}
+{%- enddoc -%}
+
+{%- liquid
+  assign crop = crop | default: 'center'
+
+  if object_fit == 'object-cover' and aspect_ratio == blank
+    assign picture_class = picture_class | append: ' h-full w-full'
+    assign image_class = image_class | append: ' h-full w-full'
+  endif
+
+  if aspect_ratio and aspect_ratio != 'adapt'
+    assign aspect_ratio = aspect_ratio | times: 1
+    assign object_fit = object_fit | default: 'object-cover'
+  else
+    assign aspect_ratio = image.aspect_ratio | default: image.value.aspect_ratio
+  endif
+  assign image_class = image_class | append: ' ' | append: object_fit
+  if aspect_ratio == nil
+    assign aspect_ratio = 1.77
+  endif
+
+  if height != blank
+    if cols == blank
+      assign width = height | times: aspect_ratio
+    else
+      assign width = cols | times: 105
+    endif
+
+  else
+    assign cols = cols | default: 4
+    assign width = cols | times: 105
+    assign height = width | divided_by: aspect_ratio
+    comment
+    if object_fit == 'object-contain'
+      assign height = width | divided_by: aspect_ratio
+    endif
+    endcomment
+  endif
+
+  unless lazyload
+    assign lazyload = false
+    if section and section.index > 2
+      assign lazyload = true
+    endif
+  endunless
+
+  unless fetchpriority
+    if lazyload
+      assign fetchpriority = 'auto'
+    else
+      assign fetchpriority = 'high'
+    endif
+  endunless
+
+  # define default retina settings
+  assign retina = true
+
+  assign retina_width = width | times: 2
+  assign retina_height = height | times: 2
+
+  assign wrapper_style = '--aspect-ratio: ' | append: aspect_ratio | append: ';' | append: wrapper_style
+
+  if image == blank
+    assign picture_class = picture_class | append: ' ' | append: placeholder_picture_class | append: ' relative'
+  endif
+
+  if overlay_content != blank
+    assign picture_class = picture_class | append: ' relative'
+  endif
+
+
+  assign image_class = image_class | append: ' grow block'
+
+  # define alttext fallbacks
+  assign alt = alt | default: image.alt | default: image.value.alt | default: ''
+
+  # final check for crop sizes
+  if object_fit != 'object-contain'
+    if width > image.width
+      assign width = image.width
+      assign retina_width = image.width
+    elsif retina_width > image.width
+      assign retina_width = image.width
+    endif
+    if height > image.height
+      assign height = image.height
+      assign retina_height = image.height
+    elsif retina_height > image.height
+      assign retina_height = image.height
+    endif
+  else
+    assign crop = false
+  endif
+
+  if lazyload
+    assign lazyload_height = 20 | divided_by: aspect_ratio
+  endif
+
+  if image != blank
+    if lazyload
+      assign img_src = image | image_url: width: 20, height: lazyload_height, crop: crop
+    else
+      assign img_src = image | image_url: width: width, height: height, crop: crop
+    endif
+  endif
+-%}
+
+<picture class="block {{ picture_class }} {% if mask %}mask mask--{{ mask }}{% endif %}"{% if block %} {{ block.shopify_attributes }}{% endif %} {{ wrapper_properties }} {% if wrapper_style %}style="{{ wrapper_style }}"{% endif %}>
+{% if image != blank %}
+  <img
+    src="{{ img_src }}"
+    {% comment %} onload="this.classList.remove('opacity-50', 'blur-sm')" {% endcomment %}
+
+    {% if lazyload %}data-{% endif %}srcset="{{ image | image_url: width: width, height: height, crop: crop }}{% if retina %}, 
+      {{ image | image_url: width: retina_width, height: retina_height, crop: crop }} 2x{% endif %}"
+    alt="{{ alt }}"
+    fetchpriority="{{ fetchpriority }}"
+    {% if fetchpriority == 'high' %}
+      loading="eager"
+      decoding="async"
+    {% endif %}
+    width="{{ width | round }}"
+    height="{{ height | round }}"
+    class="{{ image_class }} aspect-(--aspect-ratio) {% if lazyload %}lazyload{% endif %}">
+{% else %}
+  {%- liquid
+      assign placeholder_class = placeholder_class | append: '  ' | append: image_class
+      unless placeholder_class contains ' h-'
+        assign placeholder_class = placeholder_class | append: ' h-[var(--logo-height)] aspect-(--aspect-ratio)'
+      endunless
+      assign placeholder = placeholder | default: 'image'
+      echo placeholder | placeholder_svg_tag: placeholder_class
+  -%}
+{% endif %}
+{{ overlay_content }}
+</picture>
+{% if section.index == 1 and preload == true %}
+  <script>
+    // Preload critical images
+      const preloadLink = document.createElement('link');
+      preloadLink.rel = 'preload';
+      preloadLink.as = 'image';
+      preloadLink.href = '{{ image | image_url: width: width, height: height, crop: crop }}';
+      document.head.appendChild(preloadLink);
+  </script>
+{% endif %}

@@ -1,0 +1,118 @@
+{%- comment -%}
+  USAGE:
+
+  {%- render 'm--drawer'
+      title: title
+      content: context
+      id: id
+      positionMobile: 'left' | 'right' | 'bottom-auto' | 'bottom-to-top' | 'bottom-to-almost-top'
+      positionDesktop: 'right' | 'left' | 'top-to-bottom'
+  -%}
+
+
+  removed:
+  case positionTablet
+      when 'left'
+        assign class = class | append: ' md:left-0 md:right-auto md:top-0 md:translate-y-0 md:overflow-y-scroll'
+        assign removeToOpen = removeToOpen | append: ' md:-translate-x-full'
+      when 'right'
+        assign class = class | append: ' md:right-0 md:left-auto md:top-0 md:translate-y-0 md:overflow-y-scroll'
+        assign removeToOpen = removeToOpen | append: ' md:translate-x-full'
+    endcase
+{%- endcomment -%}
+
+{% liquid
+  assign position_mobile = positionMobile | default: 'right'
+  assign position_desktop = positionDesktop | default: 'right'
+  if position_mobile contains 'bottom'
+    assign class = class | append: ' right-0 left-0 bottom-0'
+    assign flush = true
+    case position_mobile
+      when 'bottom-to-top'
+        assign class = class | append: ' top-0 overflow-y-scroll top-(--header-sticky-offset)'
+        assign remove_to_open = remove_to_open | append: ' opacity-0 md:opacity-100 translate-y-12 md:translate-y-0'
+      when 'bottom-to-almost-top'
+        assign class = class | append: ' top-0 overflow-y-scroll'
+        assign remove_to_open = remove_to_open | append: ' opacity-0 md:opacity-100 translate-y-12 md:translate-y-0'
+      when 'bottom-auto'
+        assign class = class | append: ''
+    endcase
+  elsif position_mobile == 'left'
+    assign class = class | append: ' top-0 left-0 bottom-0 overflow-y-scroll'
+    assign remove_to_open = remove_to_open | append: ' -translate-x-[calc(100%+1rem)]'
+  else
+    assign class = class | append: ' top-0 right-0 bottom-0  overflow-y-scroll'
+    assign remove_to_open = remove_to_open | append: ' translate-x-[calc(100%+1rem)]'
+  endif
+
+  case position_desktop
+    when 'left'
+      assign class = class | append: ' md:left-0 md:right-auto md:top-0 md:translate-y-0 md:overflow-y-scroll md:bottom-0'
+      assign remove_to_open = remove_to_open | append: ' md:-translate-x-[calc(100%+1rem)]'
+    when 'right'
+      assign class = class | append: ' md:right-0 md:left-auto md:top-0 md:translate-y-0 md:overflow-y-scroll md:bottom-0'
+      assign remove_to_open = remove_to_open | append: ' md:translate-x-[calc(100%+1rem)] md:opacity-0'
+    when 'top-to-bottom'
+      assign class = class | append: ' md:inset-4 md:translate-x-0 md:overflow-y-scroll'
+      assign remove_to_open = remove_to_open | append: ' md:-translate-y-12'
+      assign flush = true
+    when 'bottom-to-top'
+      assign class = class | append: ' md:left-0 md:right-0 md:bottom-0 md:translate-x-0 md:overflow-y-scroll'
+      assign remove_to_open = remove_to_open | append: ' md:translate-y-12'
+      assign flush = true
+
+      comment
+        you can set the top space when calling the snippet. Default is 0.
+      endcomment
+      assign top_class = topClass | default: 'md:top-0'
+      assign class = class | append: ' ' | append: top_class
+  endcase
+
+  unless flush
+    assign class = class | append: ' md:w-96 lg:w-144'
+  endunless
+
+  assign duration = duration | default: 'duration-300'
+  assign tag = tag | default: 'drawer-element'
+%}
+
+<{{ tag }}
+  tabindex="-1"
+  role="dialog"
+  aria-modal="true"
+  {% if ariaLabelledBy %}
+    aria-labelledby="{{ ariaLabelledBy }}"
+  {% endif %}
+  class="{% if inline %}absolute{% else %}{% if inlineDesktop %} md:absolute{% endif %} fixed{% endif %} inset-0 hidden w-full {{ wrapper_class }}"
+  id="{{ id }}"
+  {{ properties }}
+  {% if duration %}
+    data-animation-duration="{{ duration | split: '-' | last }}"
+  {% endif %}
+  data-position-mobile="{{ position_mobile }}"
+  data-position-desktop="{{ position_desktop }}"
+>
+  <div
+    class="js-overlay absolute inset-0 {% if noOverlay %}invisible{% endif %} {% if noOverlayMobile %}invisible md:visible{% endif %} opacity-50 bg-accent cursor-pointer"
+  ></div>
+  <drawer
+    data-remove-to-open="{{ remove_to_open | strip }}"
+    tabindex="-1"
+    class="drawer {% if flex %}flex{% endif %} absolute w-full {{ name }} {{ class }} bottom-0 bg-surface will-change-transform motion-reduce"
+  >
+    <div class="relative h-full">
+      {% if show_close_button %}
+        <drawer-trigger
+          data-target="{{ id }}"
+          class="button-icon {{ close_button_class }}"
+        >
+          {%- render 'a--icon', icon: 'close' %}
+        </drawer-trigger>
+      {% endif %}
+      {% comment %}
+        {{ content | replace: ' id="', ' id="drawer-' | replace: ' for="', ' for="drawer-' }}
+      {% endcomment %}
+      {{ content }}
+    </div>
+  </drawer>
+</{{ tag }}>

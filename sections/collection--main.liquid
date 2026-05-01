@@ -1,0 +1,187 @@
+{%- # BREADCRUMBS AND TITLE -%}
+<div class="w-full px-s-outer">
+  <div class="w-full px-s-inner py-s-xs flex flex-col items-start gap-[10px]">
+    {%- unless section.settings.hide_breadcrumbs -%}
+      {%- render 'm--breadcrumbs', inline: true, class: 'py-0!' -%}
+    {%- endunless -%}
+
+    {%- if section.settings.heading != blank -%}
+      <div class="h2 text-primary [&>p]:m-0 [&>h1]:m-0 [&>h2]:m-0 [&>h3]:m-0 [&>h4]:m-0 [&>h5]:m-0 [&>h6]:m-0">
+        {{ section.settings.heading }}
+      </div>
+    {%- else -%}
+      <h1 class="h2 text-primary">
+        {{ collection.title }}
+      </h1>
+    {%- endif -%}
+
+    {%- liquid
+      assign note_above_products = collection.metafields.custom.note_above_products
+    -%}
+    {%- if note_above_products != blank -%}
+      <div class="text-ui-base/copy max-w-base">
+        {{ note_above_products | metafield_tag }}
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+{%- liquid
+  # SLIDER
+  if section.settings.show_subcollections_slider
+    # Assign menu handle
+    assign menu_handle = 'subcollections-structure'
+
+    # Initialize variables
+    assign collections_to_show = null
+
+    # Find the current collection in the menu hierarchy
+    assign current_link = linklists[menu_handle].links | where: 'current', true | first
+
+    # Only show children (direct subcollections) of the current collection
+    if current_link and current_link.links.size > 0
+      assign collections_to_show = current_link.links
+    endif
+
+    # Only render slider if we have collections to show
+    if collections_to_show and collections_to_show.size > 0
+      capture feed
+        for link in collections_to_show
+          assign class = 'text-ui-base px-4 py-3 border border-secondary whitespace-nowrap w-auto! hover:opacity-50 transition-opacity'
+          if section.settings.show_images_in_subcollections
+            render 'm--collection-card', card_collection: link.object, class: 'text-ui-base max-md:hidden', forloop_index: forloop.index, cols: 1.2
+            assign class = class | append: ' md:hidden'
+          endif
+          if link.current
+            assign class = class | append: ' border-primary!'
+          endif
+          echo link.title | link_to: link.url, class: class
+        endfor
+      endcapture
+      capture slider
+        render 'm--electric-slider', feed: feed, gap: 'gap-', bar: false, type: 'none', feed_class: 'px-b-xl lg:px-s-outer', per_row_mobile: 4, per_row_tablet: 6, per_row_desktop: 10, id: 'subcollections-slider', slider_class: 'w-full'
+      endcapture
+      render 'm--wrapper', content: slider, class_inner_wrapper: 'px-0 pb-8 max-md:hidden'
+    endif
+  endif
+-%}
+<div class="">
+  {% if collection.products.size == 0 %}
+    {%- liquid
+      assign heading = 'sections.collection_template.empty' | t
+      assign active_filters = collection.filters | where: 'active_values'
+      if active_filters.size > 0
+        assign body_text = 'sections.collection_template.use_fewer_filters_html' | t: link: collection.url, class: 'ms-1 font-medium underline'
+      endif
+      assign button_label = 'sections.collection_template.shop_now' | t
+
+      render 'm--text-and-buttons', heading: heading, body_text: body_text, button_url: routes.all_products_collection_url, button_label: button_label, content_alignment: 'text-center items-center justify-center'
+    -%}
+  {%- else -%}
+    <script src="{{ 'infinite-scroll-collection.js' | asset_url }}" defer="defer"></script>
+    {%- capture content_cards_key -%}
+      {%- for c in collection.metafields.custom.content_cards.value limit: 4 -%}
+        {%- liquid
+          assign key_title = c.title.value | default: c.title | default: ''
+          assign key_url = c.url.value | default: c.url | default: ''
+        -%}
+        {{- key_title -}}::{{- key_url -}}{%- unless forloop.last -%},{%- endunless -%}
+      {%- endfor -%}
+    {%- endcapture -%}
+    {%- capture content_card_orders_key -%}
+      {%- for o in collection.metafields.custom.content_card_orders.value limit: 4 -%}
+        {{- o -}}{%- unless forloop.last -%},{%- endunless -%}
+      {%- endfor -%}
+    {%- endcapture -%}
+    <infinite-scroll-collection
+      data-collection-handle="{{ collection.handle }}"
+      data-products-per-page="24"
+      data-layout-key="{{ content_cards_key | strip | append: '|' | append: content_card_orders_key | strip }}"
+      role="main"
+      aria-label="Product collection with infinite scroll"
+    >
+      {%- liquid
+        render 'm--filters', results: collection
+        render 'm--electric-slider', id: 'filters-mobile', feed: feed, gap: 'grid-gutter-base', bar: false, type: 'none', feed_class: 'mt-4 px-s-whole', slider_class: 'hidden', per_row_mobile: 1, per_row_tablet: 1, per_row_desktop: 1
+      -%}
+
+      <div class="flex flex-col gap-6">
+        <div class="flex flex-col gap-6 h-full transition-opacity _feed px-s-inner lg:px-s-outer">
+          {% # Initial Products Grid %}
+          {%- render 'm--collection-grid' -%}
+        </div>
+      </div>
+    </infinite-scroll-collection>
+  {%- endif -%}
+</div>
+{% schema %}
+{
+  "name": "t:global.collection_header",
+  "tag": "section",
+  "class": "full-spaced-section",
+  "enabled_on": {
+    "templates": ["collection"]
+  },
+  "settings": [
+    {
+      "type": "header",
+      "content": "Quick filters"
+    },
+    {
+      "type": "paragraph",
+      "content": "The quick filter list is generated automatically from Shopify's native collection filters. You can override which quick filters are shown, their order, and limit them to a maximum of 4 by using the collection metafield `custom.quick_filters` (metaobject list or comma-separated string; values must match the filter label/param). For search results, the override uses the shop metafield `custom.search_quick_filters`."
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "t:global.menu",
+      "info": "t:global_info.subcollections_menu",
+      "default": "main-menu"
+    },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "Heading",
+      "info": "Optional custom heading. If empty, collection title is used."
+    },
+    {
+      "type": "checkbox",
+      "id": "hide_breadcrumbs",
+      "label": "Hide breadcrumbs",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_subcollections_slider",
+      "label": "Show subcollections slider",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_images_in_subcollections",
+      "label": "Show images in subcollections",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "desktop_filters_threshold",
+      "label": "More filters threshold",
+      "default": 4,
+      "min": 0,
+      "max": 10,
+      "step": 1
+    },
+    {
+      "type": "text",
+      "id": "smart_cross_sell_heading",
+      "label": "Smart cross sell heading",
+      "default": "ICONS shoppers also love"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:global.collection_header"
+    }
+  ]
+}
+{% endschema %}

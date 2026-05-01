@@ -1,0 +1,32 @@
+{%- comment -%}
+  API - Predictive car models (drawer-like)
+
+  This section is intended to be rendered via Shopify's Predictive Search endpoint:
+  `routes.predictive_search_url` (usually `/search/suggest`).
+
+  It returns only "Car Model" collections as `m--car-model-card` markup so pages
+  can consume it in a single request (drawer-like behavior).
+{%- endcomment -%}
+
+{%- layout none -%}
+
+{%- liquid
+  for collection in predictive_search.resources.collections
+    if collection.metafields.custom.category_type != 'Car Model'
+      continue
+    endif
+    render 'm--car-model-card', card_collection: collection
+  endfor
+-%}
+
+{% schema %}
+{
+  "name": "API - Car models",
+  "tag": "section",
+  "enabled_on": {
+    "templates": ["search"]
+  },
+  "settings": []
+}
+{% endschema %}
+

@@ -1,0 +1,28 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "name": "Footer",
+  "type": "footer",
+  "sections": {
+    "footer_VYjrcc": {
+      "type": "footer",
+      "settings": {
+        "seo_text_1": "",
+        "seo_text_2": "",
+        "main_footer_menu": "footer-new",
+        "bottom_footer_menu": "bottom-new-theme",
+        "address": "<p>{{ metaobjects.adress.voldt.adress.value }}<br/>{{ metaobjects.adress.voldt.postal_code.value }} {{ metaobjects.adress.voldt.city.value }}</p>"
+      }
+    }
+  },
+  "order": [
+    "footer_VYjrcc"
+  ]
+}

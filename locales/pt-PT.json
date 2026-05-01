@@ -1,0 +1,41 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin language editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "general": {
+    "cart": {
+      "title": "O seu carrinho"
+    }
+  },
+  "sections": {
+    "cart": {
+      "cart": "Carrinho",
+      "title": "O seu carrinho",
+      "caption": "Artigos",
+      "remove_title": "Remover {{ title }}",
+      "subtotal": "Subtotal",
+      "new_subtotal": "Novo subtotal",
+      "total": "Total",
+      "shipping_text": "Calculado no checkout",
+      "shipping": "Envio",
+      "note": "Instruções do pedido",
+      "checkout": "Finalizar compra",
+      "empty": "O seu carrinho está vazio",
+      "add_items": "Adicione produtos para continuar",
+      "cart_error": "Erro ao atualizar o carrinho. Tente novamente.",
+      "cart_quantity_error_html": "Só pode adicionar {{ quantity }} unidades",
+      "savings": "Poupança",
+      "store_credit": "Crédito da loja (se aplicável)",
+      "store_credit_text_html": "Tem <span class=\"text-green\">{{ amount }}</span> de crédito disponível",
+      "add_a_gift_message": "Adicionar mensagem de oferta",
+      "add_a_gift_message_tooltip": "O destinatário recebe email ao envio. Info de devolução incluída. Gift cards enviadas em 2h.",
+      "checkout_button_usp_text": "100 dias devolução & 3 anos garantia"
+    }
+  }
+}

@@ -1,0 +1,186 @@
+{%- liquid
+  assign block_class = 'flex flex-col justify-center items-center py-b-xl px-b-base gap-y-s-xs self-stretch bg-subtle md:row-span-1 md:col-span-1 md:justify-self-stretch lg:flex-1'
+  assign usp_container_class = 'flex justify-center items-center content-center gap-y-[4px] gap-x-b-sm self-stretch flex-wrap lg:gap-y-[8px]'
+  assign badge_class = 'flex h-8 p-2 items-center gap-1.5 rounded-full bg-white'
+
+  assign type_metaobject = product.metafields.custom.type_meta.value
+  assign station_socket = blank
+  assign car_socket = blank
+  assign type_socket = blank
+
+  if type_metaobject != blank
+    assign station_socket = type_metaobject.station_socket.value | default: type_metaobject.station_socket
+    assign car_socket = type_metaobject.car_socket.value | default: type_metaobject.car_socket
+    assign type_socket = product.featured_image | image_url
+  endif
+
+  assign has_socket_cards = false
+  if station_socket != blank or type_socket != blank or car_socket != blank
+    assign has_socket_cards = true
+  endif
+-%}
+<div id="sockets" class="flex flex-col justify-center items-start gap-y-s-xs py-0 px-0! lg:px-s-outer! self-stretch md:inline-grid md:gap-x-b-base md:grid-cols-3 md:grid-rows-[repeat(1,fit-content(100%))] md:self-stretch lg:grid text-ui-base w-full" data-variant-dynamic="sockets">
+  {% if has_socket_cards %}
+    {% for i in (1..3) %}
+      {%- liquid
+        assign socket_card = blank
+        if forloop.index == 1
+          assign socket_card = station_socket
+        elsif forloop.index == 2
+          assign socket_card = type_socket
+        else
+          assign socket_card = car_socket
+        endif
+      -%}
+      {% if socket_card == blank %}
+        {% continue %}
+      {% endif %}
+      {%- liquid
+        assign title = socket_card.title.value | default: socket_card.title | default: ''
+        assign image = socket_card.image.value | default: socket_card.image
+
+        assign use_products_first_image = socket_card.use_product_s_first_image.value | default: false
+        if use_products_first_image == true
+          assign products_first_image = product.images | first
+          if products_first_image != blank
+            assign image = products_first_image
+          endif
+        endif
+
+        assign usp_1_text = socket_card.usp_1_text.value | default: socket_card.usp_1_text
+        assign usp_2_text = socket_card.usp_2_text.value | default: socket_card.usp_2_text
+        assign usp_3_text = socket_card.usp_3_text.value | default: socket_card.usp_3_text
+        assign usp_4_text = socket_card.usp_4_text.value | default: socket_card.usp_4_text
+
+        assign usp_1_icon = socket_card.usp_1_icon.value | default: socket_card.usp_1_icon
+        assign usp_2_icon = socket_card.usp_2_icon.value | default: socket_card.usp_2_icon
+        assign usp_3_icon = socket_card.usp_3_icon.value | default: socket_card.usp_3_icon
+        assign usp_4_icon = socket_card.usp_4_icon.value | default: socket_card.usp_4_icon
+
+        assign has_usps = false
+        if usp_1_text != blank or usp_2_text != blank or usp_3_text != blank or usp_4_text != blank
+          assign has_usps = true
+        endif
+      -%}
+
+      <div id="socket-{{ forloop.index }}" class="{{ block_class }}">
+        <div class="w-[194px] h-40 bg-subtle flex items-center justify-center">
+          {% if image != blank %}
+            <img
+              src="{{ image | image_url: width: 400 }}"
+              alt="{{ title | default: 'Socket' | escape }}"
+              width="194"
+              height="160"
+              class="w-full h-full object-contain -mix-blend-darken"
+            >
+          {% else %}
+            <img
+              src="{{ 'type2_station.png' | asset_img_url: 'x320' }}"
+              alt="{{ title | default: 'Socket' | escape }}"
+              width="194"
+              height="160"
+              class="w-full h-full object-contain -mix-blend-darken"
+            >
+          {% endif %}
+        </div>
+
+        {% if title != blank %}
+          <h3 class="h2 text-primary text-center">{{ title }}</h3>
+        {% endif %}
+
+        {% if forloop.index == 2 %}
+          {%- liquid
+            assign spec_values = type_socket.spec_value.value | default: type_socket.spec_value
+            assign spec_icons = type_socket.icon_v_2.value | default: type_socket.icon_v_2
+
+            assign spec_values_array = spec_values | split: '|||'
+            assign spec_icons_array = spec_icons | split: '|||'
+          -%}
+          <div class="mt-4 flex flex-wrap items-center justify-center gap-x-b-sm gap-y-b-sm ">
+            {%- for value in spec_values_array -%}
+              {%- liquid
+                assign icon = spec_icons_array[forloop.index0]
+                assign icon_src = icon | image_url: width: 20
+                if icon_src == blank
+                  assign icon_src = icon | file_url
+                endif
+                if icon_src == blank
+                  assign icon_src = icon
+                endif
+                if icon_src contains '/cdn/shop/files/files/'
+                  assign icon_src = icon_src | replace: '/cdn/shop/files/files/', '/cdn/shop/files/'
+                endif
+                if icon_src contains '/cdn/shop/files/?'
+                  assign icon_src = blank
+                endif
+              -%}
+              {% if value != blank %}
+                <div class="flex items-center gap-x-b-sm bg-white rounded-full px-2 py-2">
+                  {% if icon_src != blank %}
+                    {% # theme-check-disable RemoteAsset %}
+                    <img src="{{ icon_src }}" alt="" width="20" height="20" class="w-5 h-5">
+                    {% # theme-check-enable RemoteAsset %}
+                  {% endif %}
+                  <span class="text-primary text-ui-base">{{ value }}</span>
+                </div>
+              {% endif %}
+            {%- endfor -%}
+          </div>
+        {% endif %}
+
+        {% if has_usps %}
+          <div class="{{ usp_container_class }}">
+            {% if usp_1_text != blank %}
+              <div class="{{ badge_class }}">
+                {% if usp_1_icon != blank %}
+                  <img src="{{ usp_1_icon | image_url: width: 16 }}" alt="" width="16" height="16" class="w-4 h-4">
+                {% endif %}
+                <span class="text-primary text-sm lg:text-base leading-[120%] font-normal font-body">{{ usp_1_text }}</span>
+              </div>
+            {% endif %}
+            {% if usp_2_text != blank %}
+              <div class="{{ badge_class }}">
+                {% if usp_2_icon != blank %}
+                  <img src="{{ usp_2_icon | image_url: width: 16 }}" alt="" width="16" height="16" class="w-4 h-4">
+                {% endif %}
+                <span class="text-primary text-ui-base leading-[120%]">{{ usp_2_text }}</span>
+              </div>
+            {% endif %}
+            {% if usp_3_text != blank %}
+              <div class="{{ badge_class }}">
+                {% if usp_3_icon != blank %}
+                  <img src="{{ usp_3_icon | image_url: width: 16 }}" alt="" width="16" height="16" class="w-4 h-4">
+                {% endif %}
+                <span class="text-primary text-ui-base leading-[120%]">{{ usp_3_text }}</span>
+              </div>
+            {% endif %}
+            {% if usp_4_text != blank %}
+              <div class="{{ badge_class }}">
+                {% if usp_4_icon != blank %}
+                  <img src="{{ usp_4_icon | image_url: width: 16 }}" alt="" width="16" height="16" class="w-4 h-4">
+                {% endif %}
+                <span class="text-primary text-ui-base leading-[120%]">{{ usp_4_text }}</span>
+              </div>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+{% else %}
+    <!-- Product Sockets: custom.type_meta metafield is empty and dummy fallback is disabled -->
+  {% endif %}
+</div>
+
+{% schema %}
+{
+  "name": "Product Sockets",
+  "tag": "section",
+  "class": "section",
+  "settings": [],
+  "presets": [
+    {
+      "name": "Product Sockets"
+    }
+  ]
+}
+{% endschema %}

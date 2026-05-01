@@ -1,0 +1,227 @@
+{%- liquid
+  assign rows_desktop = section.settings.rows_desktop | default: 3
+  assign rows_tablet = section.settings.rows_tablet | default: 2
+  assign rows_mobile = section.settings.rows_mobile | default: 2
+  assign max_rows = rows_desktop
+  if rows_tablet > max_rows
+    assign max_rows = rows_tablet
+  endif
+  if rows_mobile > max_rows
+    assign max_rows = rows_mobile
+  endif
+
+  assign block_count = section.blocks.size
+  if block_count <= 1
+    assign repeat_sets = 8
+  elsif block_count <= 2
+    assign repeat_sets = 6
+  elsif block_count <= 4
+    assign repeat_sets = 4
+  else
+    assign repeat_sets = 2
+  endif
+-%}
+
+<style>
+  @keyframes logo-marquee-rtl {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes logo-marquee-ltr {
+    from {
+      transform: translateX(-50%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  #shopify-section-{{ section.id }} .logo-marquee__track--rtl {
+    animation: logo-marquee-rtl var(--logo-marquee-duration) linear infinite;
+  }
+
+  #shopify-section-{{ section.id }} .logo-marquee__track--ltr {
+    animation: logo-marquee-ltr var(--logo-marquee-duration) linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #shopify-section-{{ section.id }} .logo-marquee__track--rtl,
+    #shopify-section-{{ section.id }} .logo-marquee__track--ltr {
+      animation: none;
+      transform: translateX(0);
+    }
+  }
+</style>
+
+<section
+  class="logo-marquee py-s-xs lg:py-s-sm overflow-hidden opacity-30"
+  aria-label="{{ section.settings.aria_label | escape }}"
+  style="--logo-marquee-duration: {{ section.settings.speed | default: 30 }}s"
+>
+  {%- if section.blocks.size > 0 -%}
+    <div class="logo-marquee__rows flex flex-col gap-y-s-sm lg:gap-y-s-lg">
+      {%- for row in (1..6) -%}
+        {%- if forloop.index <= max_rows -%}
+          {%- assign row_index_mod = forloop.index0 | modulo: 2 -%}
+          <div class="logo-marquee__row overflow-hidden{% if forloop.index <= rows_mobile %} block{% else %} hidden{% endif %}{% if forloop.index <= rows_tablet %} md:block{% else %} md:hidden{% endif %}{% if forloop.index <= rows_desktop %} lg:block{% else %} lg:hidden{% endif %}">
+            <div class="logo-marquee__track flex w-max gap-x-s-xl max-lg:gap-x-s-sm will-change-transform{% if row_index_mod == 0 %} logo-marquee__track--rtl{% else %} logo-marquee__track--ltr{% endif %}">
+              <div class="logo-marquee__group flex items-center gap-x-s-xl max-lg:gap-x-s-sm">
+                {%- for repeat in (1..8) -%}
+                  {%- if forloop.index <= repeat_sets -%}
+                    {%- for block in section.blocks -%}
+                      {%- if block.type == 'logo' and block.settings.image != blank -%}
+                        {%- assign alt_text = block.settings.alt | default: block.settings.image.alt | default: shop.name | escape -%}
+                        <div class="logo-marquee__item flex items-center shrink-0"{% if repeat == 1 %} {{ block.shopify_attributes }}{% endif %}>
+                          {%- if block.settings.link != blank -%}
+                            <a
+                              href="{{ block.settings.link }}"
+                              class="logo-marquee__link block"
+                              aria-label="{{ alt_text }}"
+                            >
+                              {{
+                                block.settings.image
+                                | image_url: width: 280
+                                | image_tag: loading: 'lazy', alt: alt_text, class: 'h-[34px] w-auto max-w-none block'
+                              }}
+                            </a>
+                          {%- else -%}
+                            {{
+                              block.settings.image
+                              | image_url: width: 280
+                              | image_tag: loading: 'lazy', alt: alt_text, class: 'h-[34px] w-auto max-w-none block'
+                            }}
+                          {%- endif -%}
+                        </div>
+                      {%- endif -%}
+                    {%- endfor -%}
+                  {%- endif -%}
+                {%- endfor -%}
+              </div>
+              <div class="logo-marquee__group flex items-center gap-x-s-xl max-lg:gap-x-s-sm" aria-hidden="true">
+                {%- for repeat in (1..8) -%}
+                  {%- if forloop.index <= repeat_sets -%}
+                    {%- for block in section.blocks -%}
+                      {%- if block.type == 'logo' and block.settings.image != blank -%}
+                        {%- assign alt_text = block.settings.alt | default: block.settings.image.alt | default: shop.name | escape -%}
+                        <div class="logo-marquee__item flex items-center shrink-0">
+                          {%- if block.settings.link != blank -%}
+                            <a
+                              href="{{ block.settings.link }}"
+                              class="logo-marquee__link block"
+                              aria-label="{{ alt_text }}"
+                            >
+                              {{
+                                block.settings.image
+                                | image_url: width: 280
+                                | image_tag: loading: 'lazy', alt: alt_text, class: 'h-[34px] w-auto max-w-none block'
+                              }}
+                            </a>
+                          {%- else -%}
+                            {{
+                              block.settings.image
+                              | image_url: width: 280
+                              | image_tag: loading: 'lazy', alt: alt_text, class: 'h-[34px] w-auto max-w-none block'
+                            }}
+                          {%- endif -%}
+                        </div>
+                      {%- endif -%}
+                    {%- endfor -%}
+                  {%- endif -%}
+                {%- endfor -%}
+              </div>
+            </div>
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  {%- else -%}
+    <!-- No logo blocks added to s--logo-marquee -->
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "Logo marquee",
+  "tag": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "aria_label",
+      "label": "ARIA label",
+      "default": "Brand logos"
+    },
+    {
+      "type": "range",
+      "id": "rows_desktop",
+      "label": "Rows (desktop)",
+      "min": 1,
+      "max": 6,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "rows_tablet",
+      "label": "Rows (tablet)",
+      "min": 1,
+      "max": 6,
+      "step": 1,
+      "default": 2
+    },
+    {
+      "type": "range",
+      "id": "rows_mobile",
+      "label": "Rows (mobile)",
+      "min": 1,
+      "max": 6,
+      "step": 1,
+      "default": 2
+    },
+    {
+      "type": "range",
+      "id": "speed",
+      "label": "Scroll speed (seconds)",
+      "min": 10,
+      "max": 80,
+      "step": 1,
+      "default": 30
+    }
+  ],
+  "blocks": [
+    {
+      "type": "logo",
+      "name": "Logo",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Logo image"
+        },
+        {
+          "type": "text",
+          "id": "alt",
+          "label": "Alt text"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link (optional)"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Logo marquee"
+    }
+  ]
+}
+{% endschema %}

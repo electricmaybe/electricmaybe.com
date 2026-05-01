@@ -1,0 +1,52 @@
+{% render 'cart--main',
+  cart_recommendations_heading: section.settings.cart_recommendations_heading,
+  cart_upsell_success_label: section.settings.cart_upsell_success_label,
+  cart_upsell_error_label: section.settings.cart_upsell_error_label,
+  cart_trust_title: section.settings.cart_trust_title,
+  cart_trust_subtext: section.settings.cart_trust_subtext
+%}
+{% schema %}
+{
+  "name": "Cart",
+  "settings": [
+    {
+      "type": "text",
+      "id": "cart_recommendations_heading",
+      "label": "Upsell heading",
+      "default": "Complete your charging setup:"
+    },
+    {
+      "type": "text",
+      "id": "cart_upsell_success_label",
+      "label": "Upsell add success text",
+      "default": "Added!"
+    },
+    {
+      "type": "text",
+      "id": "cart_upsell_error_label",
+      "label": "Upsell add error text",
+      "default": "Error"
+    },
+    {
+      "type": "text",
+      "id": "cart_trust_title",
+      "label": "Trust badge title",
+      "default": "Order with confidence."
+    },
+    {
+      "type": "text",
+      "id": "cart_trust_subtext",
+      "label": "Trust badge text",
+      "default": "Buyer protection available in the next steps"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Cart"
+    }
+  ],
+  "enabled_on": {
+    "templates": ["cart"]
+  }
+}
+{% endschema %}

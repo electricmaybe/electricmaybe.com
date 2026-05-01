@@ -1,0 +1,7 @@
+{%- layout none -%}
+
+{%- if request.page_type == 'search' -%}
+  {%- render 'm--filters', results: search, location: 'CollectionSidebar' -%}
+{%- else -%}
+  {%- render 'm--filters', location: 'CollectionSidebar' -%}
+{%- endif -%}

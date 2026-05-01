@@ -1,0 +1,121 @@
+{%- liquid
+  assign heading = section.settings.heading | default: ''
+  assign body = section.settings.body | default: ''
+  assign button_label = section.settings.button_label | default: ''
+  assign button_url = section.settings.button_url
+  assign image = section.settings.image
+  assign benefits_raw = section.settings.benefits | default: ''
+
+  # Normalize line breaks then split into rows.
+  assign benefits_lines = benefits_raw | strip | replace: '<br>', '<br />' | newline_to_br | split: '<br />'
+-%}
+
+<div class="py-s-xs lg:px-s-outer color-schema-accent-2">
+  <div class="bg-surface overflow-clip px-s-inner py-s-xs lg:py-s-sm">
+    <div class="flex flex-col lg:flex-row gap-y-4 lg:gap-y-s-lg gap-x-s-xs">
+      <div class="flex flex-col justify-center gap-y-s-base w-full lg:flex-1">
+        <div class="space-y-s-xs">
+            {%- if heading != blank -%}
+              <h2 class="h1 md:max-w-base lg:max-w-none">
+                {{ heading }}
+              </h2>
+            {%- endif -%}
+
+            {%- if body != blank -%}
+              <div class="rte max-w-sm text-body">
+                {{ body }}
+              </div>
+            {%- endif -%}
+
+          {%- if button_label != blank and button_url != blank -%}
+            {%- render 'a--button',
+              url: button_url,
+              label: button_label,
+              style: 'primary',
+            -%}
+          {%- endif -%}
+        </div>
+
+        <div class="w-full">
+          {%- render 'a--image',
+            image: image,
+            cols: 12,
+            aspect_ratio: 1.783,
+            picture_class: 'w-full lg:max-w-[28rem]',
+            image_class: 'w-fit h-auto lg:w-full lg:h-full lg:object-cover'
+          -%}
+        </div>
+      </div>
+
+      {%- if benefits_raw != blank -%}
+        <div class="w-full lg:flex-1">
+          <ul class="border-t border-secondary" role="list">
+            {%- for line in benefits_lines -%}
+              {%- assign benefit = line | strip -%}
+              {%- if benefit != blank -%}
+                <li class="border-b border-secondary py-b-lg">
+                  <p class="h3">
+                    {{ benefit | escape }}
+                  </p>
+                </li>
+              {%- endif -%}
+            {%- endfor -%}
+          </ul>
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Become a partner",
+  "tag": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Become an Official Voldt® Reseller in the UK"
+    },
+    {
+      "type": "richtext",
+      "id": "body",
+      "label": "Body",
+      "default": "<p>Reliable stock, flexible dropshipping, high margins, and full support for your business growth.</p>"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Apply now"
+    },
+    {
+      "type": "url",
+      "id": "button_url",
+      "label": "Button URL"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "textarea",
+      "id": "benefits",
+      "label": "Benefits (one per line)",
+      "default": "Order directly from European manufacturer\nUp to 40% discount & 2-3 year warranty\nTailored products in your brand & color\nOptional dropshipping to 15 EU countries\n30-day invoice payment terms"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Become a partner"
+    }
+  ]
+}
+{% endschema %}
+
+

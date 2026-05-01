@@ -1,0 +1,41 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin language editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "general": {
+    "cart": {
+      "title": "Din kurv"
+    }
+  },
+  "sections": {
+    "cart": {
+      "cart": "Kurv",
+      "title": "Din kurv",
+      "caption": "Varer",
+      "remove_title": "Fjern {{ title }}",
+      "subtotal": "Delsum",
+      "new_subtotal": "Ny delsum",
+      "total": "Total",
+      "shipping_text": "Beregnes ved betaling",
+      "shipping": "Levering",
+      "note": "Ordrekommentar",
+      "checkout": "Gå til betaling",
+      "empty": "Din kurv er tom",
+      "add_items": "Tilføj varer for at fortsætte",
+      "cart_error": "Der opstod en fejl ved opdatering af din kurv. Prøv igen.",
+      "cart_quantity_error_html": "Du kan kun tilføje {{ quantity }} af denne vare",
+      "savings": "Besparelse",
+      "store_credit": "Butikskredit (hvis anvendt)",
+      "store_credit_text_html": "Du har <span class=\"text-green\">{{ amount }}</span> i kredit, som kan bruges ved betaling",
+      "add_a_gift_message": "Tilføj gavebesked",
+      "add_a_gift_message_tooltip": "Modtageren får en e-mail med din besked, når ordren afsendes. Returinfo medfølger. Gavekort sendes inden for 2 timer.",
+      "checkout_button_usp_text": "100 dages retur & 3 års garanti"
+    }
+  }
+}

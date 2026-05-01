@@ -1,0 +1,105 @@
+---
+description: Linear MCP task creation guide — IDs, labels, milestones, conventions for Electric Maybe workspace
+globs: 
+alwaysApply: false
+---
+# Linear Task Creation Guide — Electric Maybe
+
+## Project & Team
+- **Team:** Electric Maybe (`e0b0fceb-1d21-4499-a097-d6c584105d83`)
+- **Assignee (berk):** `51fcfa70-5c0f-446d-9e31-f56874a9f689`
+
+## Voldt Redesign Project
+- **Project ID:** `21e19dac-de22-470c-806b-3c1c21ddf414`
+- **Merch Dev milestone:** `eac0d544-51ed-4092-8db1-117945add622` — Home, Search, Collection, Product Card
+- **Core Commerce Dev milestone:** `9c7af7d1-d08c-4677-ba1c-b156fa8c6365` — Product, Cart, Footer, Header
+- **Content Dev milestone:** `ce2d15ca-eb37-4ff5-b3d3-2baa5c4348fa` — Static pages, Blog, Article, post-launch
+
+## Label Groups (always use IDs, never names)
+
+### team →
+| Label | ID |
+|---|---|
+| dev | `997107d8-b85f-4226-98b1-6845690aeada` |
+| design | `edd64501-4a86-4218-a0ce-8b05385f42c0` |
+
+### from →
+| Label | ID |
+|---|---|
+| project-requirement | `817e3412-be75-460c-bd33-bbf049db1383` |
+| bug-discovered | `2bd676f3-1a3a-4d71-b292-85e0972e8d6a` |
+| internal-decision | `229959c5-26f4-4953-a37e-9f549dabb4aa` |
+| client-request | `ede85833-b384-4b6a-ba47-fc3b2df77aaa` |
+| qa-found | `3becefb6-578a-4d5e-94c3-13f61644f03c` |
+
+### is a →
+| Label | ID |
+|---|---|
+| fix | `0697690e-c953-4a5e-acb6-8669cb9b46d9` |
+| feat | `d7d634d4-c488-492f-b495-577a52efb3ac` |
+| change | `a2742790-c830-4ada-9f1c-c816c8cd66ed` |
+| QA | `cab19198-9b25-40b4-9fe8-a7743aee2b78` |
+| chore | `64164907-7198-46b2-b483-6fe573230619` |
+| revision | `f96f00f9-7614-4537-9142-10cef4c6a0b4` |
+| template | `da50e144-cb4c-4678-bffb-a0e7266d018f` |
+
+### risk level →
+Risk = how much testing is needed / how likely to introduce bugs.
+
+| Label | ID |
+|---|---|
+| ! (safe) | `ce9f11e1-45d6-4a1e-a2d9-f7a1c46eb1a3` |
+| !! (moderate) | `add74e2d-6972-4da2-b6d3-e95525818db8` |
+| !!! (high) | `098f2894-9697-433e-b4a2-c0f606be55b7` |
+
+### at → (EXCLUSIVE — only ONE per issue)
+| Label | ID |
+|---|---|
+| index template | `de83c4db-0674-45d4-a0fb-d942be41de1a` |
+| searchbar | `636b0ca1-f5ea-4254-b5ff-ee8473f74e57` |
+| search template | `205ae777-f40e-457e-8f5f-0bf76bc911b7` |
+| collection template | `a9ec25ac-5436-4ea0-833c-bef2d6d4b30a` |
+| product template | `fca9875a-ba61-49b8-b45c-0c7ebbeafeb2` |
+| cart template | `7fff4ea1-7522-4b19-84f7-a8fcd68eb459` |
+| pages template | `82bd6de5-b6dc-44af-808f-1888faafc822` |
+| blog template | `21dce2ec-2395-46cd-b730-fa39e287b6b5` |
+| article template | `e1ef0385-90a1-43ad-8f72-43509926041a` |
+| s--header | `33c5a132-00ec-4301-9d7b-41bfc38f61ac` |
+| s--footer | `af8456e0-c202-41c1-be24-59350e7155fb` |
+| s--reviews | `5cd84073-5a4d-4a37-a327-d8a4234530f6` |
+| s--featured-collection | `c6b43594-c7c8-43ab-9de4-eb81d7f4cb24` |
+| s--faq-list | `e77e99b6-1dca-40ab-9b86-388d7dbdd677` |
+| s--blog-posts | `2cadd6ab-9a5c-440e-995f-df39a71dc5c0` |
+| s--contact-form | `383a1a02-dd55-465a-b0e2-bde4a2d7f432` |
+| s--image-with-text-overlay | `3ba3599b-9157-4422-8944-7e12ca974eea` |
+| m--product-card | `d27901e1-74f2-43e3-9107-b3f953095aa8` |
+| m--product-form | `e5b467f1-16b3-4cbd-9a87-2ec356c95ade` |
+| m--slider-navigation | `b598da2b-eedf-4447-8a01-f88befe91c4a` |
+| m--accordion | `8d423794-2d1e-4110-a154-cd9c2811f849` |
+| a--video | `016eb37b-0158-4c13-86d6-d4fd233064d4` |
+| a--image | `e47974ad-4e09-45f6-bdc5-6ff6605b7587` |
+| new-section | `933bc015-52df-42d4-a2cc-3d51ed021de9` |
+| general DX | `80aa82d7-4af7-418c-9173-183514408baf` |
+| general UI/UX | `c47e0a02-0008-460c-a947-2474d5b615a0` |
+| general research | `deb588c1-2f87-4ecb-ad6c-70071adbb30d` |
+
+## Task Creation Rules
+
+1. **Language:** All titles and descriptions in Turkish.
+2. **Descriptions:** Write brief PRDs with "Kapsam" (scope) and "Çözüm Önerisi" (suggested solution). Analyze the codebase for relevant files and include them.
+3. **Estimation:** Use points 1, 2, 3, 5, 8 based on complexity.
+4. **Status:** All tasks start as "To-do".
+5. **Labels:** Always use label **IDs** (not names). Apply exactly 5 labels per task: one from each group (team, from, is a, at, risk level). The "at" group is exclusive — only one allowed per issue.
+6. **Hierarchy:** Group related tasks under parent issues using `parentId` for subtasks.
+7. **Project + Milestone:** Always set `project` and `milestone` on creation to avoid bulk-fixing later.
+8. **Meeting notes:** Integrate into relevant template tasks as subtasks. If global, create as parent-level tasks.
+9. **Skip empty categories** — if a template header has no tasks listed, don't create it.
+10. **Non-theme tasks** (metafield creation, data migration, etc.) — just write a PRD, no codebase analysis needed.
+
+## Gotchas
+
+- Linear API rejects label names containing `→` or emoji — always use UUIDs from the tables above.
+- The "at" label group is **exclusive** (one label per issue). If a task spans two components, pick the most relevant one.
+- Always pass `project` ID during `create_issue` to avoid updating dozens of tasks after the fact.
+- Search for users by email fragment if display name doesn't match.
+- When creating many tasks, create all parents first to get their IDs, then create subtasks in parallel.

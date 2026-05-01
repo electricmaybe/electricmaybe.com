@@ -1,0 +1,42 @@
+{%- liquid
+  assign s = section.settings
+
+  assign per_row_mobile = s.per_row_mobile | split: ' ' | first | times: 1
+  assign per_row_tablet = s.per_row_tablet | split: ' ' | first | times: 1
+  assign per_row_desktop = s.per_row_desktop | split: ' ' | first | times: 1
+
+  assign per_row_mobile_class = s.per_row_mobile | split: ' ' | last
+  assign per_row_tablet_class = s.per_row_tablet | split: ' ' | last
+  assign per_row_desktop_class = s.per_row_desktop | split: ' ' | last
+
+  assign sm_cols = 2
+  assign md_cols = 2
+  assign lg_cols = 2
+
+  assign slider_class = ''
+  assign feed_class = feed_class | append: ' gap-2 md:gap-4  ' | append: per_row_mobile_class | append: ' ' | append: per_row_tablet_class | append: ' ' | append: per_row_desktop_class
+
+  assign collection_card_class = '  snap-start shrink-0 w-56'
+  if s.wrapper_type_mobile == 'grid'
+    assign sm_cols = 4.0 | divided_by: per_row_mobile | floor
+    assign feed_class = feed_class | append: ' max-md:grid max-md:hide-all-siblings'
+    assign collection_card_class = collection_card_class | append: ' max-md:w-full'
+  endif
+  if s.wrapper_type_tablet == 'grid'
+    assign md_cols = 6.0 | divided_by: per_row_tablet | floor
+    assign feed_class = feed_class | append: ' md:max-lg:grid md:max-lg:hide-all-siblings'
+    assign collection_card_class = collection_card_class | append: ' md:max-lg:w-full'
+  endif
+  if s.wrapper_type_desktop == 'grid'
+    assign feed_class = feed_class | append: ' lg:grid lg:hide-all-siblings'
+    assign collection_card_class = collection_card_class | append: ' lg:w-full'
+    assign lg_cols = 12.0 | divided_by: per_row_desktop | floor
+  endif
+
+  capture feed
+    for block in section.blocks
+      render 'm--collection-card', forloop_index: forloop.index, block: block, card_collection: block.settings.collection, cols: lg_cols, class: collection_card_class
+    endfor
+  endcapture
+  render 'm--electric-slider', feed: feed, slider_class: slider_class, feed_class: feed_class, gradient_finish: true, no_shadow: true
+-%}

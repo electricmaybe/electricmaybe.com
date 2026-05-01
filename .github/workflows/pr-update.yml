@@ -1,0 +1,162 @@
+# climaybe — PR Update (Optional Preview Package)
+# Creates a Shopify preview theme on PR update, renames it with PR number,
+# and posts preview/customize links back to the PR.
+
+name: PR Update
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main, staging, develop, 'staging-*', 'live-*']
+
+jobs:
+  filter:
+    runs-on: ubuntu-latest
+    outputs:
+      theme: ${{ steps.paths.outputs.theme }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: paths
+        with:
+          filters: |
+            theme:
+              - 'assets/**'
+              - 'blocks/**'
+              - 'config/**'
+              - 'layout/**'
+              - 'locales/**'
+              - 'sections/**'
+              - 'snippets/**'
+              - 'templates/**'
+              - '_scripts/**'
+              - '_styles/**'
+              - 'shopify.theme.toml'
+              - 'stores/**'
+
+  extract-pr-number:
+    needs: [filter]
+    if: needs.filter.outputs.theme == 'true'
+    uses: ./.github/workflows/reusable-extract-pr-number.yml
+
+  validate-environment:
+    needs: [filter]
+    if: needs.filter.outputs.theme == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      store_alias: ${{ steps.resolve.outputs.alias }}
+      store_alias_secret: ${{ steps.resolve.outputs.alias_secret }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Resolve store alias from base branch
+        id: resolve
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          # On staging-<alias> or live-<alias> PRs, use that store; otherwise default store
+          if [[ -n "$BASE_REF" && ("$BASE_REF" == staging-* || "$BASE_REF" == live-*) ]]; then
+            ALIAS="${BASE_REF#staging-}"
+            ALIAS="${ALIAS#live-}"
+          else
+            ALIAS=$(node -e "
+              const fs = require('fs');
+              const cfg = JSON.parse(fs.readFileSync('./climaybe.config.json', 'utf8'));
+              const stores = cfg?.stores || {};
+              const defaultStoreRaw = cfg?.default_store;
+              const normalize = (v) => String(v || '')
+                .toLowerCase()
+                .replace(/^https?:\\/\\//, '')
+                .replace(/\\/.*$/, '');
+              const defaultStore = normalize(defaultStoreRaw);
+              let alias = '';
+              if (defaultStore) {
+                for (const [k, d] of Object.entries(stores)) {
+                  if (normalize(d) === defaultStore) {
+                    alias = k;
+                    break;
+                  }
+                }
+              }
+              if (!alias) {
+                alias = Object.keys(stores)[0] || '';
+              }
+              if (!alias && defaultStore) {
+                const subdomain = defaultStore.split('.')[0] || 'default';
+                alias = subdomain.replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-') || 'default';
+              }
+              if (!alias) {
+                alias = 'default';
+              }
+              process.stdout.write(alias);
+            ")
+          fi
+
+          if [ -z "$ALIAS" ]; then
+            echo "Could not resolve default store alias from climaybe.config.json config."
+            exit 1
+          fi
+
+          ALIAS_SECRET=$(echo "$ALIAS" | tr '[:lower:]-' '[:upper:]_')
+          echo "alias=$ALIAS" >> $GITHUB_OUTPUT
+          echo "alias_secret=$ALIAS_SECRET" >> $GITHUB_OUTPUT
+
+      - name: Validate Shopify credentials
+        env:
+          SHOPIFY_STORE_URL_SCOPED: ${{ secrets[format('SHOPIFY_STORE_URL_{0}', steps.resolve.outputs.alias_secret)] }}
+          SHOPIFY_THEME_ACCESS_TOKEN_SCOPED: ${{ secrets[format('SHOPIFY_THEME_ACCESS_TOKEN_{0}', steps.resolve.outputs.alias_secret)] }}
+          SHOPIFY_STORE_URL_DEFAULT: ${{ secrets.SHOPIFY_STORE_URL }}
+          SHOPIFY_THEME_ACCESS_TOKEN_DEFAULT: ${{ secrets.SHOPIFY_THEME_ACCESS_TOKEN }}
+        run: |
+          SHOPIFY_STORE_URL="${SHOPIFY_STORE_URL_SCOPED:-$SHOPIFY_STORE_URL_DEFAULT}"
+          SHOPIFY_THEME_ACCESS_TOKEN="${SHOPIFY_THEME_ACCESS_TOKEN_SCOPED:-$SHOPIFY_THEME_ACCESS_TOKEN_DEFAULT}"
+
+          if [ -z "$SHOPIFY_STORE_URL" ]; then
+            echo "No store URL secret found. Expected SHOPIFY_STORE_URL_${{ steps.resolve.outputs.alias_secret }} or SHOPIFY_STORE_URL."
+            exit 1
+          fi
+          if [ -z "$SHOPIFY_THEME_ACCESS_TOKEN" ]; then
+            echo "No theme token secret found. Expected SHOPIFY_THEME_ACCESS_TOKEN_${{ steps.resolve.outputs.alias_secret }} or SHOPIFY_THEME_ACCESS_TOKEN."
+            exit 1
+          fi
+          echo "Shopify credentials are configured for alias: ${{ steps.resolve.outputs.alias }}"
+
+  cleanup-themes:
+    needs: [extract-pr-number, validate-environment]
+    uses: ./.github/workflows/reusable-cleanup-themes.yml
+    with:
+      pr_number: ${{ needs.extract-pr-number.outputs.pr_number }}
+      store_alias_secret: ${{ needs.validate-environment.outputs.store_alias_secret }}
+    secrets: inherit
+
+  share-theme:
+    needs: [validate-environment, extract-pr-number, cleanup-themes]
+    uses: ./.github/workflows/reusable-share-theme.yml
+    with:
+      pr_number: ${{ needs.extract-pr-number.outputs.pr_number }}
+      store_alias: ${{ needs.validate-environment.outputs.store_alias }}
+      store_alias_secret: ${{ needs.validate-environment.outputs.store_alias_secret }}
+    secrets: inherit
+
+  rename-theme:
+    needs: [share-theme, extract-pr-number, validate-environment]
+    uses: ./.github/workflows/reusable-rename-theme.yml
+    with:
+      theme_id: ${{ needs.share-theme.outputs.theme_id }}
+      theme_name: ${{ needs.share-theme.outputs.theme_name }}
+      pr_number: ${{ needs.extract-pr-number.outputs.pr_number }}
+      store_alias: ${{ needs.validate-environment.outputs.store_alias }}
+      store_alias_secret: ${{ needs.validate-environment.outputs.store_alias_secret }}
+    secrets: inherit
+
+  comment-on-pr:
+    needs: [share-theme, rename-theme, extract-pr-number, validate-environment]
+    uses: ./.github/workflows/reusable-comment-on-pr.yml
+    with:
+      theme_id: ${{ needs.share-theme.outputs.theme_id }}
+      share_output: ${{ needs.share-theme.outputs.share_output }}
+      pr_number: ${{ needs.extract-pr-number.outputs.pr_number_unpadded }}
+      store_alias: ${{ needs.validate-environment.outputs.store_alias }}
+      store_alias_secret: ${{ needs.validate-environment.outputs.store_alias_secret }}
+    secrets: inherit

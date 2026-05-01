@@ -1,0 +1,917 @@
+<div class="py-s-base space-y-s-base lg:space-y-s-xl">
+  {%- liquid
+    assign reviews_all = shop.metafields.custom.review_videos_all.value | default: shop.metafields.custom.review_videos_all
+    assign review_videos = reviews_all.videos.value | default: reviews_all.videos
+    assign review_video_links = reviews_all.video_links.value | default: reviews_all.video_links
+
+    capture slider_spacer_start
+      echo '<div class="shrink-0" aria-hidden="true" style="width: var(--px-s-whole); margin-right: calc(-1 * var(--gap, 0px)); border: 0;"></div>'
+    endcapture
+    capture slider_spacer_end
+      echo '<div class="shrink-0" aria-hidden="true" style="width: var(--px-s-whole); margin-left: calc(-1 * var(--gap, 0px)); border: 0;"></div>'
+    endcapture
+
+    capture feed
+      echo slider_spacer_start
+      for video in review_videos
+        render 'a--video', video: video, no_cover: false, aspect_ratio: 0.6, loop: true, controls: true, wrapper_class: 'h-full', class: 'h-full'
+      endfor
+      for link in review_video_links
+        assign video_id = link | split: 'v=' | last | split: '&' | first
+        if video_id == link
+          assign video_id = link | split: '/' | last | split: '?' | first
+        endif
+        render 'a--video', video_url: link, video_id: video_id, no_cover: true, aspect_ratio: 0.6, loop: true, controls: false, wrapper_class: 'h-full', class: 'h-full', load_immediately: true, show_play_overlay: true
+      endfor
+      for video in review_videos
+        render 'a--video', video: video, no_cover: false, aspect_ratio: 0.6, loop: true, controls: true, wrapper_class: 'h-full', class: 'h-full'
+      endfor
+      for link in review_video_links
+        assign video_id = link | split: 'v=' | last | split: '&' | first
+        if video_id == link
+          assign video_id = link | split: '/' | last | split: '?' | first
+        endif
+        render 'a--video', video_url: link, video_id: video_id, no_cover: true, aspect_ratio: 0.6, loop: true, controls: false, wrapper_class: 'h-full', class: 'h-full', load_immediately: true, show_play_overlay: true
+      endfor
+      echo slider_spacer_end
+    endcapture
+    render 'm--electric-slider', feed_class: 'scroll-px-0 gap-y-b-lg items-stretch [&_>_*]:max-h-[24rem] lg:[&_>_*]:max-h-[36rem] [&_>_*]:h-full', slider_class: 'w-full', per_row_desktop: 4, per_row_tablet: 3, per_row_mobile: 2, gap: 'gap-x-b-base', bar: false, feed: feed, id: 'reviews-videos'
+  -%}
+  <div class="grid lg:grid-cols-12 gap-x-b-base gap-y-s-xs px-s-whole">
+    <div class="lg:col-span-8 h1 text-center lg:text-left">
+      {{ section.settings.heading }}
+    </div>
+    <div class="lg:col-span-4 flex items-center justify-center">
+      <div id="voldt-trustbadge-slot"></div>
+      <script>
+        (function() {
+          const SLOT_ID = 'voldt-trustbadge-slot';
+          const TARGET_SELECTOR = 'button[data-testid="minimized-trustbadge-floating"]';
+          const BADGE_CONTENT_SELECTOR = '[data-testid="trustmark-container-floating"]';
+          const SLOT = document.getElementById(SLOT_ID);
+          const MAX_WAIT_MS = 30000;
+          let lastClonedMarkup = '';
+          if (!SLOT) return;
+
+          function isVisible(el) {
+            if (!el) return false;
+            const rect = el.getBoundingClientRect();
+            if (rect.width <= 0 || rect.height <= 0) return false;
+            const style = window.getComputedStyle(el);
+            if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return false;
+            return true;
+          }
+
+          function getPreferredBadge() {
+            const candidates = Array.from(document.querySelectorAll(TARGET_SELECTOR));
+            if (candidates.length === 0) return null;
+            // Prefer the one currently rendered for this viewport (mobile vs desktop).
+            return candidates.find(isVisible) || candidates[0];
+          }
+
+          function isBadgeReady(source) {
+            if (!source || !isVisible(source)) return false;
+
+            const trustmark = source.querySelector(BADGE_CONTENT_SELECTOR);
+            if (!trustmark) return false;
+
+            return trustmark.textContent.trim().length > 0;
+          }
+
+          function sanitizeClone(node) {
+            if (!node) return;
+            if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+            node.removeAttribute('id');
+            node.removeAttribute('aria-describedby');
+
+            const descendants = node.querySelectorAll('[id], [aria-describedby]');
+            descendants.forEach((descendant) => {
+              descendant.removeAttribute('id');
+              descendant.removeAttribute('aria-describedby');
+            });
+          }
+
+          function cloneBadge(source) {
+            if (!source) return;
+
+            const clone = source.cloneNode(true);
+            sanitizeClone(clone);
+
+            SLOT.innerHTML = '';
+            SLOT.style.position = 'relative';
+            SLOT.style.width = '100%';
+            SLOT.style.display = 'flex';
+            SLOT.style.justifyContent = 'center';
+            clone.style.opacity = '1';
+            clone.style.maxWidth = '100%';
+            clone.style.position = 'static';
+            clone.style.inset = 'auto';
+            clone.style.transform = 'none';
+            clone.style.margin = '0';
+            clone.style.top = 'auto';
+            clone.style.right = 'auto';
+            clone.style.bottom = 'auto';
+            clone.style.left = 'auto';
+            SLOT.appendChild(clone);
+            SLOT.dataset.filled = 'true';
+          }
+
+          function tryClone(forceUpdate) {
+            const existing = getPreferredBadge();
+            if (!isBadgeReady(existing)) return false;
+
+            const nextMarkup = existing.outerHTML;
+
+            if (!forceUpdate && SLOT.dataset.filled === 'true' && nextMarkup === lastClonedMarkup) {
+              return true;
+            }
+
+            cloneBadge(existing);
+            lastClonedMarkup = nextMarkup;
+            return true;
+          }
+
+          // initial try
+          tryClone(true);
+
+          const observer = new MutationObserver(() => {
+            tryClone(false);
+          });
+          observer.observe(document.documentElement, { childList: true, subtree: true });
+
+          // Keep checking while the external widget bootstraps and settles.
+          const intervalId = window.setInterval(() => {
+            tryClone(false);
+          }, 500);
+
+          window.addEventListener('load', () => {
+            window.setTimeout(() => tryClone(true), 250);
+            window.setTimeout(() => tryClone(true), 1000);
+            window.setTimeout(() => tryClone(true), 2500);
+          }, { once: true });
+
+          // safety: stop observers after the fallback window ends
+          setTimeout(() => {
+            observer.disconnect();
+            window.clearInterval(intervalId);
+          }, MAX_WAIT_MS);
+        })();
+      </script>
+    </div>
+  </div>
+  <div class="space-y-s-base lg:space-y-s-xl">
+    <style>
+      @media (min-width: 1024px) {
+        #voldt-reviews-slider-wrapper .js-reviews-hover-nav > button[data-slider-target],
+        #voldt-reviews-images-slider-wrapper .js-reviews-hover-nav > button[data-slider-target] {
+          opacity: 0;
+          visibility: hidden;
+          pointer-events: none;
+          transition: opacity 0.2s ease, visibility 0.2s ease;
+          z-index: 10;
+        }
+
+        #voldt-reviews-slider-wrapper .js-reviews-hover-nav:hover > button[data-slider-target]:not([disabled]),
+        #voldt-reviews-images-slider-wrapper .js-reviews-hover-nav:hover > button[data-slider-target]:not([disabled]) {
+          opacity: 1;
+          visibility: visible;
+          pointer-events: auto;
+        }
+
+        #voldt-reviews-slider-wrapper .js-reviews-hover-nav > button[data-slider-target][disabled],
+        #voldt-reviews-images-slider-wrapper .js-reviews-hover-nav > button[data-slider-target][disabled] {
+          display: none !important;
+        }
+
+        #voldt-reviews-slider-wrapper .js-reviews-hover-nav > button[data-slider-target][name='previous'],
+        #voldt-reviews-images-slider-wrapper .js-reviews-hover-nav > button[data-slider-target][name='previous'] {
+          left: var(--px-s-whole) !important;
+        }
+
+        #voldt-reviews-slider-wrapper .js-reviews-hover-nav > button[data-slider-target][name='next'],
+        #voldt-reviews-images-slider-wrapper .js-reviews-hover-nav > button[data-slider-target][name='next'] {
+          right: var(--px-s-whole) !important;
+        }
+
+        #voldt-reviews-slider-wrapper .js-reviews-hover-nav > button[data-slider-target],
+        #voldt-reviews-images-slider-wrapper .js-reviews-hover-nav > button[data-slider-target] {
+          background-color: #F4F4F2 !important;
+          color: #282220 !important;
+          border-color: #F4F4F2 !important;
+        }
+      }
+
+      #reviews-images-lightbox-prev,
+      #reviews-images-lightbox-next,
+      #reviews-images-lightbox-close {
+        background-color: #F4F4F2;
+        color: #282220;
+        border-radius: 9999px;
+        padding: 0.625rem;
+      }
+
+      #reviews-images-lightbox[aria-hidden='false'] {
+        display: flex;
+      }
+    </style>
+    {%- comment -%} Voldt Reviews - Store-wide reviews {%- endcomment -%}
+    <div id="voldt-reviews-container" class="w-full">
+      <!-- Reviews Slider -->
+      <div id="voldt-reviews-slider-wrapper" class="hidden">
+        {%- capture empty_feed -%}
+          <div data-slider-spacer="start" class="shrink-0" aria-hidden="true" style="width: var(--px-s-whole); margin-right: calc(-1 * var(--gap, 0px)); border: 0;"></div>
+          <div data-slider-spacer="end" class="shrink-0" aria-hidden="true" style="width: var(--px-s-whole); margin-left: calc(-1 * var(--gap, 0px)); border: 0;"></div>
+        {%- endcapture -%}
+        {% render 'm--electric-slider',
+          id: 'voldt-reviews-slider',
+          feed: empty_feed,
+          nav: true,
+          type: 'on-sides',
+          bar: false,
+          slider_navigation_wrapper_class: 'px-0!',
+          feed_class: 'scroll-px-0 [--gap:0px] items-stretch [&_>_div]:flex [&_>_div]:flex-col [&_>_div]:shrink-0 [&_>_div]:min-h-[200px]',
+          slider_class: 'w-full js-reviews-hover-nav',
+          per_row_desktop: 3.33,
+          per_row_tablet: 2.33,
+          per_row_mobile: 1.33,
+          gap: 'gap-x-[0px]',
+          feed_properties: 'id="voldt-reviews-feed"'
+        %}
+      </div>
+      
+      <!-- Reviews List (fallback) -->
+      <div id="voldt-reviews-list" class="hidden flex-col gap-6 px-s-whole"></div>
+      <div id="voldt-reviews-loading" class="hidden py-8 text-center text-ui-small text-[#666] px-s-whole">{{ 'products.reviews.loading_reviews' | t }}</div>
+      <div id="voldt-reviews-error" class="hidden py-8 px-4 text-center text-ui-small text-alert bg-[#fef2f2] rounded-lg border border-[#fecaca] mx-s-outer"></div>
+    </div>
+    {% comment %}
+    <div class="px-s-whole">
+      <etrusted-widget data-etrusted-widget-id="wdg-f50168e9-a08f-4a79-a42a-21c765dc2f10"></etrusted-widget>
+    </div>
+    {% endcomment %}
+    {%- assign review_images = shop.metafields.custom.review_images.value -%}
+    {%- if review_images != blank -%}
+      {%- capture slider_spacer_start -%}
+        <div class="shrink-0" aria-hidden="true" style="width: var(--px-s-whole); margin-right: calc(-1 * var(--gap, 0px)); border: 0;"></div>
+      {%- endcapture -%}
+      {%- capture slider_spacer_end -%}
+        <div class="shrink-0" aria-hidden="true" style="width: var(--px-s-whole); margin-left: calc(-1 * var(--gap, 0px)); border: 0;"></div>
+      {%- endcapture -%}
+      {%- capture feed -%}
+        {{ slider_spacer_start }}
+        {% for image in review_images %}
+          <a
+            href="{{ image | image_url: width: 2400 }}"
+            class="js-lightbox group relative block overflow-hidden aspect-224/149"
+            aria-label="Open review image"
+            data-lightbox-image="{{ image | image_url: width: 2400 }}"
+            data-lightbox-alt="{{ image.alt | default: 'Review image' | escape }}"
+          >
+            {% render 'a--image',
+              image: image,
+              aspect_ratio: 1.503,
+              picture_class: 'h-full w-full',
+              image_class: 'h-full w-full object-cover transition-transform duration-500 group-hover:scale-105'
+            %}
+            <span class="absolute inset-0 bg-primary/20 pointer-events-none"></span>
+            <span class="absolute inset-0 flex items-center justify-center pointer-events-none">
+              {% render 'a--icon', icon: 'arrow-l-up', class: 'w-6! h-6! text-white' %}
+            </span>
+          </a>
+        {% endfor %}
+        {{ slider_spacer_end }}
+      {%- endcapture -%}
+      <div id="voldt-reviews-images-slider-wrapper">
+        {% render 'm--electric-slider',
+          id: 'reviews-images',
+          feed: feed,
+          nav: true,
+          type: 'on-sides',
+          bar: false,
+          slider_navigation_wrapper_class: 'px-0!',
+          feed_class: 'scroll-px-0 items-stretch',
+          slider_class: 'w-full js-reviews-hover-nav',
+          per_row_desktop: 5.8,
+          per_row_tablet: 3.5,
+          per_row_mobile: 2.2,
+          gap: 'gap-x-b-base'
+        %}
+      </div>
+      <div
+        id="reviews-images-lightbox"
+        class="lightbox hidden fixed inset-0 z-50 items-center justify-center p-s-whole"
+        style="background-color: rgba(0, 0, 0, 0.88);"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Review images lightbox"
+        aria-hidden="true"
+      >
+        <div class="relative h-full w-full max-w-[1200px]">
+          <button
+            id="reviews-images-lightbox-close"
+            type="button"
+            class="absolute right-3 top-3 md:right-4 md:top-4 z-10"
+            aria-label="Close review image lightbox"
+          >
+            {% render 'a--icon', icon: 'close', class: 'h-5! w-5!' %}
+          </button>
+          <button
+            id="reviews-images-lightbox-prev"
+            type="button"
+            class="absolute left-0 top-1/2 z-10 -translate-y-1/2"
+            aria-label="Previous review image"
+          >
+            {% render 'a--icon', icon: 'chevron-l', class: 'h-6! w-6!' %}
+          </button>
+          <button
+            id="reviews-images-lightbox-next"
+            type="button"
+            class="absolute right-0 top-1/2 z-10 -translate-y-1/2"
+            aria-label="Next review image"
+          >
+            {% render 'a--icon', icon: 'chevron-r', class: 'h-6! w-6!' %}
+          </button>
+          <div class="flex h-full w-full items-center justify-center px-14 md:px-20">
+            <img
+              id="reviews-images-lightbox-image"
+              alt=""
+              width="2400"
+              height="1600"
+              class="max-h-full max-w-full object-contain"
+              loading="eager"
+            >
+          </div>
+          <p id="reviews-images-lightbox-count" class="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full bg-primary/70 px-3 py-1 text-ui-small text-white"></p>
+        </div>
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+
+<script>
+(function() {
+  'use strict';
+  
+  // Translation strings
+  const translations = {
+    showReviewsFrom: {{ 'products.reviews.show_reviews_from' | t | json }},
+    allCountries: {{ 'products.reviews.all_countries' | t | json }},
+    loadingReviews: {{ 'products.reviews.loading_reviews' | t | json }},
+    noReviewsAvailable: {{ 'products.reviews.no_reviews_available' | t | json }},
+    errorLoadingReviews: {{ 'products.reviews.error_loading_reviews' | t | json }},
+    authenticBuyer: {{ 'products.reviews.authentic_buyer' | t | json }},
+    filterByCountry: {{ 'products.reviews.filter_by_country' | t | json }},
+    countryNames: {
+      uk: {{ 'products.reviews.country_names.uk' | t | json }},
+      us: {{ 'products.reviews.country_names.us' | t | json }},
+      de: {{ 'products.reviews.country_names.de' | t | json }},
+      fr: {{ 'products.reviews.country_names.fr' | t | json }},
+      it: {{ 'products.reviews.country_names.it' | t | json }},
+      es: {{ 'products.reviews.country_names.es' | t | json }},
+      nl: {{ 'products.reviews.country_names.nl' | t | json }},
+      be: {{ 'products.reviews.country_names.be' | t | json }},
+      at: {{ 'products.reviews.country_names.at' | t | json }},
+      ch: {{ 'products.reviews.country_names.ch' | t | json }},
+      se: {{ 'products.reviews.country_names.se' | t | json }},
+      no: {{ 'products.reviews.country_names.no' | t | json }},
+      dk: {{ 'products.reviews.country_names.dk' | t | json }},
+      fi: {{ 'products.reviews.country_names.fi' | t | json }},
+      pl: {{ 'products.reviews.country_names.pl' | t | json }},
+      cz: {{ 'products.reviews.country_names.cz' | t | json }},
+      ie: {{ 'products.reviews.country_names.ie' | t | json }},
+      pt: {{ 'products.reviews.country_names.pt' | t | json }},
+      gr: {{ 'products.reviews.country_names.gr' | t | json }}
+    }
+  };
+  
+  // Default country from store localization (lowercase ISO, e.g., 'us', 'tr')
+  const storeCountryCode = '{{ localization.country.iso_code | default: shop.address.country_code | downcase }}';
+  const storeHostName = (window.location.hostname === 'voldt-dev-store.myshopify.com'
+    ? 'voldt.nl'
+    : window.location.hostname
+  ).toLowerCase();
+  const serviceReviewChannelByHost = {
+    'voldt.at': 'chl-4facd2dd-7ba8-42a7-a9f4-fbd7635d099d',
+    'voldt.be': 'chl-66677ef0-1d66-44da-a634-975335caf726',
+    'voldt.ch': 'chl-4facd2dd-7ba8-42a7-a9f4-fbd7635d099d',
+    'voldt.co.uk': 'chl-8931c5b4-e4cc-45d3-b3cb-76ecb9a5233d',
+    'voldt.dk': 'chl-b583b4bd-965d-46cf-afb8-a022e33ceab8',
+    'voldt.es': 'chl-6541ef01-6994-4341-bc34-379958fc130a',
+    'voldt.fi': 'chl-c3627831-815d-424a-b5f1-79063412c0cf',
+    'voldt.fr': 'chl-c3e21210-8b22-467c-9fb0-80799fce64c8',
+    'voldt.it': 'chl-21d3e635-2ed0-4fee-9b8f-93ed595928f9',
+    'voldt.nl': 'chl-66677ef0-1d66-44da-a634-975335caf726',
+    'voldt.no': 'chl-104f6c35-3ffb-4c08-926c-260185c1af33',
+    'voldt.se': 'chl-f81370ba-a338-48d1-b478-b660632181f5',
+    'voldtladekabel.de': 'chl-4facd2dd-7ba8-42a7-a9f4-fbd7635d099d'
+  };
+  const storeServiceReviewChannel = serviceReviewChannelByHost[storeHostName] || '';
+  
+  // Product vs store-wide reviews
+  const isProductContext = {% if product %}true{% else %}false{% endif %};
+  // Get SKU list from product variants (product page).
+  // Important: If SKU is missing, we must NOT fall back to store-wide reviews.
+  // Use a unique product identifier as a substitute (Trusted Shops recommends this approach too).
+  {% if product %}
+    {% assign sku_list = '' %}
+    {% for variant in product.variants %}
+      {% if variant.sku != "" %}
+        {% assign current_sku = variant.sku %}
+        {% unless sku_list contains current_sku %}
+          {% if sku_list != '' %}
+            {% assign sku_list = sku_list | append: ',' %}
+          {% endif %}
+          {% assign sku_list = sku_list | append: current_sku %}
+        {% endunless %}
+      {% endif %}
+    {% endfor %}
+    {% if sku_list == '' %}
+      {% assign sku_list = product.id | append: '' %}
+    {% endif %}
+    const skuList = '{{ sku_list }}';
+  {% else %}
+    // For store-wide reviews, use empty string
+    const skuList = '';
+  {% endif %}
+  
+  function generateStarHTML(rating) {
+    const totalStars = 5;
+    let starHTML = '';
+    
+    const fullStars = Math.floor(rating);
+    const decimal = rating % 1;
+    const partialPercent = Math.round(decimal * 100);
+    
+    // Full stars
+    for (let i = 0; i < fullStars; i++) {
+      starHTML += '<span class="text-primary leading-none relative" style="color: #282220;">★</span>';
+    }
+    
+    // Partial star with inline style
+    if (partialPercent > 0) {
+      const partialWidth = Math.round(partialPercent / 10) * 10;
+      starHTML += `<span class="text-primary leading-none relative inline-block" style="color: #282220;"><span style="position: absolute; top: 0; left: 0; height: 100%; overflow: hidden; width: ${partialWidth}%; color: #DB6B21; z-index: 1;">★</span>★</span>`;
+    }
+    
+    // Empty stars
+    const remaining = totalStars - fullStars - (partialPercent > 0 ? 1 : 0);
+    for (let i = 0; i < remaining; i++) {
+      starHTML += '<span class="leading-none relative" style="color: #B4B4B4;">★</span>';
+    }
+    
+    return starHTML;
+  }
+  
+  let allReviews = [];
+
+  function normalizeReviewType(review) {
+    return String(review?.type || '').trim().toUpperCase();
+  }
+
+  function getCountryCodeFromReview(review) {
+    const locale = review?.questionnaire?.locale || '';
+    return locale.split('_')[1]?.toLowerCase() || '';
+  }
+
+  function getFlagUrl(countryCode) {
+    if (!countryCode) return '';
+    return `https://flagcdn.com/w40/${countryCode}.png`;
+  }
+
+  function orderReviewsWhenShowingAll(reviews) {
+    if (!Array.isArray(reviews) || reviews.length === 0) return [];
+
+    const groupedByCountry = {};
+    const countryOrder = [];
+
+    reviews.forEach((review) => {
+      const countryCode = getCountryCodeFromReview(review);
+      if (!countryCode) return;
+      if (!groupedByCountry[countryCode]) {
+        groupedByCountry[countryCode] = [];
+        countryOrder.push(countryCode);
+      }
+      groupedByCountry[countryCode].push(review);
+    });
+
+    if (isProductContext) {
+      // Product pages: render all reviews grouped country by country.
+      const ordered = [];
+      countryOrder.forEach((countryCode) => {
+        ordered.push(...groupedByCountry[countryCode]);
+      });
+      return ordered;
+    }
+
+    // Non-product pages: max 10 reviews per country and interleave one-by-one.
+    const limitedByCountry = {};
+    countryOrder.forEach((countryCode) => {
+      limitedByCountry[countryCode] = groupedByCountry[countryCode].slice(0, 10);
+    });
+
+    const interleaved = [];
+    let hasItems = true;
+    let index = 0;
+    while (hasItems) {
+      hasItems = false;
+      countryOrder.forEach((countryCode) => {
+        const item = limitedByCountry[countryCode][index];
+        if (item) {
+          interleaved.push(item);
+          hasItems = true;
+        }
+      });
+      index += 1;
+    }
+
+    return interleaved;
+  }
+
+  function getDisplayedReviews(reviews) {
+    const ratingFilteredReviews = (Array.isArray(reviews) ? reviews : []).filter((review) => {
+      const raw = review.rating ?? review.reviewRating ?? review.reviewScore ?? 0;
+      const parsed = parseFloat(String(raw).replace(',', '.'));
+      const ratingValue = Number.isNaN(parsed) ? 0 : parsed;
+      return ratingValue >= 4;
+    });
+
+    if (!isProductContext && storeServiceReviewChannel) {
+      return {
+        reviews: ratingFilteredReviews,
+        showCountryFlags: false
+      };
+    }
+
+    const localCountryReviews = ratingFilteredReviews.filter((review) => {
+      return getCountryCodeFromReview(review) === storeCountryCode;
+    });
+
+    if (localCountryReviews.length > 0) {
+      return {
+        reviews: localCountryReviews,
+        showCountryFlags: false
+      };
+    }
+
+    return {
+      reviews: orderReviewsWhenShowingAll(ratingFilteredReviews),
+      showCountryFlags: true
+    };
+  }
+
+  function getContextFilteredReviews(reviews) {
+    if (!Array.isArray(reviews)) return [];
+
+    if (isProductContext) {
+      return reviews.filter((review) => normalizeReviewType(review) === 'PRODUCT_REVIEW');
+    }
+
+    return reviews.filter((review) => normalizeReviewType(review) === 'SERVICE_REVIEW');
+  }
+  
+  function getCountryName(countryCode) {
+    return translations.countryNames[countryCode.toLowerCase()] || countryCode.toUpperCase();
+  }
+  
+  function renderReviews() {
+    const reviewsList = document.getElementById('voldt-reviews-list');
+    const sliderWrapper = document.getElementById('voldt-reviews-slider-wrapper');
+    const reviewsFeed = document.getElementById('voldt-reviews-feed');
+    
+    const getRatingValue = (review) => {
+      const raw = review.rating ?? review.reviewRating ?? review.reviewScore ?? 0;
+      const parsed = parseFloat(String(raw).replace(',', '.'));
+      return Number.isNaN(parsed) ? 0 : parsed;
+    };
+
+    const displayedResult = getDisplayedReviews(allReviews);
+    const filteredReviews = displayedResult.reviews;
+    const showCountryFlags = displayedResult.showCountryFlags;
+    
+    if (filteredReviews.length === 0) {
+      if (reviewsList) {
+        reviewsList.innerHTML = `<div class="py-8 text-center text-ui-small text-[#666]">${translations.noReviewsAvailable}</div>`;
+        reviewsList.classList.remove('hidden');
+        reviewsList.classList.add('flex');
+      }
+      if (sliderWrapper) sliderWrapper.classList.add('hidden');
+      return;
+    }
+    
+    // Use slider if available, otherwise fallback to list
+    if (reviewsFeed && sliderWrapper) {
+      let reviewsHTML = '';
+      filteredReviews.forEach((review, index) => {
+        const rating = getRatingValue(review);
+        const comment = review.body || review.comment || review.reviewText || '';
+        const reviewerName = review.reviewer?.name || review.reviewer?.displayName || review.reviewerName || 'Anonymous';
+        const date = review.dateCreated || review.createdAt || review.date || '';
+        const countryCode = getCountryCodeFromReview(review);
+        const countryName = getCountryName(countryCode);
+        const countryFlagUrl = getFlagUrl(countryCode);
+        
+        // Format date
+        let formattedDate = '';
+        if (date) {
+          try {
+            const dateObj = new Date(date);
+            formattedDate = dateObj.toLocaleDateString('en-US', { 
+              year: 'numeric', 
+              month: 'short', 
+              day: 'numeric' 
+            });
+          } catch (e) {
+            formattedDate = date;
+          }
+        }
+        
+        // Truncate comment if too long
+        let truncatedComment = comment;
+        const maxLength = 200; // Character limit
+        if (comment.length > maxLength) {
+          truncatedComment = comment.substring(0, maxLength) + '...';
+        }
+        
+        reviewsHTML += `
+          <div class="px-b-lg py-b-xl flex flex-col gap-y-b-xs max-md:px-b-xs border-y border-secondary border-r border-secondary last:border-r-0 ${index === 0 ? 'border-l' : ''}">
+              <div class="flex flex-row justify-between items-center gap-3">
+              <div class="flex items-center gap-2" aria-label="Rating: ${rating} out of 5">
+                ${showCountryFlags && countryCode ? `
+                  <span class="inline-flex items-center" title="${countryName}">
+                    <img src="${countryFlagUrl}" alt="${countryName}" class="w-5 h-3.5 object-cover rounded-sm" loading="lazy">
+                  </span>
+                ` : ''}
+                ${generateStarHTML(rating)}
+              </div>
+                <div class="inline-flex items-center gap-3 px-1 pl-3 py-1 rounded-full border border-secondary bg-subtext text-ui-small text-[#047948] w-fit">
+                  <span>${translations.authenticBuyer}</span>
+                  <svg class="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <g clip-path="url(#clip0_auth_buyer_fallback)">
+                      <path fill-rule="evenodd" clip-rule="evenodd" d="M4.32067 11.9263C4.32067 16.085 7.692 19.4556 11.8507 19.4556C16.0087 19.4556 19.38 16.085 19.38 11.9263C19.38 7.76762 16.0087 4.39696 11.8507 4.39696C7.692 4.39696 4.32067 7.76762 4.32067 11.9263ZM0 11.9643C0 5.36429 5.35 0.015625 11.9493 0.015625C18.5493 0.015625 23.8987 5.36496 23.8987 11.9643C23.8987 18.5643 18.5487 23.9143 11.9493 23.9143C5.34933 23.9143 0 18.5643 0 11.9643ZM13.4613 7.50429C14.0327 7.50429 14.3427 7.93362 14.3427 8.48096C14.3427 10.3623 12.128 11.671 10.5333 12.147C10.8667 10.8376 11.7473 7.50496 13.4613 7.50496V7.50429ZM10.8193 17.3603C12.866 17.3603 14.39 15.8836 15.4853 14.2656L14.8893 13.813C14.104 14.765 13.0333 16.051 11.6993 16.051C10.676 16.051 10.1767 15.193 10.1767 14.2656C10.1767 13.813 10.248 13.361 10.3193 12.909L10.6513 12.8256C12.8087 12.2883 16.6033 11.3436 16.6033 8.79096C16.6033 7.29096 14.9373 6.79096 13.6993 6.79096C10.0093 6.79096 7.39133 10.2663 7.39133 13.813C7.39133 16.003 8.65267 17.3603 10.8193 17.3603Z" />
+                    </g>
+                    <defs>
+                      <clipPath id="clip0_auth_buyer_fallback">
+                        <rect width="24" height="24" fill="white"/>
+                      </clipPath>
+                    </defs>
+                  </svg>
+              </div>
+            </div>
+            ${truncatedComment ? `<div class="text-ui-base leading-copy flex-1 min-h-0 whitespace-pre-wrap">${escapeHtml(truncatedComment)}</div>` : ''}
+          </div>
+        `;
+      });
+      
+      // Preserve scroll spacers (used to create initial gutter that can be scrolled away).
+      const startSpacer = reviewsFeed.querySelector('[data-slider-spacer="start"]')?.cloneNode(true) || null;
+      const endSpacer = reviewsFeed.querySelector('[data-slider-spacer="end"]')?.cloneNode(true) || null;
+      reviewsFeed.innerHTML = '';
+      if (startSpacer) reviewsFeed.appendChild(startSpacer);
+      if (reviewsHTML) {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = reviewsHTML;
+        while (tmp.firstChild) {
+          reviewsFeed.appendChild(tmp.firstChild);
+        }
+      }
+      if (endSpacer) reviewsFeed.appendChild(endSpacer);
+      sliderWrapper.classList.remove('hidden');
+      if (reviewsList) reviewsList.classList.add('hidden');
+      
+      // Reinitialize slider after content is added
+      setTimeout(() => {
+        const slider = document.querySelector('electric-slider[data-id="voldt-reviews-slider"]');
+        if (slider) {
+          // Trigger custom event to reinitialize slider
+          slider.dispatchEvent(new CustomEvent('slider:refresh'));
+          // Also try direct initialization if method exists
+          if (typeof slider.initSlider === 'function') {
+            slider.initSlider();
+          }
+        }
+      }, 200);
+    } else {
+      // If slider feed not available, hide the entire reviews container
+      const container = document.getElementById('voldt-reviews-container');
+      if (container) container.style.display = 'none';
+      if (sliderWrapper) sliderWrapper.classList.add('hidden');
+      if (reviewsList) {
+        reviewsList.classList.add('hidden');
+        reviewsList.innerHTML = '';
+      }
+    }
+  }
+  
+  function updateReviews() {
+    const loadingEl = document.getElementById('voldt-reviews-loading');
+    const errorEl = document.getElementById('voldt-reviews-error');
+    const reviewsList = document.getElementById('voldt-reviews-list');
+    
+    // Show loading
+    if (loadingEl) {
+      loadingEl.textContent = translations.loadingReviews;
+      loadingEl.classList.remove('hidden');
+    }
+    if (errorEl) errorEl.classList.add('hidden');
+    if (reviewsList) reviewsList.innerHTML = '';
+    
+    // Build API URL
+    const apiUrl = isProductContext
+      ? `https://app-dev.voldt.com/api/shopify/reviews/${skuList}`
+      : `https://app-dev.voldt.com/api/shopify/reviews/${storeServiceReviewChannel ? `?channels=${encodeURIComponent(storeServiceReviewChannel)}` : ''}`;
+    
+    fetch(apiUrl, {
+      method: 'GET',
+      credentials: "include",
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (loadingEl) loadingEl.classList.add('hidden');
+      
+      if (!data || !data.items || data.items.length === 0) {
+        if (reviewsList) {
+          reviewsList.innerHTML = `<div class="py-8 text-center text-ui-small text-[#666]">${translations.noReviewsAvailable}</div>`;
+        }
+        return;
+      }
+      
+      // Keep review source strict by page context:
+      // - PDP => product reviews only
+      // - non-PDP => service reviews only
+      allReviews = getContextFilteredReviews(data.items);
+      
+      // Render reviews
+      renderReviews();
+    })
+    .catch((error) => {
+      console.error('Voldt Reviews Error:', error);
+      if (loadingEl) loadingEl.classList.add('hidden');
+      const container = document.getElementById('voldt-reviews-container');
+      if (container) container.style.display = 'none';
+      if (errorEl) {
+        errorEl.classList.remove('hidden');
+        errorEl.textContent = `${translations.errorLoadingReviews}`;
+      }
+      if (reviewsList) {
+        reviewsList.classList.add('hidden');
+        reviewsList.innerHTML = '';
+      }
+    });
+  }
+  
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function initReviewImagesLightbox() {
+    const lightbox = document.getElementById('reviews-images-lightbox');
+    if (!lightbox) return;
+
+    const triggers = Array.from(document.querySelectorAll('#voldt-reviews-images-slider-wrapper .js-lightbox'));
+    if (!triggers.length) return;
+
+    const image = document.getElementById('reviews-images-lightbox-image');
+    const count = document.getElementById('reviews-images-lightbox-count');
+    const closeButton = document.getElementById('reviews-images-lightbox-close');
+    const prevButton = document.getElementById('reviews-images-lightbox-prev');
+    const nextButton = document.getElementById('reviews-images-lightbox-next');
+    if (!image || !count || !closeButton || !prevButton || !nextButton) return;
+
+    let currentIndex = 0;
+    let scrollPosition = 0;
+    let lastFocusedElement = null;
+
+    const syncControls = () => {
+      const currentTrigger = triggers[currentIndex];
+      if (!currentTrigger) return;
+
+      const src = currentTrigger.getAttribute('data-lightbox-image') || currentTrigger.getAttribute('href') || '';
+      const alt = currentTrigger.getAttribute('data-lightbox-alt') || '';
+
+      image.src = src;
+      image.alt = alt;
+
+      const isAtStart = currentIndex === 0;
+      const isAtEnd = currentIndex === triggers.length - 1;
+
+      prevButton.toggleAttribute('disabled', isAtStart);
+      nextButton.toggleAttribute('disabled', isAtEnd);
+      prevButton.classList.toggle('hidden', isAtStart);
+      nextButton.classList.toggle('hidden', isAtEnd);
+      count.textContent = `${currentIndex + 1} / ${triggers.length}`;
+    };
+
+    const open = (index) => {
+      currentIndex = index;
+      syncControls();
+      lastFocusedElement = document.activeElement;
+      scrollPosition = window.scrollY;
+      lightbox.classList.remove('hidden');
+      lightbox.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('fixed');
+      closeButton.focus();
+    };
+
+    const close = () => {
+      lightbox.classList.add('hidden');
+      lightbox.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('fixed');
+      window.scrollTo({
+        top: scrollPosition,
+        behavior: 'instant'
+      });
+      if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
+        lastFocusedElement.focus();
+      }
+    };
+
+    triggers.forEach((trigger, index) => {
+      trigger.addEventListener('click', (event) => {
+        event.preventDefault();
+        open(index);
+      });
+    });
+
+    prevButton.addEventListener('click', () => {
+      if (currentIndex <= 0) return;
+      currentIndex -= 1;
+      syncControls();
+    });
+
+    nextButton.addEventListener('click', () => {
+      if (currentIndex >= triggers.length - 1) return;
+      currentIndex += 1;
+      syncControls();
+    });
+
+    closeButton.addEventListener('click', close);
+
+    lightbox.addEventListener('click', (event) => {
+      if (event.target === lightbox) close();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (!lightbox.classList.contains('fixed')) return;
+
+      if (event.key === 'Escape') close();
+      if (event.key === 'ArrowLeft' && currentIndex > 0) {
+        currentIndex -= 1;
+        syncControls();
+      }
+      if (event.key === 'ArrowRight' && currentIndex < triggers.length - 1) {
+        currentIndex += 1;
+        syncControls();
+      }
+    });
+  }
+  
+  // Load reviews when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      updateReviews();
+      initReviewImagesLightbox();
+    });
+  } else {
+    updateReviews();
+    initReviewImagesLightbox();
+  }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Reviews",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Join 20,000+ EV drivers across Europe, from the Netherlands to Norway, who trust Voldt® to keep them powered every day, everywhere."
+    },
+    {
+      "type": "header",
+      "content": "Video Settings"
+    },
+    {
+      "type": "header",
+      "content": "Voldt Reviews"
+    },
+    {
+      "type": "paragraph",
+      "content": "Reviews are automatically loaded from Voldt API. Product-specific reviews on product pages, store-wide reviews on other pages."
+    }
+  ],
+  "presets": [
+    {
+      "name": "Reviews"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,36 @@
+{% comment %}
+  Head additions for the Electric Maybe static-style homepage (index only).
+  Geist font, legacy GA, DNS prefetch for analytics. Shopify Inbox loads via admin when enabled (App embeds / Inbox); Smallchat is intentionally not included.
+{% endcomment %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link
+  rel="preload"
+  href="https://fonts.googleapis.com/css2?family=Geist:wght@400;700&display=swap"
+  as="style"
+  onload="this.onload=null;this.rel='stylesheet'"
+>
+<noscript>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;700&display=swap" rel="stylesheet">
+</noscript>
+<link rel="preload" href="{{ 'em-logo.svg' | asset_url }}" as="image">
+<link rel="dns-prefetch" href="https://www.googletagmanager.com">
+<link rel="dns-prefetch" href="https://www.google-analytics.com">
+<script defer>
+  window.dataLayer = window.dataLayer || [];
+  function gtag() {
+    dataLayer.push(arguments);
+  }
+  const _emGtag = document.createElement('script');
+  _emGtag.src = 'https://www.googletagmanager.com/gtag/js?id=UA-178112859-1';
+  _emGtag.onload = () => {
+    gtag('js', new Date());
+    gtag('config', 'UA-178112859-1', {
+      page_title: document.title,
+      page_path: window.location.pathname,
+      anonymize_ip: true,
+      cookie_flags: 'SameSite=None;Secure',
+    });
+  };
+  document.head.appendChild(_emGtag);
+</script>

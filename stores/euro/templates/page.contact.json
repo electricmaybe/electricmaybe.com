@@ -1,0 +1,58 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "hero_vol37_contact": {
+      "type": "contact--hero",
+      "name": "Contact hero",
+      "blocks": {
+        "contact_info_vol37": {
+          "type": "contact_info",
+          "settings": {
+            "contact_info_title": "Contact Information",
+            "contact_info_primary": "<p>{{ metaobjects.adress.voldt.phone.value }}<br/>{{ metaobjects.adress.voldt.email.value }}</p><p>{{ metaobjects.adress.voldt.coc.value }}<br/>{{ metaobjects.adress.voldt.vat.value }}</p><p>*Prices in this online shop include VAT and import duties.</p>",
+            "contact_info_secondary": "<p>{{ metaobjects.adress.voldt.adress.value }}<br/>{{ metaobjects.adress.voldt.postal_code.value }} {{ metaobjects.adress.voldt.city.value }}<br/>{{ metaobjects.adress.voldt.country.value }}<br/></p>"
+          }
+        }
+      },
+      "block_order": [
+        "contact_info_vol37"
+      ],
+      "settings": {
+        "overlay_header": true,
+        "contact_title": "Voldt®",
+        "contact_description": "{{ metaobjects.home_page_content[\"home-page-content-asztuhoq\"][\"1st_block\"] | metafield_tag }}",
+        "height": "h-96",
+        "height_md": "md:h-80",
+        "height_lg": "lg:h-[32vw]",
+        "image_mobile": "shopify://shop_images/voldt-PR-article-images-april-1-1A-reference.jpg",
+        "position_mobile": "items-start justify-start text-left",
+        "position_tablet": "md:items-center md:justify-center md:text-center",
+        "position_desktop": "lg:items-start lg:justify-start lg:text-left",
+        "overlay_color": "#000000",
+        "overlay_opacity": 30,
+        "overlay_blur": 0
+      }
+    },
+    "s_contact_form_raAGq6": {
+      "type": "s--contact-form",
+      "name": "Contact form",
+      "settings": {
+        "heading": "{{ metaobjects.standard_title[\"contact-us-for-more-information\"].title.value }}",
+        "image": "shopify://shop_images/Frame_31457151.png",
+        "body": "<p>{{ metaobjects.standard_title[\"for-questions-or-general-inquiries-please-leave-your-contact-information-below-and-we-will-get-back-to-you-as-soon-as-possible\"].title.value }}</p>"
+      }
+    }
+  },
+  "order": [
+    "hero_vol37_contact",
+    "s_contact_form_raAGq6"
+  ]
+}

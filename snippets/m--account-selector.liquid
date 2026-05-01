@@ -1,0 +1,20 @@
+{%- liquid
+  if customer
+    assign account_url = routes.account_url
+  else
+    assign account_url = routes.account_login_url
+  endif
+
+  if customer.first_name
+    assign generalAccountTitle = 'Hi, ' | append: customer.first_name
+  endif
+
+  assign account_link_class = class | default: 'header-action max-lg:text-primary px-b-xs py-b-xs lg:bg-subtle hover:bg-emphasis lg:rounded-full max-lg:h-full transition-colors content-center relative flex items-center shrink-0'
+  assign account_title_class = account_title_class | default: 'max-lg:hidden translate-y-px capitalize'
+-%}
+<a href="{{ account_url }}" class="{{ account_link_class }}" aria-label="Account">
+  {%- render 'a--icon', icon: 'account', width: '1.5rem', height: '1.5rem' -%}
+  {% if generalAccountTitle != blank %}
+    <span class="{{ account_title_class }}">{{ generalAccountTitle }}</span>
+  {% endif %}
+</a>

@@ -1,0 +1,156 @@
+{%- doc -%}
+  Product add-to-cart form with quantity controls, pricing, and checkout CTA.
+
+  Renders the main product purchase form, including variant price display, quantity UI, add-to-cart button states, and sticky add-to-cart handoff. When the product `custom.presales` metafield is enabled, the CTA switches to the presales label and uses the dedicated theme settings colors while remaining purchasable.
+
+  @param {object} product - Product object used by the form (required)
+  @param {object} [section] - Parent section object used for unique form IDs
+  @param {object} [block] - Parent block object used for unique form IDs
+  @param {boolean} [quickAtcMode] - Enables quick add context behavior (default: false)
+  @param {string} [button_wrapper_class] - Extra classes for the CTA wrapper
+
+  @example
+  {% render 'product--form', product: product, section: section, block: block %}
+
+  @example
+  {% render 'product--form',
+    product: product,
+    quickAtcMode: true
+  %}
+{%- enddoc -%}
+{%- liquid
+  assign quick_atc_mode = quickAtcMode | default: false
+  assign product_form_id = 'product-form-' | append: section.id | append: block.id | append: product.id
+-%}
+{%- capture length_option_index -%}
+  {%- render 'product--length-option-index', product: product -%}
+{%- endcapture -%}
+{%- assign length_option_index = length_option_index | strip -%}
+<product-form class="relative block" data-quick-atc-mode="{{ quick_atc_mode }}" data-variant-dynamic="product-form">
+  {%- form 'product',
+    product,
+    id: product_form_id,
+    class: 'flex gap-4 flex-col',
+    novalidate: 'novalidate',
+    data-type: 'add-to-cart-form'
+  -%}
+    <div
+      data-variant-dynamic="quantity-input"
+      data-keep="{&quot;form&quot;: &quot;&quot;}"
+      data-remove="form"
+      class="hidden"
+    >
+      {%- render 'm--quantity-atc', mode: 'qty', product: product, product_form_id: product_form_id -%}
+    </div>
+    <input
+      id="id-{{ product.selected_or_first_available_variant.id }}"
+      type="hidden"
+      name="id"
+      value="{{ product.selected_or_first_available_variant.id }}"
+      disabled
+    >
+    <div class="flex flex-col relative gap-2 {{ button_wrapper_class }}">
+      {% capture properties %}
+        form="{{ product_form_id }}"
+      {% endcapture %}
+      {%- liquid
+        assign is_presales = product.metafields.custom.presales.value | default: false
+        assign add_to_cart_text = 'products.product.add_to_cart' | t
+        if is_presales
+          assign add_to_cart_text = 'products.product.pre_order' | t
+        endif
+        assign loading_label = 'products.product.adding_to_cart' | t
+        assign success_label = 'products.product.add_to_cart_success' | t
+        assign error_label = 'products.product.adding_error' | t
+        assign add_to_cart_button_class = 'w-full py-b-base rounded-full max-w-112 mx-auto text-ui-base uppercase'
+        assign show_cutoff_dispatch = true
+        if is_presales
+          assign add_to_cart_button_class = add_to_cart_button_class | append: ' button--presales'
+          assign show_cutoff_dispatch = settings.buttons_presales_show_cutoff_text
+        else
+          assign add_to_cart_button_class = add_to_cart_button_class | append: ' bg-blue-700 border-none text-on-accent'
+        endif
+        assign market = localization.market
+        assign cutoff_hours_range = market.metafields.custom.cutoff_hours_range.value | default: market.metafields.custom.cutoff_hours_range
+        assign cutoff_hours_range = cutoff_hours_range | default: market.metafields.custom.cutoff_hours.value | default: market.metafields.custom.cutoff_hours
+        assign cutoff_hours_range = cutoff_hours_range | default: '09:00-17:00' | escape
+        assign cutoff_dispatch_text = 'products.product.cutoff_dispatch_html' | t: cutoff_range: cutoff_hours_range
+        assign cutoff_dispatch_remaining_template = 'products.product.cutoff_dispatch_remaining_html' | t: remaining: '__REMAINING__'
+      -%}
+      <div
+        class="text-2xl font-medium text-center text-blue-700 flex flex-col gap-0.5 justify-center items-center"
+        data-variant-dynamic="variant-price"
+        data-saved-label="{{ 'products.product.saved_suffix' | t | escape }}"
+      >
+        {{ product.selected_or_first_available_variant.price | money }}
+        {%- liquid
+          assign meters = 0
+          if length_option_index != blank
+            assign meters = product.selected_or_first_available_variant.options[length_option_index] | default: '' | times: 1
+          endif
+        -%}
+        {%- if meters > 0 -%}
+          <span class="rounded-full bg-white px-2 pt-1 pb-0.5 flex items-end gap-1 w-fit text-primary hidden!">
+            {%- liquid
+              assign price_per_meter = product.selected_or_first_available_variant.price | divided_by: meters
+
+              # savings percentage compared to first variant price
+              assign first_variant_meters = product.variants.first.options[length_option_index] | default: '' | times: 1
+              assign first_variant_price_per_meter = product.variants.first.price | divided_by: first_variant_meters
+
+              assign savings_percentage = 0
+              if first_variant_price_per_meter > 0
+                assign savings_percentage = first_variant_price_per_meter | minus: price_per_meter | times: 100 | divided_by: first_variant_price_per_meter
+              endif
+            -%}
+            <span class="text-ui-small font-medium">
+              {{ price_per_meter | money }}/m <span class="opacity-50">{{ savings_percentage }}% {{ 'products.product.saved_suffix' | t }}</span>
+            </span>
+          </span>
+        {%- endif -%}
+      </div>
+      <product-buttons
+        class="flex flex-col w-full items-center justify-center"
+        availability="{% if product.selected_or_first_available_variant.available %}available{% else %}sold-out{% endif %}"
+        available="{{ product.selected_or_first_available_variant.available }}"
+      >
+        {%- render 'a--button',
+          tag: 'button',
+          label: add_to_cart_text,
+          icon: 'cart',
+          icon_class: 'w-5! h-5!',
+          states: true,
+          loading_label: loading_label,
+          success_label: success_label,
+          error_label: error_label,
+          type: 'submit',
+          properties: properties,
+          class: add_to_cart_button_class
+        -%}
+        {%- if show_cutoff_dispatch -%}
+          <div
+            class="px-3 py-1 rounded-b-2xl bg-subtle text-ui-small"
+            data-cutoff-dispatch
+            data-cutoff-range="{{ cutoff_hours_range }}"
+            data-cutoff-template="{{ cutoff_dispatch_remaining_template | escape }}"
+            data-cutoff-ready="false"
+          >
+            <span data-cutoff-skeleton class="block animate-pulse">
+              <span class="block h-3.5 w-56 rounded-full bg-primary/10"></span>
+            </span>
+            <span data-cutoff-text class="hidden">
+              {{ cutoff_dispatch_text }}
+            </span>
+          </div>
+        {%- endif -%}
+        {% comment %}
+          {%- if show_dynamic_checkout -%}
+            {{ form | payment_button }}
+          {%- endif -%}
+        {% endcomment %}
+      </product-buttons>
+      {% render 'm--error-message' %}
+    </div>
+    {% render 'product--sticky-atc', product: product, product_form_id: product_form_id %}
+  {%- endform -%}
+</product-form>

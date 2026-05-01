@@ -1,0 +1,55 @@
+{%- doc -%}
+Homepage hero content with sub heading, heading, car search field, and optional body copy.
+
+This molecule is the extracted content model for the homepage hero. It keeps the existing search-driven layout while delegating background media and positioning to `m--hero-wrapper`.
+
+@param {string} [sub_heading] - Small label above the hero heading
+@param {string} [heading] - Main hero heading
+@param {string} [body] - Supporting body copy
+@param {string} [search_placeholder] - Search input placeholder
+@param {string} [search_aria_label] - Accessible label for the search input
+
+@example
+{% render 'm--hero-car-search',
+  sub_heading: section.settings.sub_heading,
+  heading: section.settings.heading,
+  body: section.settings.body,
+  search_placeholder: section.settings.search_placeholder,
+  search_aria_label: section.settings.search_aria_label
+%}
+{%- enddoc -%}
+
+<div class="hero-content relative z-(--layer-dropdown) flex flex-col gap-y-s-xs w-full lg:w-auto max-w-[448px]">
+  {%- if sub_heading != blank -%}
+    <p class="text-caption uppercase text-on-accent">
+      {{- sub_heading -}}
+    </p>
+  {%- endif -%}
+
+  {%- if heading != blank -%}
+    <h1 class="h1 text-on-accent max-w-[384px] lg:max-w-[448px]">
+      {{- heading -}}
+    </h1>
+  {%- endif -%}
+
+  <find-my-car class="w-full max-w-[384px] lg:max-w-[448px] relative flex justify-end items-center gap-x-b-sm self-stretch m-auto md:self-center h-[52px] md:h-[52px] lg:h-16 py-b-xs px-b-lg lg:pr-b-xs lg:pl-b-lg rounded-[48px] border border-secondary bg-white shadow-[0_2px_4px_0_rgba(0,0,0,0.15)] focus-within:border-secondary group">
+    <input
+      type="text"
+      placeholder="{{ search_placeholder | default: 'Search your car' }}"
+      class="w-full h-full bg-transparent h5 font-light text-secondary placeholder:text-secondary z-10 relative aria-expanded:rounded-b-none focus:outline-none peer"
+      aria-label="{{ search_aria_label | default: search_placeholder | default: 'Search your car' }}"
+      aria-autocomplete="list"
+      aria-expanded="false"
+      autocomplete="off"
+    >
+    <div class="absolute top-2 right-2 h-[36px] w-[36px] lg:h-12 lg:w-12 rounded-full bg-subtle flex items-center justify-center group-hover:brightness-90 peer-focus:brightness-90 z-10">
+      {%- render 'a--icon', icon: 'search', width: '32', class: 'w-[20px] h-[20px] lg:w-[24px] lg:h-[24px]' -%}
+    </div>
+  </find-my-car>
+
+  {%- if body != blank -%}
+    <p class="text-ui-base/copy text-on-accent max-w-[384px] lg:max-w-[448px]">
+      {{- body -}}
+    </p>
+  {%- endif -%}
+</div>

@@ -1,0 +1,62 @@
+---
+description: References to global rules for this Shopify theme project
+globs: 
+  - "**/*"
+alwaysApply: false
+---
+# Global Rules Reference
+
+This project uses global rules from ~/.claude/rules/ (when using Claude). **In Cursor, project rules live in `.cursor/rules/` and are applied per the rule index (`00-rule-index.mdc`).**
+
+## Global Rules Location
+All reusable rules are stored in:
+- `~/.claude/rules/general/` - General development standards
+- `~/.claude/rules/shopify/` - Shopify-specific rules
+- `~/.claude/rules/templates/` - Rule templates
+
+## Shopify Developer Agent (Claude)
+For Shopify-specific tasks in Claude, use the specialized agent:
+- `~/.claude/agents/engineering/shopify-developer.md`
+
+This agent has deep knowledge of:
+- Shopify Liquid templating
+- Theme architecture
+- Performance optimization
+- Layout/reflow prevention
+- Accessibility standards
+
+## Syncing Rules
+To sync latest global rules to this project:
+```bash
+~/.claude/rules/sync-rules.sh /Users/efe/dev/12_agency/voldt
+```
+
+## Current Project Rules
+
+### From Global Repository
+These rules are synced from ~/.claude/rules/:
+
+**General Development:**
+- `javascript-standards.mdc` - JS best practices with layout/reflow optimization
+- `accessibility-rules.mdc` - WCAG 2.1 AA compliance
+- `commit-rules.mdc` - Git commit conventions
+- `tailwindcss-rules.mdc` - Tailwind CSS standards
+
+**Shopify Theme Development:**
+- `liquid.mdc` - Liquid syntax rules
+- `liquid-doc-rules.mdc` - Liquid documentation standards
+- `schemas.mdc` - Schema definitions
+- `sections.mdc` - Section guidelines
+- `snippets.mdc` - Snippet best practices
+
+### Project-Specific Rules
+These rules are unique to this project:
+- `project-overview.mdc` - Electric Maybe theme overview
+- `js-refactor-tasks.mdc` - Current refactoring tasks
+
+## Important Notes
+1. Global rules provide consistency across projects
+2. Project-specific rules override global ones
+3. Keep project customizations in separate files
+4. Run sync script periodically for updates
+5. The shopify-developer agent follows all these rules automatically

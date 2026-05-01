@@ -1,0 +1,115 @@
+{%- doc -%}
+  Global head styles and CSS custom properties for the theme.
+
+  Outputs the theme fonts, shared root-level CSS variables, and the compiled stylesheet include. Theme settings that need runtime CSS values, including presales button colors, are exposed here as custom properties for the rest of the theme to consume.
+
+  @example
+  {% render '_head-style' %}
+{%- enddoc -%}
+{% style %}
+  @font-face {
+    font-family: 'display-roman';
+    src: url('{{ 'nhdm.woff' | asset_url }}') format('woff');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+    ascent-override: 90%;
+  }
+
+  @font-face {
+    font-family: 'display-roman';
+    src: url('{{ 'nhdr.woff' | asset_url }}') format('woff');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+    ascent-override: 90%;
+  }
+
+  @font-face {
+    font-family: 'text-roman';
+    src: url('{{ 'nhtr.woff' | asset_url }}') format('woff');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+    ascent-override: 90%;
+  }
+
+  @font-face {
+    font-family: 'text-roman';
+    src: url('{{ 'nhtb.woff' | asset_url }}') format('woff');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+    ascent-override: 90%;
+  }
+
+  @font-face {
+    font-family: 'text-roman';
+    src: url('{{ 'nhtm.woff' | asset_url }}') format('woff');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+    ascent-override: 90%;
+  }
+{% endstyle %}
+
+<style>
+  :root, :host {
+    --container-width: 90rem;
+
+    --font-heading-family: 'display-roman',sans-serif,system-ui,-apple-system,BlinkMacSystemFont;
+    --font-heading-style: normal;
+    --font-heading-weight: 400;
+    --font-heading-size-multiplier: 1;
+    --font-heading-scale: 1;
+    --font-heading-letter-spacing: -0.03em;
+
+    --font-body-family: 'text-roman',sans-serif,system-ui,-apple-system,BlinkMacSystemFont;
+    --font-body-style: normal;
+    --font-body-weight: 400;
+    --font-body-weight-medium: 500;
+    --font-body-weight-semibold: 600;
+    --font-body-weight-bold: 700;
+    --font-body-scale: 1;
+
+    --margin-top: 4.5rem;
+    --margin-top-md: 4.5rem;
+    --margin-top-lg: 7rem;
+    --vertical-padding: 4.5rem;
+    --vertical-padding-md: 4.5rem;
+    --vertical-padding-lg: 7rem;
+
+    --buttons-border-radius: 0rem;
+    --buttons-primary-border-width: 1px;
+    --buttons-primary-shadow-color: rgba(0, 0, 0, 0.1);
+    --buttons-presales-background: {{ settings.buttons_presales_background | default: '#D97706' }};
+    --buttons-presales-text: {{ settings.buttons_presales_text | default: '#FFFFFF' }};
+    --buttons-presales-border: {{ settings.buttons_presales_border | default: '#D97706' }};
+
+    --inputs-border-radius: 0;
+    --inputs-padding: 0 0.75rem;
+  }
+</style>
+
+{{- 'style.css' | asset_url | stylesheet_tag: preload: true -}}
+
+<!-- tailwind breakpont calculator -->
+<div>
+  <div id="breakpoint-xs" class="block w-0 h-0 sm:hidden"></div>
+  <div id="breakpoint-sm" class="hidden w-0 h-0 sm:max-md:block"></div>
+  <div id="breakpoint-md" class="hidden w-0 h-0 md:max-lg:block"></div>
+  <div id="breakpoint-lg" class="hidden w-0 h-0 lg:max-xl:block"></div>
+  <div id="breakpoint-xl" class="hidden w-0 h-0 xl:max-wide:block"></div>
+  <div id="breakpoint-wide" class="hidden w-0 h-0 wide:block"></div>
+  <script>
+    function getCurrentBreakpoint() {
+      const breakpoints = ['sm', 'md', 'lg', 'xl', 'wide'];
+      let styles = getComputedStyle(document.documentElement);
+      // values are in rem
+      return breakpoints.reverse().find(bp => {
+        const breakpointValue = parseFloat(styles.getPropertyValue(`--breakpoint-${bp}`)) * 16;
+        return breakpointValue <= window.innerWidth;
+      }) || 'xs';
+    };
+  </script>
+</div>

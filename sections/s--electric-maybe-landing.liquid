@@ -1,0 +1,190 @@
+{% comment %}
+  @file sections/s--electric-maybe-landing.liquid
+  @summary Electric Maybe agency homepage (ported from `old/index.html`). Media lives in `assets/em-*`. Smallchat removed; use Shopify Inbox from admin (Online store chat).
+{% endcomment %}
+
+{{ 'em-landing.css' | asset_url | stylesheet_tag }}
+
+<div class="em-landing">
+  <div class="em-landing__container">
+    <div class="em-landing__title-wrap">
+      <img
+        src="{{ 'em-logo.svg' | asset_url }}"
+        alt="Electric Maybe"
+        class="em-landing__logo"
+        width="120"
+        height="36"
+        loading="eager"
+        fetchpriority="high"
+      >
+      <h1>
+        <span class="em-landing__line-1">your store needs some</span>
+        <span class="em-landing__line-2">electric maybe?</span>
+      </h1>
+      <p class="em-landing__tagline">premium shopify themes</p>
+      <p class="em-landing__subtagline">and custom services</p>
+      <p class="em-landing__caption">100+ custom <i>Shopify</i> stores served since 2014</p>
+      <div class="em-landing__actions">
+        <a
+          class="em-landing__button em-landing__button--primary"
+          href="mailto:hello@electricmaybe.com"
+          aria-label="Contact us for custom services"
+          data-em-gtag='{"event":"click","params":{"event_category":"Contact","event_label":"Custom Enquiry","value":1}}'
+        >reach us now</a>
+        <a
+          class="em-landing__button em-landing__button--secondary"
+          href="https://themes.shopify.com/themes/aisle/presets/aisle"
+          aria-label="View our themes on Shopify"
+          data-em-gtag='{"event":"click","params":{"event_category":"CTA","event_label":"Buy Themes","value":1}}'
+        >buy our themes</a>
+        <a
+          class="em-landing__button em-landing__button--ghost"
+          href="https://electricmaybesupport.zendesk.com/"
+          aria-label="Access theme support"
+          data-em-gtag='{"event":"click","params":{"event_category":"Support","event_label":"Help Center","value":1}}'
+        >get theme support</a>
+      </div>
+    </div>
+    <div
+      class="em-landing__snap"
+      role="region"
+      aria-label="Selected client work"
+      tabindex="0"
+    >
+      <div class="em-landing__work-item">
+        <video autoplay muted loop playsinline aria-hidden="true">
+          <source src="{{ 'em-work-nwp8.mp4' | asset_url }}" type="video/mp4">
+        </video>
+        <span>Northern Wide Plank</span>
+      </div>
+      <div class="em-landing__work-item">
+        <video autoplay muted loop playsinline aria-hidden="true">
+          <source src="{{ 'em-work-hismile3.mp4' | asset_url }}" type="video/mp4">
+        </video>
+        <span>HiSmile</span>
+      </div>
+      <div class="em-landing__work-item">
+        <img src="{{ 'em-work-hismile1.webp' | asset_url }}" alt="HiSmile project showcase" width="800" height="512" loading="lazy">
+        <span>HiSmile</span>
+      </div>
+      <div class="em-landing__work-item">
+        <img src="{{ 'em-work-hismile2.webp' | asset_url }}" alt="HiSmile project showcase" width="800" height="512" loading="lazy">
+        <span>HiSmile</span>
+      </div>
+      <div class="em-landing__work-item">
+        <video autoplay muted loop playsinline aria-hidden="true">
+          <source src="{{ 'em-work-hismile4.mp4' | asset_url }}" type="video/mp4">
+        </video>
+        <span>HiSmile</span>
+      </div>
+      <div class="em-landing__work-item">
+        <img src="{{ 'em-work-hismile5.png' | asset_url }}" alt="HiSmile project showcase" width="800" height="512" loading="lazy">
+        <span>HiSmile</span>
+      </div>
+      <div class="em-landing__work-item">
+        <video autoplay muted loop playsinline aria-hidden="true">
+          <source src="{{ 'em-work-hismile6.mp4' | asset_url }}" type="video/mp4">
+        </video>
+        <span>HiSmile</span>
+      </div>
+      <div class="em-landing__work-item">
+        <video autoplay muted loop playsinline aria-hidden="true">
+          <source src="{{ 'em-work-nwp1.mp4' | asset_url }}" type="video/mp4">
+        </video>
+        <span>Northern Wide Plank</span>
+      </div>
+      <div class="em-landing__work-item">
+        <video autoplay muted loop playsinline aria-hidden="true">
+          <source src="{{ 'em-work-nwp2.mp4' | asset_url }}" type="video/mp4">
+        </video>
+        <span>Northern Wide Plank</span>
+      </div>
+      <div class="em-landing__work-item">
+        <img src="{{ 'em-work-nwp3.png' | asset_url }}" alt="Northern Wide Plank project showcase" width="800" height="512" loading="lazy">
+        <span>Northern Wide Plank</span>
+      </div>
+      <div class="em-landing__work-item">
+        <img src="{{ 'em-work-hismile6.webp' | asset_url }}" alt="HiSmile project showcase" width="800" height="512" loading="lazy">
+        <span>HiSmile</span>
+      </div>
+      <div class="em-landing__work-item">
+        <img src="{{ 'em-work-nuuds1.png' | asset_url }}" alt="Nuuds project showcase" width="800" height="512" loading="lazy">
+        <span>Nuuds</span>
+      </div>
+      <div class="em-landing__work-item">
+        <img src="{{ 'em-work-nuuds2.png' | asset_url }}" alt="Nuuds project showcase" width="800" height="512" loading="lazy">
+        <span>Nuuds</span>
+      </div>
+      <div class="em-landing__work-item">
+        <video autoplay muted loop playsinline aria-hidden="true">
+          <source src="{{ 'em-work-nuuds3.mp4' | asset_url }}" type="video/mp4">
+        </video>
+        <span>Nuuds</span>
+      </div>
+      <div class="em-landing__work-item">
+        <img src="{{ 'em-work-nuuds6.webp' | asset_url }}" alt="Nuuds project showcase" width="800" height="512" loading="lazy">
+        <span>Nuuds</span>
+      </div>
+      <div class="em-landing__work-item">
+        <video autoplay muted loop playsinline aria-hidden="true">
+          <source src="{{ 'em-work-nuuds4.mp4' | asset_url }}" type="video/mp4">
+        </video>
+        <span>Nuuds</span>
+      </div>
+      <div class="em-landing__work-item">
+        <video autoplay muted loop playsinline aria-hidden="true">
+          <source src="{{ 'em-work-nuuds5.mp4' | asset_url }}" type="video/mp4">
+        </video>
+        <span>Nuuds</span>
+      </div>
+      <div class="em-landing__work-item">
+        <img src="{{ 'em-work-nwp4.png' | asset_url }}" alt="Northern Wide Plank project showcase" width="800" height="512" loading="lazy">
+        <span>Northern Wide Plank</span>
+      </div>
+      <div class="em-landing__work-item">
+        <img src="{{ 'em-work-nwp5.png' | asset_url }}" alt="Northern Wide Plank project showcase" width="800" height="512" loading="lazy">
+        <span>Northern Wide Plank</span>
+      </div>
+      <div class="em-landing__work-item">
+        <img src="{{ 'em-work-nwp6.png' | asset_url }}" alt="Northern Wide Plank project showcase" width="800" height="512" loading="lazy">
+        <span>Northern Wide Plank</span>
+      </div>
+      <div class="em-landing__work-item">
+        <img src="{{ 'em-work-nwp7.png' | asset_url }}" alt="Northern Wide Plank project showcase" width="800" height="512" loading="lazy">
+        <span>Northern Wide Plank</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var root = document.getElementById('shopify-section-{{ section.id }}');
+    if (!root) return;
+    root.addEventListener('click', function (e) {
+      var a = e.target.closest('a[data-em-gtag]');
+      if (!a || typeof gtag !== 'function') return;
+      try {
+        var payload = JSON.parse(a.getAttribute('data-em-gtag'));
+        gtag('event', payload.event || 'click', payload.params || {});
+      } catch (err) {}
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Electric Maybe home",
+  "tag": "section",
+  "class": "section-s--electric-maybe-landing",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [],
+  "presets": [
+    {
+      "name": "Electric Maybe home"
+    }
+  ]
+}
+{% endschema %}

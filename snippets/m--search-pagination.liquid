@@ -1,0 +1,94 @@
+{%- doc -%}
+  Search pagination component styled to match the Figma search pagination design.
+
+  Renders Previous/Next controls and page numbers separated by slashes. Intended for use
+  on the Search listing (and its section-rendered partial updates).
+
+  @param {object} paginate - Shopify paginate object (required)
+
+  @example
+  {% paginate search.results by 24 %}
+    {% render 'm--search-pagination', paginate: paginate %}
+  {% endpaginate %}
+{%- enddoc -%}
+
+{%- liquid
+  unless paginate and paginate.pages > 1
+    break
+  endunless
+-%}
+
+<nav
+  class="border-t border-secondary py-s-xs"
+  role="navigation"
+  aria-label="{{ 'general.pagination.label' | t }}"
+>
+  <div class="w-full px-s-inner flex items-center justify-between">
+    <div class="flex items-center">
+      {%- if paginate.previous -%}
+        <a
+          href="{{ paginate.previous.url }}"
+          class="inline-flex items-center gap-x-b-base py-b-xs text-ui-base leading-[1.2] text-primary hover:opacity-50 transition-opacity"
+          aria-label="{{ 'general.pagination.previous' | t }}"
+        >
+          {%- render 'a--icon', icon: 'arrow-left-pagination', width: '1.5rem', height: '1.5rem' -%}
+          <span>{{ 'general.pagination.previous_short' | t }}</span>
+        </a>
+      {%- else -%}
+        <span
+          class="inline-flex items-center gap-x-b-base py-b-xs text-ui-base leading-[1.2] text-primary opacity-30 pointer-events-none"
+          aria-label="{{ 'general.pagination.previous' | t }}"
+        >
+          {%- render 'a--icon', icon: 'arrow-left-pagination', width: '1.5rem', height: '1.5rem' -%}
+          <span>{{ 'general.pagination.previous_short' | t }}</span>
+        </span>
+      {%- endif -%}
+    </div>
+
+    <div class="inline-flex items-center gap-x-b-sm text-ui-base leading-[1.2] text-primary" aria-label="{{ 'general.pagination.pages_label' | t }}">
+      {%- for part in paginate.parts -%}
+        {%- if forloop.index > 1 -%}
+          <span aria-hidden="true">/</span>
+        {%- endif -%}
+
+        {%- if part.is_link -%}
+          <a
+            href="{{ part.url }}"
+            class="hover:opacity-50 transition-opacity"
+            aria-label="{{ 'general.pagination.page' | t: number: part.title }}"
+          >
+            {{- part.title -}}
+          </a>
+        {%- else -%}
+          {%- if part.title == paginate.current_page -%}
+            <span class="font-medium" aria-current="page">{{- part.title -}}</span>
+          {%- else -%}
+            <span class="opacity-70">{{- part.title -}}</span>
+          {%- endif -%}
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+
+    <div class="flex items-center justify-end">
+      {%- if paginate.next -%}
+        <a
+          href="{{ paginate.next.url }}"
+          class="inline-flex items-center gap-x-b-base py-b-xs text-ui-base leading-[1.2] text-primary hover:opacity-50 transition-opacity"
+          aria-label="{{ 'general.pagination.next' | t }}"
+        >
+          <span>{{ 'general.pagination.next_short' | t }}</span>
+          {%- render 'a--icon', icon: 'arrow-right-pagination', width: '1.5rem', height: '1.5rem' -%}
+        </a>
+      {%- else -%}
+        <span
+          class="inline-flex items-center gap-x-b-base py-b-xs text-ui-base leading-[1.2] text-primary opacity-30 pointer-events-none"
+          aria-label="{{ 'general.pagination.next' | t }}"
+        >
+          <span>{{ 'general.pagination.next_short' | t }}</span>
+          {%- render 'a--icon', icon: 'arrow-right-pagination', width: '1.5rem', height: '1.5rem' -%}
+        </span>
+      {%- endif -%}
+    </div>
+  </div>
+</nav>
+

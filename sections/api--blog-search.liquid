@@ -1,0 +1,35 @@
+{%- liquid
+  assign items = search.results | where: 'object_type', 'article'
+-%}
+
+{%- if search.performed and search.terms != blank -%}
+  <div class="flex flex-col">
+    {%- for item in items limit: 8 -%}
+      <a
+        href="{{ item.url }}"
+        class="flex items-center justify-between gap-x-b-base py-b-xs border-b border-secondary last:border-b-0 text-ui-base text-primary hover:opacity-80"
+      >
+        <span class="flex-1">{{ item.title | escape }}</span>
+        <span class="shrink-0">
+          {%- render 'a--icon', icon: 'chevron-r', class: 'w-5 h-5 text-primary' -%}
+        </span>
+      </a>
+    {%- else -%}
+      <p class="text-ui-small text-secondary py-b-xs">
+        {{ 'templates.search.no_results' | t: terms: search.terms | replace: '+', ' ' }}
+      </p>
+    {%- endfor -%}
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "API Blog Search",
+  "tag": "section",
+  "class": "api-blog-search",
+  "enabled_on": {
+    "templates": ["search"]
+  },
+  "settings": []
+}
+{% endschema %}

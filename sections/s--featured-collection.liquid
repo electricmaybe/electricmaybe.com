@@ -1,0 +1,159 @@
+{%- comment -%}
+  s--featured-collection
+
+  This section renders a featured collection.
+
+  Uses the collection selected in section settings.
+{%- endcomment -%}
+
+{%- liquid
+  assign featured_collection = collections[section.settings.collection]
+  assign use_related_products = section.settings.use_related_products | default: false
+  assign products_to_show = section.settings.products_to_show | default: 12
+  assign is_product_context = false
+  assign is_recommendations_context = false
+  assign should_use_recommendations = false
+
+  if request.page_type == 'collection' and collection != blank
+    if featured_collection == blank or featured_collection == '{{ collection }}'
+      assign featured_collection = collection
+    endif
+  endif
+
+  if request.page_type == 'product' and product != blank
+    assign is_product_context = true
+  endif
+
+  comment
+    When a section is rendered via routes.product_recommendations_url, request.page_type may not
+    be "product", but the `recommendations` object will be performed. We still want to render
+    the related-products wrapper in that context so the JS can extract HTML.
+  endcomment
+  if recommendations != blank and recommendations.performed
+    assign is_recommendations_context = true
+  endif
+
+  if use_related_products and is_product_context
+    assign should_use_recommendations = true
+  elsif use_related_products and is_recommendations_context
+    assign should_use_recommendations = true
+  endif
+
+  assign featured_title = section.settings.title | default: featured_collection.title | default: ''
+  assign slider_id = 'featured-collection-' | append: section.id
+-%}
+
+{%- if should_use_recommendations -%}
+  <script src="{{ 'related-products.js' | asset_url }}" defer></script>
+  <related-products
+    data-url="{{ routes.product_recommendations_url }}?section_id={{ section.id }}&product_id={{ product.id }}&limit={{ products_to_show }}&intent=related"
+    data-fallback-url="{{ routes.product_recommendations_url }}?section_id={{ section.id }}&product_id={{ product.id }}&limit={{ products_to_show }}&intent=complementary"
+    data-eager="true"
+    class="py-s-base block"
+  >
+    {%- if recommendations.performed and recommendations.products_count > 0 -%}
+      {%- capture feed -%}
+        {%- for product in recommendations.products limit: products_to_show -%}
+          {%- render 'm--product-card', card_product: product, class: 'shrink-0 min-w-0 block snap-start', forloop_index: forloop.index, sm_cols: 2, md_cols: 2, lg_cols: 4 -%}
+        {%- endfor -%}
+      {%- endcapture -%}
+
+      <section aria-label="{{ featured_title | default: 'Related products' | escape }}" class="min-w-0">
+        <div class="flex min-w-0 flex-col gap-y-b-lg">
+          {%- if featured_title != blank -%}
+            <h2 class="h1 px-s-whole">
+              {{ featured_title }}
+            </h2>
+          {%- endif -%}
+
+          {%- render 'm--electric-slider',
+            id: slider_id,
+            feed: feed,
+            per_row_mobile: 2.1,
+            per_row_tablet: 4,
+            per_row_desktop: 4.3,
+            gap: 'grid-gutter-base',
+            bar: true,
+            type: 'bottom',
+            slider_class: 'gap-y-b-lg',
+            feed_class: 'order-1 px-s-whole scroll-px-s-whole grid-gutter-base [&_>_*]:min-w-0',
+            slider_navigation_wrapper_class: 'order-2 px-s-whole!'
+          -%}
+        </div>
+      </section>
+    {%- endif -%}
+  </related-products>
+{%- elsif featured_collection != blank -%}
+  {%- capture feed -%}
+    {%- for product in featured_collection.products limit: products_to_show -%}
+      {%- render 'm--product-card', card_product: product, class: 'shrink-0 min-w-0 block snap-start', forloop_index: forloop.index, sm_cols: 2, md_cols: 2, lg_cols: 4 -%}
+    {%- endfor -%}
+  {%- endcapture -%}
+
+  <section aria-label="{{ featured_title | default: 'Featured collection' | escape }}" class="min-w-0">
+    <div class="flex min-w-0 flex-col gap-y-b-lg">
+      {%- if featured_title != blank -%}
+        <h2 class="h1 px-s-whole">
+          {{ featured_title }}
+        </h2>
+      {%- endif -%}
+
+      {%- render 'm--electric-slider',
+        id: slider_id,
+        feed: feed,
+        per_row_mobile: 2.1,
+        per_row_tablet: 4,
+        per_row_desktop: 4.3,
+        gap: 'grid-gutter-base',
+        bar: true,
+        type: 'bottom',
+        slider_class: 'gap-y-b-lg',
+        feed_class: 'order-1 px-s-whole scroll-px-s-whole grid-gutter-base [&_>_*]:min-w-0',
+        slider_navigation_wrapper_class: 'order-2 px-s-whole!'
+      -%}
+    </div>
+  </section>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Featured collection",
+  "tag": "section",
+  "class": "full-spaced-section",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "use_related_products",
+      "label": "Use related products on product pages",
+      "default": false,
+      "info": "When enabled on product pages, this section ignores the selected collection and instead shows Shopify product recommendations (Search & Discovery)."
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "info": "Optional custom title. If empty, collection title will be used."
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "Products to show",
+      "min": 4,
+      "max": 20,
+      "step": 1,
+      "default": 12
+    }
+  ],
+  "presets": [
+    {
+      "name": "Featured collection"
+    }
+  ]
+}
+{% endschema %}
+

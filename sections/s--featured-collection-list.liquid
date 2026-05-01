@@ -1,0 +1,72 @@
+{%- liquid
+  assign source_collection = section.settings.collection
+  assign heading = section.settings.title | default: source_collection.title | default: ''
+  assign list_a = source_collection.metafields.custom.collection_list.value | default: source_collection.metafields.custom.collection_list
+  assign list_b = source_collection.metafields.custom.collection_list_1.value | default: source_collection.metafields.custom.collection_list_1
+-%}
+
+{%- if source_collection != blank -%}
+  {%- capture feed -%}
+    {%- for collection in list_a -%}
+      {%- render 'm--car-model-card', card_collection: collection, class: 'shrink-0 min-w-0 block snap-start' -%}
+    {%- endfor -%}
+    {%- for collection in list_b -%}
+      {%- render 'm--car-model-card', card_collection: collection, class: 'shrink-0 min-w-0 block snap-start' -%}
+    {%- endfor -%}
+  {%- endcapture -%}
+  {%- if feed != blank -%}{%- endif -%}
+
+  <section class="py-s-base" aria-label="{{ heading | default: 'Featured collection list' | escape }}">
+    <div class="flex flex-col gap-y-b-lg">
+      {%- if heading != blank -%}
+        <h2 class="h1 px-s-whole">
+          {{ heading | escape }}
+        </h2>
+      {%- endif -%}
+
+      {%- render 'm--electric-slider',
+        id: 'featured-collection-list-' | append: section.id,
+        feed: feed,
+        per_row_mobile: 1.3,
+        per_row_tablet: 2.6,
+        per_row_desktop: 5.3,
+        gap: 'gap-x-b-base',
+        bar: true,
+        type: 'bottom',
+        slider_class: 'gap-y-b-lg',
+        feed_class: 'order-1 px-s-whole scroll-px-s-whole gap-x-b-base [&_>_*]:min-w-0',
+        slider_navigation_wrapper_class: 'order-2 px-s-whole! pt-b-base',
+        small: true,
+      -%}
+    </div>
+  </section>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Featured collection list",
+  "tag": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection",
+      "info": "Select a collection to display its collection list metafields."
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "info": "Optional custom title. If empty, uses the selected collection title."
+    }
+  ],
+  "presets": [
+    {
+      "name": "Featured collection list"
+    }
+  ]
+}
+{% endschema %}

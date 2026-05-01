@@ -1,0 +1,108 @@
+<div class="px-s-outer py-s-xs lg:py-s-sm ">
+  <div class="px-s-inner flex flex-col gap-y-s-sm lg:gap-y-s-base text-primary">
+    {%- if section.settings.heading != blank -%}
+      <h2 class="h1">
+        {{ section.settings.heading | newline_to_br }}
+      </h2>
+    {%- endif -%}
+
+    {%- if section.blocks.size > 0 -%}
+      <div class="flex flex-col gap-y-s-sm lg:grid lg:grid-cols-3 lg:gap-y-0 lg:gap-x-s-base">
+        {%- for block in section.blocks -%}
+          <div class="flex flex-col items-start gap-y-s-xs" {{ block.shopify_attributes }}>
+            {%- if block.settings.icon != blank -%}
+              {{- block.settings.icon
+                | image_url: width: 96
+                | image_tag: class: 'w-8 h-8 lg:w-12 lg:h-12', alt: block.settings.icon.alt | default: block.settings.title
+              -}}
+            {%- endif -%}
+
+            {%- if block.settings.title != blank -%}
+              <h3 class="h3">
+                {{ block.settings.title }}
+              </h3>
+            {%- endif -%}
+
+            {%- if block.settings.body != blank -%}
+              <div class="rte text-body">
+                {{ block.settings.body }}
+              </div>
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Page info",
+  "tag": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "textarea",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Why Become a Voldt® Partner"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "info_item",
+      "name": "Info item",
+      "limit": 3,
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "icon",
+          "label": "Icon"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Dynamic Team Legacy"
+        },
+        {
+          "type": "richtext",
+          "id": "body",
+          "label": "Body",
+          "default": "<p>With over a century in automotive innovation we combine traditional values with technological advancement. Help us in pioneering the EV landscape with ingenuity and solid product development.</p>"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Page info",
+      "blocks": [
+        {
+          "type": "info_item",
+          "settings": {
+            "title": "Dynamic Team Legacy",
+            "body": "<p>With over a century in automotive innovation we combine traditional values with technological advancement. Help us in pioneering the EV landscape with ingenuity and solid product development.</p>"
+          }
+        },
+        {
+          "type": "info_item",
+          "settings": {
+            "title": "Profitable Partnership Model",
+            "body": "<p>Voldt's partnership approach offers an advantageous revenue model, geared towards maximizing growth and profitability for partners. This strategy aligns partner success with Voldt’s premium EV products, ensuring mutual financial benefits and a robust market footprint.</p>"
+          }
+        },
+        {
+          "type": "info_item",
+          "settings": {
+            "title": "Dutch Engineering Excellence",
+            "body": "<p>Voldt's 'Made in the Netherlands' label stands for more than just quality, it's a testament to our commitment to engineering excellence. Each EV charging cable is a product of meticulous Dutch craftsmanship, ensuring top-tier performance and reliability that customers can trust.</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

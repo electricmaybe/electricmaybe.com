@@ -1,0 +1,89 @@
+{%- doc -%}
+Quick Add to Cart button component that opens a modal with product details.
+
+This component renders a small plus button that, when clicked, opens a modal containing the full product--main section for that product. It uses the simple modal system and section-fetcher to dynamically load product content.
+
+@param {object} product - Product object (required)
+@param {string} [class] - Additional CSS classes for the button
+
+@example
+{% render 'm--quick-atc', product: product %}
+
+@example
+{% render 'm--quick-atc', 
+  product: product, 
+  class: 'absolute bottom-3 right-3' 
+%}
+{%- enddoc -%}
+
+{%- liquid
+  # Parameter validation and defaults
+  assign product = product | default: empty
+  assign button_class = class | default: ''
+  assign should_render = false
+
+  if product != empty
+    assign should_render = true
+  endif
+
+  if should_render and product.metafields.custom.is_per_request.value
+    assign should_render = false
+  endif
+
+  # Generate unique modal ID for this product
+  assign modal_id = 'quick-atc-modal-' | append: product.id
+-%}
+
+{% if should_render %}
+  <!-- Quick Add Button -->
+  <button
+    data-modal-trigger="{{ modal_id }}"
+    data-modal-product-handle="{{ product.handle }}"
+    data-modal-product-url="{{ product.url }}"
+    data-quick-atc-trigger="{{ modal_id }}"
+    class="quick-atc-btn p-2 cursor-pointer group/quick-atc transition-all duration-200 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 group-focus-within:scale-100 {{ button_class }} max-lg:hidden"
+    aria-label="Quick add {{ product.title | escape }} to cart"
+    title="Quick add to cart"
+  >
+    <span data-icon class="transition-opacity duration-200 block">
+      {%- render 'a--icon', icon: 'plus', class: 'color-schema-contrast group-hover/quick-atc:opacity-80' -%}
+    </span>
+    <svg
+      data-spinner
+      class="hidden absolute inset-0 w-6 h-6 animate-spin text-black m-auto"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        class="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        stroke-width="3"
+      ></circle>
+      <path
+        class="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+      ></path>
+    </svg>
+  </button>
+
+  <!-- Modal Template -->
+  <template data-modal-content="{{ modal_id }}">
+    <!--add close button -->
+    {%- render 'a--button', tag: 'button', style: 'secondary', size: 'sm', content: 'icon-only', icon: 'close', aria_label: 'Close', properties: 'data-modal-close', class: 'absolute! top-3 right-3 z-10' -%}
+
+    <div class="quick-atc-product-content w-full max-w-[90vw] h-auto max-h-[90dvh] bg-background2 overflow-auto">
+      <section-fetcher
+        data-section-id="product--quick-atc"
+        data-url="{{ product.url }}"
+        class="w-full h-full"
+      >
+        <!-- Content will be loaded here -->
+      </section-fetcher>
+    </div>
+  </template>
+{% endif %}

@@ -1,0 +1,230 @@
+{%- doc -%}
+  Video component for displaying Shopify video files or external video URLs with customizable playback options.
+
+This component renders a video player that supports both Shopify video files and external URLs (YouTube, Vimeo). It includes background video support, custom poster images, autoplay controls, and responsive aspect ratios. When controls are enabled and a play button is used, hover-activated pause/play and mute/unmute controls appear in the bottom right corner. The component automatically detects video type and applies appropriate parameters for optimal playback experience.
+
+  @param {object} [video] - Shopify video object (required if video_url not provided)
+  @param {string} [video_url] - External video URL (YouTube/Vimeo) (required if video not provided)
+  @param {boolean} [background] - Enable background video mode with no controls (defaults to false)
+  @param {object} [cover_image] - Custom poster image to display before video plays
+  @param {string} [class] - Additional CSS classes for the video element
+  @param {string} [wrapper_class] - Additional CSS classes for the video player wrapper
+  @param {boolean} [autoplay] - Automatically start video playback (defaults based on context)
+  @param {boolean} [loop] - Loop video playback (defaults based on context)
+  @param {boolean} [controls] - Show video player controls including hover-activated pause/play and mute buttons (defaults to true, false for background)
+  @param {number} [aspect_ratio] - Video aspect ratio (defaults to 1.78)
+  @param {boolean} [no_cover] - Disable poster image display (defaults to false)
+  @param {string} [overlay_content] - Additional content to overlay on the video player
+  @param {boolean} [load_immediately] - Render video immediately without lazy template
+  @param {boolean} [show_play_overlay] - Show centered play icon without cover image
+  @param {object} [section] - Optional parent section context for fallback settings
+  @param {object} [block] - Optional parent block context for fallback settings
+  @param {string} [video_id] - Optional explicit video id for external embeds
+
+  @example
+  {% render 'a--video', video: section.settings.video %}
+  @example
+  {% render 'a--video',
+  video_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+  background: true,
+  aspect_ratio: 16/9,
+  wrapper_class: 'my-custom-wrapper'
+%}
+{%- enddoc -%}
+{% # theme-check-disable UndefinedObject %}
+{%- liquid
+  assign s = section.settings
+  if block
+    assign s = block.settings
+  endif
+  if s.heading
+    assign title = s.heading
+  else
+    assign title = section.blocks | where: 'type', 'heading' | first | map: 'settings' | map: 'heading' | join: ' '
+  endif
+
+  assign video = video | default: s.video
+  assign video_url = video_url | default: s.video_url
+
+  unless video_id
+    assign video_id = video.id | default: video_url.id | strip
+  endunless
+  assign poster = cover_image | default: video.preview_image
+  unless poster
+    assign no_cover = no_cover | default: true, allow_false: true
+  endunless
+
+  unless aspect_ratio
+    assign aspect_ratio = s.aspect_ratio | default: 1.78
+  endunless
+
+  assign autoplay = autoplay | default: false, allow_false: true
+  assign load_immediately = load_immediately | default: false, allow_false: true
+  assign show_play_overlay = show_play_overlay | default: false, allow_false: true
+  assign wrapper_style = '--aspect-ratio: ' | append: aspect_ratio
+
+  assign controls = controls | default: true, allow_false: true
+  if background == true
+    assign controls = false
+  endif
+
+  assign loop = loop | default: background, allow_false: true
+
+  if controls == true
+    assign props = 'controls'
+  elsif autoplay != true
+    assign props = 'onclick="this.paused ? this.play() : this.pause()"'
+  endif
+
+  if loop
+    assign props = props | append: ' loop'
+  endif
+
+  if autoplay
+    assign props = props | append: ' autoplay'
+  endif
+
+  if background == true
+    assign class = class | append: ' absolute min-w-full min-h-full left-1/2 -translate-x-1/2 pointer-events-none'
+    assign muted = true
+  else
+    assign class = class | append: ' w-full h-auto'
+  endif
+
+  if autoplay == true
+    assign muted = true
+  endif
+
+  if video != blank
+    assign class = class | append: ' object-cover'
+    assign style_attr = 'style="aspect-ratio: var(--aspect-ratio);"'
+    assign template = video | video_tag: image_size: '1100x', muted: muted, cover_image: cover_image, class: class
+    assign props = '<video ' | append: props | append: ' ' | append: style_attr | append: ' '
+    assign template = template | replace: '<video ', props
+  elsif video_url != blank
+    assign yt_params = '?playsinline=1&rel=0'
+    assign vimeo_params = '?'
+    if no_cover
+      assign yt_params = '?playsinline=1&loop=1&modestbranding=1&iv_load_policy=3'
+      assign vimeo_params = '?loop=1'
+    endif
+    if background == true
+      assign yt_params = yt_params | append: '&autoplay=1&mute=1&controls=0'
+      assign vimeo_params = vimeo_params | append: '&autoplay=1&background=1&muted=1&controls=0'
+    elsif autoplay == true
+      assign yt_params = yt_params | append: '&autoplay=1&mute=1'
+      assign vimeo_params = vimeo_params | append: '&autoplay=1&muted=1'
+    elsif controls == false
+      assign yt_params = yt_params | append: '&controls=0&modestbranding=1&iv_load_policy=3'
+      assign vimeo_params = vimeo_params | append: '&controls=0'
+    endif
+    if video_url contains 'youtube' or video_url contains 'youtu.be' or video_url contains 'youtube-nocookie' or video_url contains 'ytimg'
+      assign url = 'https://www.youtube.com/embed/' | append: video_id | append: yt_params | append: '&playlist=' | append: video_id
+    elsif video_url contains 'vimeo' or video_url contains 'vimeocdn'
+      assign url = 'https://player.vimeo.com/video/' | append: video_id | append: vimeo_params
+    endif
+  endif
+-%}
+{% if url %}
+  {% capture template %}
+    <iframe
+      src="{{ url }}"
+      class="{{ class }} w-full h-full"
+      style="aspect-ratio: var(--aspect-ratio);"
+      data-video-id="{{ video_id }}"
+      allow="autoplay; encrypted-media"
+      allowfullscreen
+      title="{{ title }}"
+    ></iframe>
+  {% endcapture %}
+{% endif %}
+<video-player
+  class="relative w-full rounded-(--media-border-radius) overflow-hidden aspect-(--aspect-ratio) flex justify-between items-center place-self-center h-auto {{ wrapper_class }} {{ s.height }} {{ s.height_md }}"
+  id="video-player-{{ video_id }}"
+  data-media-id="{{ video_id }}"
+  data-type="{%- if video != null %}video{%- else -%}{{ video_url.type }}{%- endif -%}"
+  style="{{ wrapper_style }}"
+>
+  {% if background != true and no_cover != true and autoplay != true and video_url == blank %}
+    <button
+      class="flex overflow-hidden justify-center items-start w-full h-full cursor-pointer _playButton group z-10"
+      aria-label="{{ 'general.media.play_video' | t }}"
+    >
+      {%- if poster != null -%}
+        {% render 'a--image',
+          image: poster,
+          alt: title,
+          sm_cols: 4,
+          md_cols: 6,
+          lg_cols: 4,
+          image_class: 'object-cover h-full w-full',
+          picture_class: 'w-full h-full',
+          aspect_ratio: aspect_ratio
+        %}
+      {%- else -%}
+        {{ 'hero-apparel-3' | placeholder_svg_tag: 'w-full object-cover h-full' }}
+      {%- endif -%}
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center text-background1 transition-all bg-subtle group-hover:brightness-95 rounded-full group-hover:color-schema-contrast">
+        {%- render 'a--icon',
+          icon: 'play',
+          width: '72',
+          class: 'group-hover:scale-105 transition-transform will-change-transform'
+        -%}
+      </div>
+    </button>
+  {% endif %}
+  {% if background != true and show_play_overlay and video_url == blank %}
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center text-background1 bg-subtle rounded-full pointer-events-none z-10">
+      {%- render 'a--icon',
+        icon: 'play',
+        width: '72',
+        class: 'transition-transform will-change-transform'
+      -%}
+    </div>
+  {% endif %}
+  {% if background != true and controls == true and video_url == blank %}
+    <div class="absolute bottom-4 right-4 flex gap-2 opacity-0 transition-opacity duration-200 _videoControls z-50" style="z-index: 50;">
+      <button
+        class="flex items-center justify-center w-10 h-10 bg-subtle hover:color-schema-contrast rounded backdrop-blur-sm transition-colors pointer-events-auto _pausePlayButton"
+        aria-label="{{ 'general.media.pause_video' | t }}"
+        type="button"
+      >
+        {%- render 'a--icon',
+          icon: 'pause',
+          width: '24',
+          class: '_pauseIcon'
+        -%}
+        {%- render 'a--icon',
+          icon: 'play',
+          width: '24',
+          class: '_playIcon hidden'
+        -%}
+      </button>
+      <button
+        class="flex items-center justify-center w-10 h-10 bg-subtle hover:color-schema-contrast rounded backdrop-blur-sm transition-colors pointer-events-auto _muteButton"
+        aria-label="{{ 'general.media.mute_video' | t }}"
+        type="button"
+      >
+        {%- render 'a--icon',
+          icon: 'volume',
+          width: '24',
+          class: '_volumeIcon'
+        -%}
+        {%- render 'a--icon',
+          icon: 'mute',
+          width: '24',
+          class: '_muteIcon hidden'
+        -%}
+      </button>
+    </div>
+  {% endif %}
+  {% if load_immediately == true or background == true or autoplay == true %}
+    {{ template }}
+  {% else %}
+    <template>
+      {{ template }}
+    </template>
+  {% endif %}
+  {{ overlay_content }}
+</video-player>
+{% # theme-check-enable UndefinedObject %}

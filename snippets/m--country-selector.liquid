@@ -1,0 +1,61 @@
+<localization-form class="h-full {{ class }}">
+  {%- liquid
+    assign formId = identifier | append: 'CountryForm'
+    assign h2Id = identifier | append: 'CountryLabel'
+    assign listId = identifier | append: 'CountryList'
+  -%}
+  {%- form 'localization', id: formId, class: 'localization-form h-full' -%}
+    <div class="no-js-hidden h-full">
+      <h2 id="{{ h2Id }}" class="sr-only">{{ 'localization.country_label' | t }}</h2>
+      <disclosure-element class="block h-full">
+        <button
+          type="button"
+          class="flex rounded-sm items-center justify-center hover:brightness-95 transition-colors px-4 h-full bg-background2 w-fit cursor-pointer"
+          aria-expanded="false"
+          aria-controls="{{ listId }}"
+          aria-describedby="{{ h2Id }}"
+          aria-label="{{ localization.country.name }} - {{ localization.country.currency.iso_code }} {{ localization.country.currency.symbol }}"
+        >
+          <img
+            src="//cdn.shopify.com/static/images/flags/{{ localization.country.iso_code | downcase }}.svg"
+            alt="{{ localization.country.name }}"
+            loading="lazy"
+            width="1.375rem"
+            height="1rem"
+            class="inline-block object-cover w-5.5 h-auto rounded-full"
+          >
+        </button>
+        <div class="{% render '_classes' item: 'dropdown-element' align: align %}">
+          <ul id="{{ listId }}" class="dropdown-list" role="list">
+            {%- for country in localization.available_countries -%}
+              <li tabindex="-1" class="w-auto">
+                <a
+                  class="{% render '_classes' item: 'dropdown-link' %} {% if country.iso_code == localization.country.iso_code %} font-bold{% endif %}"
+                  href="#"
+                  {% if country.iso_code == localization.country.iso_code %}
+                    aria-current="true"
+                  {% endif %}
+                  data-value="{{ country.iso_code }}"
+                >
+                  {% # theme-check-disable RemoteAsset %}
+                  <img
+                    src="//cdn.shopify.com/static/images/flags/{{ country.iso_code | downcase }}.svg"
+                    alt="{{ country.name }}"
+                    loading="lazy"
+                    width="1.375rem"
+                    height="1rem"
+                    class="inline-block object-cover w-5.5 h-auto rounded-full"
+                  >
+                  {% # theme-check-enable RemoteAsset %}
+                  {{ country.name }} ({{ country.currency.iso_code }}
+                  {{ country.currency.symbol }})
+                </a>
+              </li>
+            {%- endfor -%}
+          </ul>
+        </div>
+      </disclosure-element>
+      <input type="hidden" name="country_code" value="{{ localization.country.iso_code }}">
+    </div>
+  {%- endform -%}
+</localization-form>

@@ -1,0 +1,116 @@
+{%- doc -%}
+Collection grid for the collection template, including hero sizing and optional content-card inserts.
+
+Renders the first items with special spanning rules to match the collection grid layout, then renders the remaining products in a standard grid. Also supports inserting custom content cards via collection metafields.
+
+@example
+{% render 'm--collection-grid' %}
+{%- enddoc -%}
+
+{% assign limit = 24 %}
+{% paginate collection.products by limit %}
+  {%- liquid
+    # Content cards
+    # - `custom.content_cards`: list of metaobjects (max 4)
+    # - `custom.content_card_orders`: list of positions matching the selected cards order
+    assign content_cards = collection.metafields.custom.content_cards.value
+    assign orders_list = collection.metafields.custom.content_card_orders.value
+
+    assign content_card_1 = null
+    assign content_card_2 = null
+    assign content_card_3 = null
+    assign content_card_4 = null
+    if content_cards != blank
+      for c in content_cards limit: 4
+        case forloop.index
+          when 1
+            assign content_card_1 = c
+          when 2
+            assign content_card_2 = c
+          when 3
+            assign content_card_3 = c
+          when 4
+            assign content_card_4 = c
+        endcase
+      endfor
+    endif
+
+    assign order_1 = orders_list[0] | plus: 0
+    assign order_2 = orders_list[1] | plus: 0
+    assign order_3 = orders_list[2] | plus: 0
+    assign order_4 = orders_list[3] | plus: 0
+  -%}
+  <div
+    id="products-grid"
+    class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-x-2 md:gap-x-4 gap-y-6"
+    role="grid"
+    aria-label="Product grid"
+    data-products-per-page="{{ limit }}"
+    style=""
+  >
+    {%- liquid
+      # Render content cards at position 1 (before first product)
+      if order_1 == 1 and content_card_1
+        assign insert_style = '--nth-child: 1'
+        render 'm--collection-insert-card', card: content_card_1, class: 'max-lg:order-(--nth-child)', style: insert_style
+      endif
+      if order_2 == 1 and content_card_2
+        assign insert_style = '--nth-child: 1'
+        render 'm--collection-insert-card', card: content_card_2, class: 'max-lg:order-(--nth-child)', style: insert_style
+      endif
+      if order_3 == 1 and content_card_3
+        assign insert_style = '--nth-child: 1'
+        render 'm--collection-insert-card', card: content_card_3, class: 'max-lg:order-(--nth-child)', style: insert_style
+      endif
+      if order_4 == 1 and content_card_4
+        assign insert_style = '--nth-child: 1'
+        render 'm--collection-insert-card', card: content_card_4, class: 'max-lg:order-(--nth-child)', style: insert_style
+      endif
+
+      for product in collection.products
+        assign forloop_index = forloop.index | plus: paginate.current_offset
+        assign card_class = 'max-lg:order-(--nth-child)'
+        assign sm_cols = 2
+        assign md_cols = 2
+        assign lg_cols = 4
+
+        # Hero sizing:
+        # - Mobile + Desktop: first card spans 2 columns, second card is 1 column
+        if forloop_index == 1
+          assign card_class = card_class | append: ' col-span-2'
+          assign sm_cols = 1
+          assign md_cols = 1
+          assign lg_cols = 7
+        else
+          assign lg_cols = 6
+        endif
+
+        render 'm--product-card', card_product: product, forloop_index: forloop_index, class: card_class, sm_cols: sm_cols, md_cols: md_cols, lg_cols: lg_cols, identifier: 'collection-grid'
+        
+        # Content cards after N products. Order is the target grid position.
+        # Example: order = 6 means show after 5th product.
+        assign insert_match = forloop_index | plus: 1
+        if order_1 == insert_match and content_card_1
+          assign insert_style = '--nth-child: ' | append: insert_match
+          render 'm--collection-insert-card', card: content_card_1, class: 'max-lg:order-(--nth-child)', style: insert_style
+        endif
+        if order_2 == insert_match and content_card_2
+          assign insert_style = '--nth-child: ' | append: insert_match
+          render 'm--collection-insert-card', card: content_card_2, class: 'max-lg:order-(--nth-child)', style: insert_style
+        endif
+        if order_3 == insert_match and content_card_3
+          assign insert_style = '--nth-child: ' | append: insert_match
+          render 'm--collection-insert-card', card: content_card_3, class: 'max-lg:order-(--nth-child)', style: insert_style
+        endif
+        if order_4 == insert_match and content_card_4
+          assign insert_style = '--nth-child: ' | append: insert_match
+          render 'm--collection-insert-card', card: content_card_4, class: 'max-lg:order-(--nth-child)', style: insert_style
+        endif
+
+      endfor
+      # Note:
+      # We intentionally do not render an extra "Show more" CTA here.
+      # Infinite scroll controls pagination UI.
+    -%}
+  </div>
+{% endpaginate %}

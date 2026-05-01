@@ -1,0 +1,143 @@
+{%- doc -%}
+  Accordion component for collapsible content sections with customizable icons and styling.
+
+  This component renders a semantic HTML details/summary element with enhanced accessibility features, customizable icons, and support for synchronized disclosure groups. Includes proper ARIA attributes, keyboard navigation, and screen reader support. Can be synchronized with other disclosure elements using the data-sync-group attribute.
+
+  @param {string} heading - The accordion title text (required)
+  @param {string} body - The accordion content (required)
+  @param {string} [icon] - Icon name for the toggle indicator (defaults to 'chevron-d')
+  @param {string} [icon_class] - Additional CSS classes for the toggle icon
+  @param {number} [icon_width] - Width of the toggle icon in pixels (defaults to 24)
+  @param {string} [picto] - Icon name for the title area (optional)
+  @param {string} [picto_class] - Additional CSS classes for the title icon
+  @param {number} [picto_width] - Width of the title icon in pixels (defaults to 24)
+  @param {string} [class] - Additional CSS classes for the details element
+  @param {string} [title_class] - Additional CSS classes for the summary element
+  @param {string} [content_class] - Additional CSS classes for the content div
+  @param {boolean} [expanded] - Whether the accordion starts expanded (defaults to false)
+  @param {string} [id] - Unique identifier for the accordion (defaults to block.id)
+  @param {boolean} [shrink_others] - Whether to close other accordions in the same sync group
+  @param {boolean} [no_border] - Remove the top border (defaults to false)
+  @param {boolean} [show_animation] - Enable smooth animations (defaults to true)
+  @param {string} [title_size] - Additional CSS classes for the title element
+  @param {string} [title_height] - Additional CSS classes for the title elements
+  @param {string} [background_colors] - Additional CSS classes for the details element
+  @param {object} [section] - The section object (defaults to the current section)
+  @param {object} [block] - The block object (defaults to the current block)
+  @param {string} [details_class] - Additional CSS classes for the details element
+  @param {string} [accordion_class] - Additional CSS classes for the accordion wrapper
+  @param {number} [index] - The index of the accordion (defaults to the current index)
+
+  @example
+  {% render 'm--accordion',
+    heading: 'FAQ Item',
+    body: 'Answer content here'
+  %}
+  @example
+  {% render 'm--accordion',
+    heading: 'Product Details',
+    body: product.description,
+    icon: 'plus',
+    picto: 'info',
+    class: 'my-4'
+  %}
+{%- enddoc -%}
+
+{%- liquid
+  # CUSTOMIZATION
+  assign title_size = title_size | default: 'text-ui-title'
+  assign title_height = title_height | default: 'h-14 lg:h-15'
+  assign background_colors = background_colors
+  # ENDCUSTOMIZATION
+
+  unless heading
+    assign heading = 'Accordion Section'
+  endunless
+
+  unless body
+    assign body = 'Content not available'
+  endunless
+
+  assign expanded = expanded | default: false, allow_false: true
+  unless id
+    assign id = section.id | append: '-' | append: block.id
+  endunless
+  assign shrink_others = shrink_others | default: section.settings.shrink_others, allow_false: true
+  assign show_animation = show_animation | default: true
+
+  assign icon = icon | default: 'chevron-d'
+  assign icon_width = icon_width | default: '1.5rem'
+  assign picto = picto | default: block.settings.picto
+  assign picto_width = picto_width | default: '1.5rem'
+  assign picto_class = picto_class | append: ' pl-4'
+
+  unless no_border
+    assign class = class | append: ' border-t border-secondary'
+  endunless
+
+  if show_animation
+    assign class = class | append: ' transition-all duration-300'
+  endif
+
+  if index and index < 10
+    assign index = '0' | append: index
+  endif
+-%}
+
+<accordion-disclosure
+  {% if shrink_others %}
+    data-sync-group="sync-group-{{ section.id }}"
+  {% endif %}
+  {% if block %}
+    {{ block.shopify_attributes }}
+  {% endif %}
+  {% if accordion_class %}
+    class="{{ accordion_class }}"
+  {% endif %}
+>
+  <details
+    role="region"
+    class="{{ background_colors }} {{ details_class }} {{ class }}"
+    {% if expanded %}
+      open
+    {% endif %}
+  >
+    <summary
+      role="button"
+      tabindex="0"
+      id="{{ id }}-title"
+      aria-controls="{{ id }}-content"
+      aria-expanded="{{ expanded | default: false }}"
+      class="flex text-left items-center cursor-pointer focus:outline-none transition-colors duration-200 gap-x-b-base {{ title_class }} {{ title_size }} {{ title_height }}"
+      onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); this.click(); }"
+    >
+      {% if picto %}
+        {% render 'a--icon', icon: picto, class: picto_class, width: picto_width, aria_label: 'Section icon' %}
+      {% endif %}
+      {% if index %}
+        <div class="text-secondary">{{ index }}.</div>
+      {% endif %}
+      <div class="w-full">
+        {{ heading }}
+      </div>
+      {%- render 'a--icon',
+        icon: icon,
+        class: icon_class,
+        width: icon_width,
+        animate: true,
+        aria_label: 'Toggle section'
+      -%}
+    </summary>
+
+    <div
+      id="{{ id }}-content"
+      aria-labelledby="{{ id }}-title"
+      role="region"
+      class="w-full overflow-hidden {{ content_class }}"
+    >
+      <div class="after:content-[''] after:block after:h-6 rte">
+        {{ body }}
+      </div>
+    </div>
+  </details>
+</accordion-disclosure>

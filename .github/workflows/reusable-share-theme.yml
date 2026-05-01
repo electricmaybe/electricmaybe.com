@@ -1,0 +1,89 @@
+name: Share Theme
+
+on:
+  workflow_call:
+    inputs:
+      pr_number:
+        required: false
+        type: string
+        description: "PR number for theme naming context"
+      store_alias:
+        required: false
+        type: string
+        description: "Store alias for scoped secret lookup"
+      store_alias_secret:
+        required: false
+        type: string
+        description: "Upper snake-case alias for scoped secret (e.g. VOLDT_STAGING). If set, uses SHOPIFY_*_<this>; else uses SHOPIFY_STORE_URL / SHOPIFY_THEME_ACCESS_TOKEN."
+    outputs:
+      theme_id:
+        description: "Shared theme ID"
+        value: ${{ jobs.share.outputs.theme_id }}
+      theme_name:
+        description: "Shared theme name"
+        value: ${{ jobs.share.outputs.theme_name }}
+      share_output:
+        description: "Raw share command output"
+        value: ${{ jobs.share.outputs.share_output }}
+
+jobs:
+  share:
+    runs-on: ubuntu-latest
+    outputs:
+      theme_id: ${{ steps.share.outputs.theme_id }}
+      theme_name: ${{ steps.share.outputs.theme_name }}
+      share_output: ${{ steps.share.outputs.share_output }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate theme root
+        run: |
+          if [ ! -f "layout/theme.liquid" ]; then
+            echo "layout/theme.liquid not found. Ensure workflow runs at theme repository root."
+            exit 1
+          fi
+
+      - name: Install Shopify CLI
+        run: npm install -g @shopify/cli @shopify/theme
+
+      - name: Share theme
+        id: share
+        env:
+          SHOPIFY_STORE_URL: ${{ inputs.store_alias_secret && secrets[format('SHOPIFY_STORE_URL_{0}', inputs.store_alias_secret)] || secrets.SHOPIFY_STORE_URL }}
+          SHOPIFY_THEME_ACCESS_TOKEN: ${{ inputs.store_alias_secret && secrets[format('SHOPIFY_THEME_ACCESS_TOKEN_{0}', inputs.store_alias_secret)] || secrets.SHOPIFY_THEME_ACCESS_TOKEN }}
+        run: |
+          if [ -z "$SHOPIFY_STORE_URL" ] || [ -z "$SHOPIFY_THEME_ACCESS_TOKEN" ]; then
+            echo "Missing Shopify secrets."
+            exit 1
+          fi
+
+          OUTPUT=$(shopify theme share \
+            --store "$SHOPIFY_STORE_URL" \
+            --password "$SHOPIFY_THEME_ACCESS_TOKEN" 2>&1)
+          STATUS=$?
+
+          echo "$OUTPUT"
+          if [ $STATUS -ne 0 ]; then
+            echo "Theme share failed."
+            exit $STATUS
+          fi
+
+          THEME_NAME=$(echo "$OUTPUT" | sed -n "s/.*The theme '\([^']*\)'.*/\1/p" | head -1)
+          THEME_ID=$(echo "$OUTPUT" | sed -n 's/.*#\([0-9]*\).*/\1/p' | head -1)
+
+          if [ -z "$THEME_ID" ]; then
+            echo "Could not parse theme id from share output."
+            exit 1
+          fi
+
+          echo "theme_id=$THEME_ID" >> $GITHUB_OUTPUT
+          if [ -n "$THEME_NAME" ]; then
+            echo "theme_name=$THEME_NAME" >> $GITHUB_OUTPUT
+          fi
+
+          {
+            echo "share_output<<SHARE_EOF"
+            echo "$OUTPUT"
+            echo "SHARE_EOF"
+          } >> $GITHUB_OUTPUT

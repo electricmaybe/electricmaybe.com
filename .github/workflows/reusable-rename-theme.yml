@@ -1,0 +1,68 @@
+name: Rename Theme
+
+on:
+  workflow_call:
+    inputs:
+      theme_id:
+        required: true
+        type: string
+        description: "Theme ID to rename"
+      theme_name:
+        required: true
+        type: string
+        description: "Current theme name"
+      pr_number:
+        required: true
+        type: string
+        description: "PR number to append"
+      store_alias:
+        required: false
+        type: string
+        description: "Store alias for scoped secret lookup"
+      store_alias_secret:
+        required: false
+        type: string
+        description: "Upper snake-case alias for scoped secret (e.g. VOLDT_STAGING). If set, uses SHOPIFY_*_<this>; else uses SHOPIFY_STORE_URL / SHOPIFY_THEME_ACCESS_TOKEN."
+
+jobs:
+  rename:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Shopify CLI
+        run: npm install -g @shopify/cli @shopify/theme
+
+      - name: Rename theme
+        env:
+          SHOPIFY_STORE_URL: ${{ inputs.store_alias_secret && secrets[format('SHOPIFY_STORE_URL_{0}', inputs.store_alias_secret)] || secrets.SHOPIFY_STORE_URL }}
+          SHOPIFY_THEME_ACCESS_TOKEN: ${{ inputs.store_alias_secret && secrets[format('SHOPIFY_THEME_ACCESS_TOKEN_{0}', inputs.store_alias_secret)] || secrets.SHOPIFY_THEME_ACCESS_TOKEN }}
+          THEME_ID: ${{ inputs.theme_id }}
+          THEME_NAME: ${{ inputs.theme_name }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+        run: |
+          if [ -z "$THEME_ID" ] || [ -z "$THEME_NAME" ]; then
+            echo "Missing theme_id/theme_name."
+            exit 1
+          fi
+          if [ -z "$SHOPIFY_STORE_URL" ] || [ -z "$SHOPIFY_THEME_ACCESS_TOKEN" ]; then
+            echo "Missing Shopify store URL/token for rename."
+            exit 1
+          fi
+
+          NEW_THEME_NAME="${THEME_NAME}-PR${PR_NUMBER}"
+          echo "Renaming theme $THEME_ID to '$NEW_THEME_NAME'..."
+
+          if shopify theme rename \
+            --store "$SHOPIFY_STORE_URL" \
+            --password "$SHOPIFY_THEME_ACCESS_TOKEN" \
+            --theme "$THEME_ID" \
+            --name "$NEW_THEME_NAME" 2>&1; then
+            echo "Rename succeeded with password auth."
+          elif shopify theme rename \
+            --store "$SHOPIFY_STORE_URL" \
+            --theme "$THEME_ID" \
+            --name "$NEW_THEME_NAME" 2>&1; then
+            echo "Rename succeeded with authenticated session."
+          else
+            echo "Failed to rename theme."
+            exit 1
+          fi

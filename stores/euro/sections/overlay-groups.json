@@ -1,0 +1,60 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "name": "Overlay",
+  "type": "aside",
+  "sections": {
+    "cart-drawer": {
+      "type": "cart--drawer",
+      "settings": {
+        "cart_header": "Your cart",
+        "cart_summary_position": "justify-start",
+        "stick_cart_summary": "both",
+        "show_cart_product_weight": true,
+        "show_cart_total_product_weight": true,
+        "show_cart_total_savings": true,
+        "total_savings_color": "#ff0000",
+        "enable_cart_note": true,
+        "cart_note_header": "Enter your cart note",
+        "show_cart_button": true,
+        "show_additional_checkout_options": true,
+        "show_checkout_button": true,
+        "cart_trust_title": "{{ metaobjects.standard_title[\"order-with-confidence\"].title.value }}",
+        "cart_trust_subtext": "{{ metaobjects.standard_title[\"buyer-protection-available-in-the-next-steps\"].title.value }}",
+        "show_backorder_text": true,
+        "cart_product_recommendations_visibility": "always",
+        "cart_recommendations_heading": "You might also like",
+        "cart_upsell_success_label": "Added!",
+        "cart_upsell_error_label": "Error",
+        "cart_recommendations_max_items": 5,
+        "cart_recommendations_promoted_products": [
+          "esme-dining-chair"
+        ],
+        "cart_product_recommendations_layout": "carousel",
+        "show_media_promotion": false,
+        "media_promotion_visibility": "filled",
+        "cart_image_min_height": 200,
+        "cart_media_promote_text": "Promote content",
+        "cart_media_promotion_text_size": "text-solid-base font-normal",
+        "max_text_width_range": 360,
+        "cart_media_promotion_text_alignment": "justify-center items-center text-center",
+        "cart_media_promotion_button_label": "Shop now",
+        "cart_media_promotion_button_style": "secondary",
+        "cart_link": "",
+        "cart_media_promotion_text_color": "#ffffff",
+        "cart_media_promotion_overlay_color": "#0f2d28",
+        "cart_media_promotion_overlay_opacity": 0.3
+      }
+    }
+  },
+  "order": [
+    "cart-drawer"
+  ]
+}

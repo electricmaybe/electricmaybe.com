@@ -1,0 +1,27 @@
+---
+description: Section development standards — schema, structure, blocks, performance patterns
+globs:
+  - "sections/**/*.liquid"
+  - "**/sections/*.liquid"
+alwaysApply: false
+---
+# Section Development Standards
+
+## Section Requirements
+
+Every section must include:
+
+- Schema definition — either a `{% schema %}` tag with valid JSON, or a `{% # schema 'name' %}` marker referencing a schema from `_schemas/` (see `schemas.mdc` for the schema builder)
+- Proper HTML semantic structure
+- CSS scoping with section classes
+- Translation keys for all text
+
+When using the schema builder, add the inline-comment marker at the end of the section file and define the schema in `_schemas/`. The generated `{% schema %}...{% endschema %}` block is build output — do not edit it directly.
+
+## Section Patterns
+
+_(To be filled in on review.)_
+
+## Performance Patterns
+
+_(To be filled in on review.)_

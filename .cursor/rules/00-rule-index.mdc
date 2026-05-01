@@ -1,0 +1,24 @@
+---
+description: Index of project rules — read the relevant rule file when performing the listed activities
+globs:
+  - "**/*"
+alwaysApply: true
+---
+# Rule Index
+
+When you perform any of the following, **read and apply** the corresponding rule file from `.cursor/rules/`:
+
+- **Git commits, commit messages** → `commit-rules.mdc`
+- **Accessibility, a11y, focus, WCAG, UI behavior** → `accessibility-rules.mdc`
+- **JavaScript, web components, _scripts/, *.js** → `javascript-standards.mdc`
+- **Tailwind CSS, theme tokens, Liquid/CSS classes, _styles/** → `tailwindcss-rules.mdc`
+- **Liquid syntax and usage** → `liquid.mdc`
+- **Section files (sections/*.liquid)** → `sections.mdc`
+- **Snippets (snippets/*.liquid)** → `snippets.mdc`
+- **Schema definitions (section/layout schemas), _schemas/ builder** → `schemas.mdc`
+- **Liquid documentation comments** → `liquid-doc-rules.mdc`
+- **JS refactor tasks / current refactoring work** → `js-refactor-tasks.mdc`
+- **Adding or editing Cursor rules** → `cursor-rule-template.mdc`
+- **Overview of global rules and sync** → `global-rules-reference.mdc` (optional)
+
+Use the Read tool to load the relevant rule file when the task matches one of the above. Project overview and this index are always in context; other rules are applied when their scope applies.

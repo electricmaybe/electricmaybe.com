@@ -1,0 +1,31 @@
+{%- liquid
+  assign aspect_ratio = aspect_ratio | default: 0.8
+  case media.media_type
+    when 'image'
+      assign picture_class = picture_class | append: ' hover-zoom bg-dune-100 snap-start'
+      assign image_class = image_class | append: ' -mix-blend-darken w-full h-full'
+      render 'a--image', image: media, cols: 6, image_class: image_class, loading: 'eager', picture_class: picture_class, aspect_ratio: aspect_ratio, object_fit: 'object-contain'
+    when 'external_video'
+      assign video_url = media | external_video_url
+      assign video_id = video_url | split: '/' | compact | last | split: '?' | first
+      assign wrapper_class = wrapper_class | default: '' | append: ' snap-start'
+      render 'a--video', video_url: video_url, video_id: video_id, background: false, autoplay: false, loop: false, no_cover: true, aspect_ratio: aspect_ratio, wrapper_class: wrapper_class
+    when 'video'
+      assign video_class = video_class
+      assign wrapper_class = wrapper_class | default: '' | append: ' snap-start'
+      render 'a--video', video: media, background: false, muted: true, autoplay: true, loop: true, no_cover: true, controls: false, aspect_ratio: aspect_ratio, wrapper_class: wrapper_class, class: video_class
+    when 'model'
+      continue
+      echo media | media_tag: image_size: '2048px', toggleable: true, class: 'h-full object-contain w-full'
+    else
+      echo media | media_tag
+  endcase
+  if placeholder == true
+    render 'a--image' picture_class: 'w-full', image_class: 'h-full object-contain w-full rounded-sm'
+  endif
+  comment
+    if in_lightbox != true and media.media_type != 'external_video'
+      render 'a--icon', icon: 'zoom-in', size: 'h-4', wrapper_class: 'absolute right-4 top-4 p-2 bg-background2 shadow-sm border border-outline/10 rounded-full opacity-80 hover:opacity-100 transition cursor-pointer js-lightbox z-10'
+    endif
+  endcomment
+-%}

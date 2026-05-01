@@ -1,0 +1,32 @@
+<loading-bar
+  class="bg-emphasis z-9999 fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none"
+></loading-bar>
+<script>
+  class LoadingBar extends HTMLElement {
+    constructor() {
+      super();
+
+      window.addEventListener('beforeunload', () => {
+        this.animate({ opacity: [0, 1] }, { duration: 400 });
+        document.body.classList.add('unloading');
+      });
+
+      window.addEventListener('DOMContentLoaded', () => {
+        this.animate({ opacity: [1, 0] }, { duration: 400 }).onfinish = () => {
+          this.style.visibility = 'hidden';
+        };
+
+        document.body.classList.add('loaded');
+        document.dispatchEvent(new CustomEvent('page:loaded'));
+      });
+
+      window.addEventListener('pageshow', (event) => {
+        // Removes unload class when returning to page via history
+        if (event.persisted) {
+          document.body.classList.remove('unloading');
+        }
+      });
+    }
+  }
+  customElements.define('loading-bar', LoadingBar);
+</script>

@@ -1,0 +1,66 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "hero_vol37_blog_contact": {
+      "type": "contact--hero",
+      "name": "Contact hero",
+      "settings": {
+        "overlay_header": true,
+        "contact_title": "Discover Useful Articles",
+        "contact_description": "<p>You can find all the helpful articles below. Enjoy reading.</p>",
+        "height": "h-96",
+        "height_md": "md:h-80",
+        "height_lg": "lg:h-[24vw]",
+        "image_mobile": "shopify://shop_images/s--hero-banner_9.png",
+        "position_mobile": "items-center justify-center text-center",
+        "position_tablet": "md:items-center md:justify-center md:text-center",
+        "position_desktop": "lg:items-center lg:justify-start lg:text-left",
+        "overlay_color": "#000000",
+        "overlay_opacity": 40,
+        "overlay_blur": 0
+      }
+    },
+    "blog_feed": {
+      "type": "s--blog-feed",
+      "settings": {
+        "tag_all_label": "See all",
+        "search_placeholder": "Search",
+        "articles_per_page": 12,
+        "previous_label": "Previous",
+        "next_label": "Next"
+      }
+    },
+    "s_featured_collection_ANL6LQ": {
+      "type": "s--featured-collection",
+      "name": "Featured collection",
+      "settings": {
+        "use_related_products": false,
+        "collection": "all-charging",
+        "title": "Best sellers",
+        "products_to_show": 12
+      }
+    },
+    "s_contact_form_6kaweM": {
+      "type": "s--contact-form",
+      "name": "Contact form",
+      "settings": {
+        "heading": "Couldn't find the right cable?",
+        "body": "<p>For questions or general inquiries, please leave your contact information below and we will get back to you as soon as possible.</p>"
+      }
+    }
+  },
+  "order": [
+    "hero_vol37_blog_contact",
+    "blog_feed",
+    "s_featured_collection_ANL6LQ",
+    "s_contact_form_6kaweM"
+  ]
+}

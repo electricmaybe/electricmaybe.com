@@ -1,0 +1,154 @@
+{%- doc -%}
+  Sticky add-to-cart bar shown when the main product form scrolls out of view.
+
+  Desktop: product image + title on the left; length dropdown (if product has Length option) + ATC button on the right. Mobile: ATC button only. Dropdown syncs to main form length slider. Submits the main product form. Colors and button match product--form.
+
+  @param {object} product - Product object (required)
+  @param {string} [product_form_id] - Main product form ID so sticky bar can submit it and render length slider with same form
+
+  @example
+  {% render 'product--sticky-atc', product: product, product_form_id: product_form_id %}
+{%- enddoc -%}
+{%- liquid
+  assign variant = product.selected_or_first_available_variant
+  assign add_to_cart_text = 'products.product.add_to_cart' | t
+  assign is_presales = product.metafields.custom.presales.value | default: false
+  if is_presales
+    assign add_to_cart_text = 'products.product.pre_order' | t
+  endif
+  assign loading_label = 'products.product.adding_to_cart' | t
+  assign success_label = 'products.product.add_to_cart_success' | t
+  assign error_label = 'products.product.adding_error' | t
+  assign sticky_add_to_cart_button_class = 'rounded-full text-ui-base uppercase text-on-accent'
+  assign sticky_add_to_cart_button_mobile_class = 'w-full py-b-base'
+  assign sticky_add_to_cart_button_desktop_class = 'py-b-base px-6 whitespace-nowrap'
+  if is_presales
+    assign sticky_add_to_cart_button_class = 'rounded-full text-ui-base uppercase button--presales'
+  else
+    assign sticky_add_to_cart_button_class = sticky_add_to_cart_button_class | append: ' bg-blue-700 border-none'
+  endif
+  assign sticky_add_to_cart_button_mobile_class = sticky_add_to_cart_button_class | append: ' ' | append: sticky_add_to_cart_button_mobile_class
+  assign sticky_add_to_cart_button_desktop_class = sticky_add_to_cart_button_class | append: ' ' | append: sticky_add_to_cart_button_desktop_class
+
+  assign product_title = product.title
+
+  assign length_aliases_capture = blank
+  capture length_aliases_capture
+    render 'product--length-option-aliases'
+  endcapture
+  assign length_aliases = length_aliases_capture | strip_newlines | strip
+
+  assign length_option = blank
+  for option in product.options_with_values
+    assign option_handle_token = ',' | append: option.name | handleize | append: ','
+    if length_aliases contains option_handle_token
+      assign length_option = option
+      break
+    endif
+  endfor
+  assign has_length_option = false
+  if length_option != blank
+    assign has_length_option = true
+  endif
+
+  if customer.b2b?
+    assign cart_usp_message = shop.metafields.custom.cart_usp_text_b2b
+  else
+    assign cart_usp_message = shop.metafields.custom.cart_usp_text
+  endif
+
+  assign product_form_id = product_form_id | default: ''
+-%}
+<script src="{{ 'sticky-atc.js' | asset_url }}" defer="defer"></script>
+<sticky-atc>
+  <div
+    class="fixed left-0 right-0 bottom-0 opacity-0 transition-all translate-y-full will-change-auto z-(--layer-sticky) w-full bg-surface border-t border-secondary"
+    style="z-index: 9999999999;"
+  >
+    <div class="p-2 px-s-whole max-w-[1600px] mx-auto">
+      {%- comment -%} Mobile: ATC button only {%- endcomment -%}
+      <div class="md:hidden">
+        <product-buttons
+          class="block w-full"
+          availability="{% if variant.available %}available{% else %}sold-out{% endif %}"
+          available="{{ variant.available }}"
+        >
+          {%- capture properties -%}
+            {%- if product_form_id != blank -%}form="{{ product_form_id }}"{%- endif -%}
+          {%- endcapture -%}
+          {%- render 'a--button',
+            tag: 'button',
+            label: add_to_cart_text,
+            icon: 'cart',
+            icon_class: 'w-5! h-5!',
+            states: true,
+            loading_label: loading_label,
+            success_label: success_label,
+            error_label: error_label,
+            type: 'submit',
+            properties: properties,
+            class: sticky_add_to_cart_button_mobile_class
+          -%}
+        </product-buttons>
+      </div>
+
+      {%- comment -%} Desktop: image + title | length slider + ATC {%- endcomment -%}
+      <div class="hidden md:flex md:items-center md:justify-between md:gap-4 md:w-full">
+        <div class="flex items-center gap-3 min-w-0 flex-1">
+          {%- if product.featured_image -%}
+            <div class="shrink-0 w-12 h-12 rounded overflow-hidden bg-subtle">
+              <img
+                src="{{ product.featured_image | image_url: width: 96 }}"
+                alt="{{ product.featured_image.alt | default: product.title | escape }}"
+                width="48"
+                height="48"
+                class="w-full h-full object-cover"
+                loading="lazy"
+              >
+            </div>
+          {%- endif -%}
+          <div class="min-w-0 flex flex-col gap-0.5">
+            <span class="text-ui-base font-medium text-primary truncate" data-variant-dynamic="product-title">{{ product_title }}</span>
+            {% render 'product--rating', compact: true, wrapper_class: 'text-primary' %}
+          </div>
+        </div>
+        <div class="flex items-center gap-4 shrink-0 flex-1 min-w-0 justify-end">
+          {%- if has_length_option and product_form_id != blank -%}
+            {%- render 'product--length-dropdown',
+              option: length_option,
+              name: 'name',
+              product_form_id: product_form_id
+            -%}
+          {%- endif -%}
+          <product-buttons
+            class="shrink-0"
+            availability="{% if variant.available %}available{% else %}sold-out{% endif %}"
+            available="{{ variant.available }}"
+          >
+            {%- capture properties -%}
+              {%- if product_form_id != blank -%}form="{{ product_form_id }}"{%- endif -%}
+            {%- endcapture -%}
+            {%- render 'a--button',
+              tag: 'button',
+              label: add_to_cart_text,
+              icon: 'cart',
+              icon_class: 'w-5! h-5!',
+              states: true,
+              loading_label: loading_label,
+              success_label: success_label,
+              error_label: error_label,
+              type: 'submit',
+              properties: properties,
+              class: sticky_add_to_cart_button_desktop_class
+            -%}
+          </product-buttons>
+        </div>
+      </div>
+    </div>
+    {%- if cart_usp_message != blank -%}
+      <div class="bg-subtle text-primary text-ui-base font-medium w-full py-1.5 flex items-center justify-center px-base relative min-h-7">
+        {{ cart_usp_message }}
+      </div>
+    {%- endif -%}
+  </div>
+</sticky-atc>

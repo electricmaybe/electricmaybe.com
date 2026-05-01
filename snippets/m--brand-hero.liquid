@@ -1,0 +1,56 @@
+{%- doc -%}
+Brand hero content with optional logo, title, rich text body, and primary button.
+
+This molecule is used on brand collection templates and keeps the brand-specific content isolated from the shared hero media shell. It supports the current centered brand presentation with an optional CTA.
+
+@param {object} [brand_logo] - Brand logo image
+@param {string} [heading] - Brand heading
+@param {string} [body_richtext] - Rich text body content
+@param {string} [button_label] - Primary button label
+@param {string} [button_url] - Primary button URL
+
+@example
+{% render 'm--brand-hero',
+  brand_logo: section.settings.brand_logo,
+  heading: section.settings.heading,
+  body_richtext: section.settings.body_richtext,
+  button_label: section.settings.button_label,
+  button_url: section.settings.button_url
+%}
+{%- enddoc -%}
+
+{%- assign brand_logo_alt = heading | default: shop.name | escape -%}
+
+<div class="hero-content flex flex-col items-center text-center gap-y-s-xs w-full max-w-[448px]">
+  {%- if brand_logo != blank -%}
+    {{
+      brand_logo
+      | image_url: width: 256
+      | image_tag: loading: 'lazy', alt: brand_logo_alt, class: 'w-32 h-32 object-contain'
+    }}
+  {%- endif -%}
+
+  {%- if heading != blank -%}
+    <h1 class="h1 text-on-accent max-w-[448px]">
+      {{- heading -}}
+    </h1>
+  {%- endif -%}
+
+  {%- if body_richtext != blank -%}
+    <div class="text-body-lg text-on-accent max-w-[448px]">
+      {{ body_richtext }}
+    </div>
+  {%- endif -%}
+
+  {%- if button_label != blank and button_url != blank -%}
+    <div data-hero-actions class="flex flex-wrap w-full gap-x-b-lg gap-y-b-sm">
+      {%- render 'a--button',
+        tag: 'a',
+        style: 'primary',
+        label: button_label,
+        url: button_url,
+        class: '!bg-white !text-primary !border-0'
+      -%}
+    </div>
+  {%- endif -%}
+</div>

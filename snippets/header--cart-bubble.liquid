@@ -1,0 +1,12 @@
+  <cart-dynamic
+    aria-label="Cart item count"
+    id="header--cart-bubble"
+    data-section-id="api--header--cart-bubble"
+    class=""
+  >
+    {%- if cart.item_count > 0 -%}
+    <span class="{% if section.id contains 'api' %}slide-up-xs{% endif %} text-ui-base px-1 empty:hidden">
+        {{- cart.item_count -}}
+    </span>
+    {%- endif -%}
+  </cart-dynamic>

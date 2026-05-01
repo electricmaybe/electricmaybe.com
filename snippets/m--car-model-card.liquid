@@ -1,0 +1,69 @@
+{%- doc -%}
+  Car model card
+
+  Renders a single car model collection card, including key metafields and data attributes
+  used for client-side filtering (Type/Power/Cable/Portable).
+
+  @param {object} card_collection - Shopify collection object (required)
+
+  @example
+  {% render 'm--car-model-card', card_collection: collection %}
+{%- enddoc -%}
+
+{%- liquid
+  assign type_label = card_collection.metafields.custom.plug.value.basic_name | default: '' | strip
+  assign type_value = type_label | handleize
+
+  assign power_label = card_collection.metafields.custom.charging_capacity.value | default: card_collection.metafields.custom.charging_capacity | default: '' | strip
+  assign power_value = power_label | handleize
+
+  assign cable_label = card_collection.metafields.custom.electric_range.value | default: card_collection.metafields.custom.electric_range | default: '' | strip
+  assign cable_value = cable_label | handleize
+
+  assign portable_label = card_collection.metafields.custom.charging_time.value | default: card_collection.metafields.custom.charging_time | default: '' | strip
+  assign portable_value = portable_label | handleize
+-%}
+
+<a
+  href="{{ card_collection.url }}"
+  class="block space-y-b-xs group"
+  data-car-model-card
+  data-car-type="{{ type_value }}"
+  data-car-type-label="{{ type_label | escape }}"
+  data-car-power="{{ power_value }}"
+  data-car-power-label="{{ power_label | escape }}"
+  data-car-cable="{{ cable_value }}"
+  data-car-cable-label="{{ cable_label | escape }}"
+  data-car-portable="{{ portable_value }}"
+  data-car-portable-label="{{ portable_label | escape }}"
+>
+  {%- liquid
+    assign image = card_collection.metafields.images.car_model_png | default: card_collection.featured_image
+    assign picture_class = 'bg-subtle block overflow-hidden'
+    assign image_class = 'group-hover:scale-110 transition-all duration-700'
+    render 'a--image', image: image, picture_class: picture_class, image_class: image_class, aspect_ratio: 1.7, cols: 3
+  -%}
+  <div class="text-ui-base p-1 flex gap-x-b-base justify-between">
+    <div>
+      {{ card_collection.title }}
+      <div class="text-ui-small text-secondary pt-1">
+        {{ card_collection.metafields.custom.car_model_year }}
+      </div>
+      {% if card_collection.metafields.custom.plug.value.basic_name != blank or card_collection.metafields.custom.charging_capacity != blank %}
+      <div class="flex gap-2 text-ui-small mt-3">
+        {% if card_collection.metafields.custom.plug.value.basic_name != blank %}
+        <span class="rounded-full border border-secondary px-2 py-1 gap-1">
+          {{ card_collection.metafields.custom.plug.value.basic_name }}
+        </span>
+        {% endif %}
+        {% if card_collection.metafields.custom.charging_capacity != blank %}
+        <span class="rounded-full border border-secondary px-2 py-1 gap-1">
+          {{ card_collection.metafields.custom.charging_capacity }}
+        </span>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+    {% render 'a--icon', icon: 'arrow-l-up', class: 'group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all duration-700' %}
+  </div>
+</a>

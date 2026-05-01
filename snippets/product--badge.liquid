@@ -1,0 +1,52 @@
+{%- doc -%}
+Product badge component for displaying dynamic product status indicators.
+
+This component automatically determines and displays the most relevant badge for a product based on priority: New (90 days), Clearance (metafield), or Best Seller (collection membership). Only one badge is shown per product, following the established priority hierarchy. The badge is styled with a semi-transparent white background and primary text color.
+
+@param {object} product - Product object from Shopify (required)
+@param {string} [class] - Additional CSS classes to apply to the badge container
+
+@example
+{% render 'product--badge', product: product %}
+
+@example
+{% render 'product--badge',
+  product: product,
+  class: 'rounded-full text-sm font-medium'
+%}
+{%- enddoc -%}
+
+{%- liquid
+  # BADGE SETUP
+  # the liquid logic setup in a way to make sure only one badge is shown and the priorty is new > clearance > best-seller
+  ## NEW
+  ## compare created at vs today and assign badge_new true if it's less than 90 days in miliseconds
+  assign today = 'now' | date: '%s'
+  assign created_at = product.created_at | date: '%s'
+  assign diff = today | minus: created_at
+  if diff < 7776000
+    assign badge = 'New'
+  endif
+
+  unless badge
+    ## CLEARANCE
+    ## if product has a metafield called clearance and it is true, assign badge_clearance true
+    if product.metafields.badges.clearance
+      assign badge = 'Clearance'
+    endif
+  endunless
+
+  unless badge
+    ## BEST SELLER
+    ## if product is in the collection called best-sellers
+    assign product_collections = product.collections | map: 'title' | downcase
+    if product_collections contains 'test1'
+      assign badge = 'Best Seller'
+    endif
+  endunless
+-%}
+{% if badge %}
+  <div class="product--badge w-fit h-7 px-2 text-primary flex items-center justify-center text-ui-base {{ class }}">
+    {{ badge }}
+  </div>
+{% endif %}

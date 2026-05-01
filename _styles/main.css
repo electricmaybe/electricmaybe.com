@@ -1,0 +1,656 @@
+/* ============================================
+   TAILWIND CONFIGURATION
+   ============================================ */
+@import "tailwindcss" source(none);
+@plugin "@tailwindcss/typography";
+
+/* ============================================
+   SOURCE FILES
+   ============================================ */
+@source "../assets/*.js";
+@source "../assets/!(style).css";
+@source "../layout/*.liquid";
+@source "../blocks/*.liquid";
+@source "../sections/*.liquid";
+@source "../snippets/*.liquid";
+@source "../templates/*.liquid";
+
+html {
+  @apply text-(size:--rem-base) mx-auto scroll-smooth antialiased;
+  --rem-base: 4.2667vw;
+
+  @media (width >= theme(--breakpoint-md)) {
+    --rem-base: 2.0833vw;
+  }
+  @media (width >= theme(--breakpoint-lg)) {
+    --rem-base: 1vw;
+  }
+
+  /* mid media queries to fix too big/small issues */
+  @media (width >= 450px) and (width <= theme(--breakpoint-md)) {
+    --rem-base: 16px;
+  }
+  @media (width >= 960px) and (width < theme(--breakpoint-lg)) {
+    --rem-base: 16px;
+  }
+  @media (width >= 1600px) {
+    @apply max-w-[1600px];
+    --rem-base: 16px;
+  }
+}
+/* ============================================
+   TOKEN IMPORTS
+   ============================================ */
+@import "./01_theme/01_primitives.css";
+@import "./02_base/02.01_sizes.css";
+@import "./02_base/02.02_colors.css";
+@import "./02_base/02.03_typography.css";
+
+/* ============================================
+   COMPONENT IMPORTS
+   ============================================ */
+/* removed per michael's request @import "./core/animations.css"; */
+@import "./atoms/a--button.css";
+@import "./molecules/m--modal.css";
+@import "./molecules/price-range.css";
+@import "./molecules/length-slider.css";
+@import "./molecules/m--variant-preview.css";
+@import "./molecules/m--trusted-reviews.css";
+
+
+/* ============================================
+   THEME VARIABLES
+   ============================================ */
+@theme {
+  /* ----------------------------------------
+     ANIMATION
+     ---------------------------------------- */
+  --ease-in-out: cubic-bezier(.77,0,.175,1);
+  --tw-duration: 0.15s;
+  --default-transition-duration: 150ms;
+
+}
+
+
+/* ============================================
+   MODAL & DRAWER ANIMATIONS
+   ============================================ */
+   @layer components {
+    /* Modal fade animations */
+    #electric-modal-container {
+      transition: opacity 0.3s ease-in-out;
+    }
+  
+    #electric-modal-container.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+  
+    #electric-modal-container.modal-open {
+      opacity: 1;
+    }
+  
+    .electric-modal-backdrop {
+      transition: opacity 0.3s ease-in-out;
+    }
+  
+    .electric-modal-content {
+      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+      transform: translateY(1rem);
+      opacity: 0;
+    }
+  
+    .modal-open .electric-modal-content {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+@utility hide-all-siblings {
+  & ~ * {
+    display: none;
+  }
+}
+
+.section-outer-padding {
+  @apply mx-s-outer;
+}
+
+.section-whole-padding {
+  @apply mx-s-outer px-s-inner;
+}
+
+
+body {
+  color: var(--text-color-primary);
+  @media (width >= 1600px) {
+    @apply max-w-[1600px] mx-auto;
+  }
+}
+
+
+/* Prevent body scrolling when drawers/modals are open */
+body.overflow-hidden,
+body.drawer-open {
+  @apply overflow-hidden;
+}
+
+main {
+  min-height: calc(
+    100dvh - var(--header-offset, 0px) - var(--first-section-margin-top, 0px) -
+      200px
+  );
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+/* * { */
+/*   @apply focus:ring-0 focus:outline-hidden; */
+/* } */
+
+.hide-scroll-bar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.subtle-scrollbar-x {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border-color-secondary) / 0.65) transparent;
+
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: hsl(var(--border-color-secondary) / 0.65);
+    border-radius: 9999px;
+  }
+}
+
+@utility link-underline {
+  a {
+    @apply underline hover:md:opacity-80 underline-offset-2;
+  }
+}
+
+*::marker,
+summary::-webkit-details-marker {
+  display: none !important;
+}
+
+.shopify-challenge__container {
+  @apply mt-16;
+}
+
+.overflow-x-scroll {
+  scroll-behavior: smooth;
+}
+
+details > summary {
+  list-style: none;
+}
+
+.active > .hide-when-parent-is-active {
+  display: none;
+}
+
+.show-when-parent-is-active {
+  display: none;
+}
+
+.active > .show-when-parent-is-active {
+  display: block;
+}
+
+article {
+  @apply text-sm/copy;
+  p {
+    @apply mt-4;
+  }
+}
+
+button[aria-expanded="false"] + div {
+  display: none;
+}
+
+disclosure-element {
+  @apply block relative;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+drawer-trigger {
+  @apply cursor-pointer;
+}
+
+/* ============================================
+   COLLECTION GRID (HERO FIRST ROW)
+   Ensures the first row layout is stable even if utility classes are missing
+   or content is re-rendered by JS (infinite scroll / filters).
+   ============================================ */
+#products-grid > product-card:first-of-type {
+  grid-column: span 2 / span 2;
+}
+
+.main-navigation summary:hover + * {
+  @apply opacity-100;
+}
+
+.main-navigation summary + * {
+  @apply opacity-0 transition-opacity duration-700;
+}
+
+.-scale-y-1 svg {
+  @apply transition-transform;
+}
+.-scale-y-1 [aria-expanded="true"] svg:not(.no-flip) {
+  @apply -scale-y-1;
+}
+
+.shopify-section,
+.block-wrapper {
+  --mobile-visibility: block;
+  --tablet-visibility: block;
+  --desktop-visibility: block;
+}
+
+.shopify-section,
+.block-wrapper {
+  display: var(--mobile-visibility);
+
+  @media (width >= theme(--breakpoint-md)) {
+    display: var(--tablet-visibility);
+  }
+
+  @media (width >= theme(--breakpoint-lg)) {
+    display: var(--desktop-visibility);
+  }
+}
+
+.py-vertical-padding,
+.shopify-policy__container {
+  padding-top: var(--vertical-padding);
+  padding-bottom: var(--vertical-padding);
+
+  @media (width >= theme(--breakpoint-md)) {
+    padding-top: var(--vertical-padding-md);
+    padding-bottom: var(--vertical-padding-md);
+  }
+
+  @media (width >= theme(--breakpoint-lg)) {
+    padding-top: var(--vertical-padding-lg);
+    padding-bottom: var(--vertical-padding-lg);
+  }
+}
+
+.pt-vertical-padding {
+  padding-top: var(--vertical-padding);
+
+  @media (width >= theme(--breakpoint-md)) {
+    padding-top: var(--vertical-padding-md);
+  }
+
+  @media (width >= theme(--breakpoint-lg)) {
+    padding-top: var(--vertical-padding-lg);
+  }
+}
+
+/* Shopify payment button - currently disabled
+/* .shopify-payment-button__button { */
+/*   @apply !rounded !shadow !overflow-hidden !min-h-[3rem]; */
+/* } */
+
+#dynamic-checkout-cart {
+  [data-shopify-buttoncontainer="true"] {
+    @apply m-0! gap-4! pt-4!;
+    > * {
+      @apply m-0! hover:opacity-80!;
+    }
+  }
+}
+
+.shopify-challenge__button {
+  @apply px-4 py-2 rounded-sm shadow-md color-schema-contrast bg-surface mt-4! hover:opacity-80!;
+}
+
+.shopify-challenge__container {
+  @apply mt-16!;
+}
+
+/* Content visibility optimization - currently disabled
+/* .shopify-section:not(.shopify-section-group-header-group) { */
+/*   content-visibility: auto; */
+/* } */
+
+img,
+video {
+  @apply rounded-(--media-border-radius);
+}
+
+/* Lazy loading styles - currently disabled
+/* .lazyload,
+.lazyloading {
+  opacity: 0.75;
+  will-change: opacity, filter;
+  -webkit-filter: blur(5px);
+  -moz-filter: blur(5px);
+  filter: blur(5px);
+}
+.lazyload.no-blur,
+.lazyloading.no-blur {
+  filter: none;
+  opacity: 1;
+}
+
+.lazyloaded {
+  opacity: 1;
+} */
+
+.after\:clip-path-for-scroll:after {
+  clip-path: polygon(0 0, 100% 0, 8% 100%, 0 100%);
+}
+.before\:clip-path-for-scroll:before {
+  clip-path: polygon(100% 0, 0 0, 100% 100%, 92% 100%);
+}
+
+/* ============================================
+   ANIMATIONS & TRANSITIONS
+   ============================================ */
+
+/* Fade in animations */
+[data-fade-in] {
+  @apply transition-all duration-700 will-change-transform;
+}
+[data-fade-in="false"] {
+  @apply opacity-0 translate-y-1/2 pointer-events-none;
+}
+
+/* Section fade in animations - currently disabled
+/* .fade-in-parent, */
+/* main .shopify-section:nth-child(n + 3) { */
+/*   opacity: 0; */
+/*   transition: opacity 0.4s ease-out; */
+/*   will-change: opacity; */
+/* } */
+/* .fade-in-parent.fade-in, */
+/* main .shopify-section.fade-in { */
+/*   opacity: 1; */
+/* } */
+
+.transition-opacity-transform {
+  transition:
+    opacity 0.2s ease-in-out,
+    transform 0.95s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.accelerated-checkout-button-container {
+  @apply mt-2;
+}
+
+*:not(button):not(input):not(textarea):not(select):not(a):focus-visible {
+  @apply outline-hidden;
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+/* Text balancing for non-Safari browsers */
+.balance-text {
+  @supports not (-webkit-hyphens: none) {
+    text-wrap: balance;
+  }
+}
+
+/* ============================================
+   COMPONENT STYLES
+   ============================================ */
+
+/* Product buttons component - unavailable state */
+product-buttons {
+  &[available="false"] {
+    button[type="submit"] {
+      background-color: rgb(156 163 175) !important; /* bg-gray-400 */
+      opacity: 0.5;
+      cursor: not-allowed !important;
+      pointer-events: none;
+      color: rgb(107 114 128) !important; /* text-gray-500 */
+      
+      &:hover {
+        opacity: 0.5;
+        background-color: rgb(156 163 175) !important;
+      }
+    }
+  }
+}
+
+.button--presales {
+  background-color: var(--buttons-presales-background);
+  color: var(--buttons-presales-text);
+  border: 1px solid var(--buttons-presales-border);
+
+  &:hover,
+  &:focus-visible {
+    opacity: 0.85;
+  }
+}
+
+/* Variant option labels should stay muted when the matched variant is sold out,
+   even if the option remains clickable for cross-product navigation. */
+variant-radios {
+  input[available="false"] + label {
+    opacity: 0.5;
+  }
+}
+
+/* Quantity input component */
+quantity-input {
+  &[available="false"] {
+    display: none;
+  }
+  button[aria-label="delete"] {
+    display: none;
+  }
+  .add-to-cart {
+    display: none;
+  }
+  .add-one-more {
+    display: none;
+  }
+  &[data-mode="atc"] {
+    .plus {
+      display: flex;
+    }
+    .add-to-cart {
+      display: none;
+    }
+  }
+  &[data-mode="qty"] {
+    .add-one-more {
+      display: none !important;
+    }
+    button[aria-label="delete"] {
+      display: none !important;
+    }
+    button[aria-label="minus"] {
+      display: flex !important;
+    }
+    button[aria-label="plus"] {
+      display: flex !important;
+    }
+  }
+}
+quantity-input[data-quantity="0"] {
+  button[aria-label="minus"] {
+    display: none;
+  }
+  button[aria-label="delete"] {
+    display: none;
+  }
+  span[data-quantity-display] {
+    display: none;
+  }
+
+  &[data-mode="atc"] {
+    .add-one-more {
+      display: none;
+    }
+    .plus {
+      display: none;
+    }
+    .add-to-cart {
+      display: flex;
+    }
+  }
+}
+quantity-input[data-quantity="1"] {
+  button[aria-label="minus"] {
+    display: none;
+  }
+  button[aria-label="delete"] {
+    display: block;
+  }
+}
+
+/* Cart page wants "- 1 +" even at quantity 1 */
+quantity-input[data-cart-qty="true"] {
+  button[aria-label="delete"] {
+    display: none !important;
+  }
+}
+quantity-input[data-cart-qty="true"][data-quantity="1"] {
+  button[aria-label="minus"] {
+    display: flex !important;
+  }
+}
+
+/* Cart drawer: show upsell as 220px slider on desktop too */
+#cart-drawer [data-cart-upsell-slider] {
+  display: block !important;
+}
+#cart-drawer [data-cart-upsell-grid] {
+  display: none !important;
+}
+#cart-drawer [data-slider="cart-upsell"] {
+  --lg-columns: 2.05 !important;
+  /* Drawer has its own gutters; avoid double padding on desktop */
+  padding-left: 0 !important;
+  padding-right: var(--px-b-xs) !important;
+  scroll-padding-left: var(--px-b-xs) !important;
+  scroll-padding-right: var(--px-b-xs) !important;
+}
+
+.center {
+  @apply flex items-center justify-center;
+}
+
+/* Electric slider component */
+.electric-slider__feed {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.electric-slider__feed img {
+  pointer-events: none;
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+}
+
+.electric-slider__feed.dragging {
+  cursor: grabbing !important;
+  scroll-snap-type: none;
+}
+
+.before\:fixed-overlay:before {
+  content: "";
+  @apply fixed top-28 left-0 w-full h-full bg-accent opacity-50 transition-opacity bottom-0 -z-1 pointer-events-none duration-300;
+
+  @starting-style {
+    @apply opacity-0;
+  }
+}
+
+.before\:absolute-overlay:before {
+  content: "";
+  @apply absolute top-0 left-0 w-full h-screen bg-accent opacity-50 transition-opacity bottom-0 -z-1 pointer-events-none duration-300;
+
+  @starting-style {
+    @apply opacity-0;
+  }
+}
+
+button[data-shopify-xr]:not([data-shopify-xr-hidden]) {
+  display: flex;
+}
+
+.no-border-table tbody tr td {
+  border: none;
+}
+
+/* Slider navigation button disabled states */
+button[data-slider-target]:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Collapse sections with matching background classes */
+.shopify-section:has(> .py-s-base.bg-emphasis) + .shopify-section:has(> .py-s-base.bg-emphasis) > .py-s-base,
+.shopify-section:has(> .py-s-base.bg-subtle) + .shopify-section:has(> .py-s-base.bg-subtle) > .py-s-base,
+.shopify-section:has(> .py-s-base.bg-emphasis) + .shopify-section:has(> .py-s-base.bg-emphasis) > .py-s-base,
+.shopify-section:has(> .py-s-base.bg-accent) + .shopify-section:has(> .py-s-base.bg-accent) > .py-s-base,
+/* Collapse sections with no background class */
+.shopify-section:has(> .py-s-base:not(.bg-emphasis):not(.bg-subtle):not(.bg-emphasis):not(.bg-accent)) + .shopify-section:has(> .py-s-base:not(.bg-emphasis):not(.bg-subtle):not(.bg-emphasis):not(.bg-accent)) > .py-s-base {
+  @apply pt-0;
+}
+.snize-ac-results.snize-new-design {
+  display: none !important;
+}
+
+/* Hide native browser "clear (x)" button on search inputs (we render our own clear control) */
+.search-content-header input[type='search']::-webkit-search-cancel-button,
+electric-search input[type='search']::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+
+.search-content-header input[type='search']::-webkit-search-decoration,
+.search-content-header input[type='search']::-webkit-search-results-button,
+electric-search input[type='search']::-webkit-search-decoration,
+electric-search input[type='search']::-webkit-search-results-button {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+
+/* Legacy IE/Edge */
+.search-content-header input[type='search']::-ms-clear,
+electric-search input[type='search']::-ms-clear {
+  display: none;
+  width: 0;
+  height: 0;
+}

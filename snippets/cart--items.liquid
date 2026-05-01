@@ -1,0 +1,98 @@
+<cart-dynamic data-section-id="api--cart--items" class="block">
+  {%- for item in cart.items -%}
+    {%- liquid
+      assign is_per_request = item.product.metafields.custom.is_per_request.value
+      assign item_price_text = item.final_price | money
+      assign item_price_class = 'text-ui-base'
+
+      if is_per_request
+        assign item_price_text = 'products.product.price_on_request' | t
+        assign item_price_class = 'text-ui-small text-primary'
+      endif
+    -%}
+    <div class="flex items-start justify-between gap-x-s-xl py-b-sm {% unless forloop.first %}border-t border-secondary{% endunless %}">
+      <div class="flex flex-1 min-w-0 items-start gap-x-s-xs">
+        <a
+          href="{{ item.url }}"
+          class="bg-subtle shrink-0 w-[128px] h-[153px] flex items-center justify-center"
+          aria-label="{{ item.product.title | escape }}"
+        >
+          {%- if item.image != blank -%}
+            <img
+              src="{{ item.image | image_url: width: 256 }}"
+              alt="{{ item.product.title | escape }}"
+              width="128"
+              height="153"
+              loading="lazy"
+              decoding="async"
+              class="w-full h-full object-contain -mix-blend-darken"
+            >
+          {%- endif -%}
+        </a>
+
+        <div class="flex flex-col flex-1 min-w-0 gap-y-s-base">
+          <div class="flex flex-col gap-y-b-xs leading-[1.2]">
+            <a href="{{ item.url }}" class="text-ui-base">
+              {{ item.product.metafields.custom.product_group.value.display_name | default: item.product.title }}
+            </a>
+            <div class="{{ item_price_class }}">
+              {{ item_price_text }}
+            </div>
+
+            {%- liquid
+              assign length_line = ''
+              unless item.product.has_only_default_variant or item.product.gift_card?
+                for opt in item.options_with_values
+                  assign opt_name_l = opt.name | downcase
+                  if opt_name_l contains 'length'
+                    assign length_line = opt.name | append: ': ' | append: opt.value
+                    break
+                  endif
+                endfor
+                if length_line == ''
+                  assign length_line = item.variant.title
+                endif
+              endunless
+            -%}
+            {%- if length_line != blank -%}
+              <div class="text-ui-small">
+                {{ length_line }}
+              </div>
+            {%- endif -%}
+          </div>
+
+          <quantity-input
+            data-mode="qatc"
+            data-cart-qty="true"
+            data-id="{{ item.id }}"
+            data-quantity="{{ item.quantity }}"
+            class="block w-fit"
+          >
+            <div role="status" class="hidden spinner">
+              <span class="sr-only">{{ 'accessibility.loading' | t }}</span>
+            </div>
+            <div class="flex items-center gap-x-b-sm text-primary">
+              <button type="button" aria-label="{{ 'sections.cart.quantity_decrease' | t | escape }}" class="p-1 focus:ring-0 focus:outline-0 cursor-pointer">
+                {%- render 'a--icon', icon: 'minus', width: '1.5rem', height: '1.5rem' -%}
+              </button>
+              <form action="{{ routes.cart_change_url }}" method="post" class="hidden">
+                <input type="hidden" name="id" value="{{ item.id }}">
+                <input type="number" name="quantity" value="{{ item.quantity }}" min="0">
+              </form>
+              <span data-quantity-display class="text-[12px] text-primary">
+                {{- item.quantity -}}
+              </span>
+              <button type="button" aria-label="{{ 'sections.cart.quantity_increase' | t | escape }}" class="p-1 focus:ring-0 focus:outline-0 cursor-pointer">
+                {%- render 'a--icon', icon: 'plus', width: '1.5rem', height: '1.5rem' -%}
+              </button>
+            </div>
+          </quantity-input>
+        </div>
+      </div>
+
+      <div class="shrink-0 pt-1">
+        {%- render 'cart--item-delete', item: item -%}
+      </div>
+    </div>
+  {%- endfor -%}
+</cart-dynamic>

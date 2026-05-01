@@ -1,0 +1,75 @@
+{%- doc -%}
+Generic text-based hero content with heading, description, optional info pill, and up to two actions.
+
+This molecule powers the editorial text hero variant. Specialized partner and free return layouts use their own dedicated molecules and sections.
+
+@param {string} [heading] - Rich text heading content
+@param {string} [description] - Rich text description
+@param {string} [info_text] - Optional small info message shown in a pill
+@param {string} [button_1_label] - Primary button label
+@param {string} [button_1_url] - Primary button URL
+@param {string} [button_2_label] - Secondary button label
+@param {string} [button_2_url] - Secondary button URL
+@param {boolean} [light_buttons] - Uses light button styling for dark hero backgrounds
+
+@example
+{% render 'm--hero-with-text',
+  heading: section.settings.heading,
+  description: section.settings.description,
+  button_1_label: section.settings.button_1_label,
+  button_1_url: section.settings.button_1_url
+%}
+{%- enddoc -%}
+
+{%- assign light_buttons = light_buttons | default: true -%}
+{%- assign primary_button_class = '' -%}
+{%- if light_buttons -%}
+  {%- assign primary_button_class = 'bg-transparent border border-on-accent text-on-accent' -%}
+{%- endif -%}
+
+<div class="hero-content flex flex-col gap-y-s-xs w-full lg:w-auto max-w-[448px]">
+  {%- if heading != blank -%}
+    <div class="h1 text-on-accent [&>p]:m-0 [&>h1]:m-0 [&>h2]:m-0 [&>h3]:m-0 [&>h4]:m-0 [&>h5]:m-0 [&>h6]:m-0">
+      {{ heading }}
+    </div>
+  {%- endif -%}
+
+  {%- if description != blank -%}
+    <div class="text-body-lg text-on-accent">
+      {{ description }}
+    </div>
+  {%- endif -%}
+
+  {%- if info_text != blank -%}
+    <div class="flex items-center gap-x-b-sm bg-white/15 backdrop-blur-[2px] px-b-sm py-b-xs">
+      {%- render 'a--icon', icon: 'info-line', class: 'w-6 h-6 text-on-accent shrink-0' -%}
+      <p class="text-ui-small text-on-accent">
+        {{ info_text | escape }}
+      </p>
+    </div>
+  {%- endif -%}
+
+  {%- if button_1_label != blank or button_2_label != blank -%}
+    <div data-hero-actions class="flex flex-wrap w-full gap-x-b-lg gap-y-b-sm">
+      {%- if button_1_label != blank and button_1_url != blank -%}
+        {%- render 'a--button',
+          tag: 'a',
+          style: 'secondary',
+          label: button_1_label,
+          url: button_1_url,
+          class: primary_button_class
+        -%}
+      {%- endif -%}
+
+      {%- if button_2_label != blank and button_2_url != blank -%}
+        {%- render 'a--button',
+          tag: 'a',
+          style: 'primary',
+          label: button_2_label,
+          url: button_2_url,
+          class: '!bg-white !text-primary !border-0'
+        -%}
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+</div>

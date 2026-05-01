@@ -1,0 +1,61 @@
+{%- doc -%}
+Toggle switch component with customizable labels on both sides.
+
+This component renders a toggle switch with support for labels on the left, right, or both sides. The switch maintains consistent styling and accessibility features while providing flexible label positioning.
+
+@param {string} [left_label] - Label text to display on the left side of the switch
+@param {string} [right_label] - Label text to display on the right side of the switch
+@param {string} [label] - Legacy parameter for right-side label (for backward compatibility)
+@param {string} [name] - Input name attribute for form submission
+@param {string} [value] - Input value attribute (defaults to '1')
+@param {boolean} [checked] - Whether the switch is initially checked
+@param {string} [wrapper_class] - Additional CSS classes for the wrapper element
+
+@example
+{% render 'm--toggle-switch', right_label: 'Enable notifications' %}
+
+@example
+{% render 'm--toggle-switch',
+  left_label: 'Dark Mode',
+  right_label: 'Light Mode',
+  name: 'theme-preference',
+  checked: true
+%}
+{%- enddoc -%}
+
+{% liquid
+  # Parameter validation and defaults
+  assign left_label = left_label | default: ''
+  assign right_label = right_label | default: label | default: ''
+  assign name = name | default: ''
+  assign value = value | default: '1'
+  assign checked = checked | default: false
+  assign wrapper_class = wrapper_class | default: ''
+%}
+
+<div class="{{ wrapper_class }} hover:bg-accent1/20 rounded-full">
+  <label class="w-full flex items-center cursor-pointer">
+    {% if left_label != blank %}
+      <span class="me-3 leading-solid whitespace-nowrap">{{ left_label }}</span>
+    {% endif %}
+    
+    <input
+      type="checkbox"
+      value="{{ value }}"
+      class="sr-only peer"
+      {% if name != blank %}
+        name="{{ name }}"
+      {% endif %}
+      {% if checked %}
+        checked
+      {% endif %}
+    >
+    <div
+      class="relative w-8 h-5 after:h-3 after:w-3 bg-neutral-300 rounded-full peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full  after:transition-all peer-checked:bg-green"
+    ></div>
+    
+    {% if right_label != blank %}
+      <span class="ms-3 leading-solid whitespace-nowrap">{{ right_label }}</span>
+    {% endif %}
+  </label>
+</div>

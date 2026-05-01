@@ -1,0 +1,101 @@
+{%- doc -%}
+Autos hero content with heading, copy, and brand/model selector.
+
+This molecule powers the autos landing hero by rendering the brand/model search controls inside the shared hero wrapper. The wrapper handles media and positioning, while this snippet focuses on the selector interface and messaging.
+
+@param {string} [heading] - Hero heading text
+@param {string} [body] - Supporting body copy
+@param {string} [brand_label] - Brand select placeholder label
+@param {string} [model_label] - Model select placeholder label
+@param {string} [search_button_label] - Search button label
+@param {object} [filtered_brand_list] - Array of available brands for the selector
+@param {object} [brand_model_pairs] - Array of brand/model/url tuples used by the section script
+
+@example
+{% render 'm--autos-hero',
+  heading: section.settings.heading,
+  body: section.settings.body,
+  brand_label: section.settings.brand_label,
+  model_label: section.settings.model_label,
+  search_button_label: section.settings.search_button_label,
+  filtered_brand_list: filtered_brand_list,
+  brand_model_pairs: brand_model_pairs
+%}
+{%- enddoc -%}
+
+{%- capture brand_model_pairs_json -%}
+  [
+    {%- for pair in brand_model_pairs -%}
+      {%- assign pair_parts = pair | split: '||' -%}
+      {%- assign pair_brand = pair_parts[0] -%}
+      {%- assign pair_model = pair_parts[1] -%}
+      {%- assign pair_url = pair_parts[2] -%}
+      {%- if pair_brand != blank and pair_model != blank and pair_url != blank -%}
+        {%- if forloop.index0 > 0 -%},{%- endif -%}
+        {"brand":{{ pair_brand | json }},"model":{{ pair_model | json }},"url":{{ pair_url | json }}}
+      {%- endif -%}
+    {%- endfor -%}
+  ]
+{%- endcapture -%}
+
+<div class="hero-content flex flex-col gap-y-s-xs items-center text-center w-full">
+  {%- if heading != blank -%}
+    <h1 class="h1 text-on-accent max-w-[448px]">
+      {{ heading | escape | newline_to_br }}
+    </h1>
+  {%- endif -%}
+
+  {%- if body != blank -%}
+    <div class="text-body-lg text-on-accent max-w-[448px]">
+      {{ body }}
+    </div>
+  {%- endif -%}
+
+  <div
+    class="flex flex-col gap-y-b-sm w-full max-w-[480px]"
+    data-brand-model
+    data-brand-model-pairs="{{ brand_model_pairs_json | strip | escape }}"
+  >
+    <div class="flex flex-row gap-x-b-lg w-full">
+      <label class="relative flex-1">
+        <span class="sr-only">{{ brand_label | escape }}</span>
+        <select
+          class="w-full h-16 rounded-full bg-white text-primary text-ui-base px-b-lg pr-14 appearance-none cursor-pointer"
+          data-brand-select
+        >
+          <option value="" selected disabled>{{ brand_label | escape }}</option>
+          {%- for brand in filtered_brand_list -%}
+            <option value="{{ brand | escape }}">{{ brand | escape }}</option>
+          {%- endfor -%}
+        </select>
+        <span class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 overflow-hidden z-10">
+          {%- render 'a--icon', icon: 'chevron-d', width: '1.5rem', height: '1.5rem' -%}
+        </span>
+      </label>
+
+      <label class="relative flex-1">
+        <span class="sr-only">{{ model_label | escape }}</span>
+        <select
+          class="w-full h-16 rounded-full bg-white text-primary text-ui-base px-b-lg pr-14 appearance-none cursor-pointer"
+          data-model-select
+          data-placeholder="{{ model_label | escape }}"
+          disabled
+        >
+          <option value="" selected disabled>{{ model_label | escape }}</option>
+        </select>
+        <span class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 overflow-hidden z-10">
+          {%- render 'a--icon', icon: 'chevron-d', width: '1.5rem', height: '1.5rem' -%}
+        </span>
+      </label>
+    </div>
+
+    <button
+      type="button"
+      class="w-full h-16 rounded-full bg-[#282220] text-on-accent text-lg uppercase tracking-[0.02em] cursor-pointer"
+      data-search-button
+      disabled
+    >
+      {{ search_button_label | escape }}
+    </button>
+  </div>
+</div>

@@ -1,0 +1,133 @@
+{%- liquid
+  if search.terms contains ' AND '
+    assign product_type = search.terms | split: ' AND ' | first | split: ':' | last | replace: '+', ' '
+    assign terms = search.terms | split: ' AND ' | last
+    assign search_for = 'templates.search.search_for_type' | t: terms: terms, type: product_type
+  else
+    assign terms = search.terms
+    assign search_for = 'templates.search.search_for' | t: terms: terms
+  endif
+-%}
+
+<drawer-trigger
+  data-target="search-drawer"
+  class="header-action max-lg:text-primary px-b-xs py-b-xs lg:bg-subtle hover:bg-emphasis lg:rounded-full max-lg:h-full transition-colors content-center cursor-pointer shrink-0"
+  aria-label="{{ 'general.search.search' | t }}"
+>
+  {%- render 'a--icon', icon: 'search', width: '1.5rem', height: '1.5rem' -%}
+</drawer-trigger>
+
+{% capture search_content %}
+  <electric-search class="space-y-s-sm text-primary py-s-xs block w-full" data-loading-text="{{ 'accessibility.loading' | t }}" data-collections="true">
+    <div class="w-full flex items-center justify-between px-b-lg">
+      <h3>Search products or car models</h3>
+      <drawer-trigger
+        data-target="search-drawer"
+        class="button-icon"
+        aria-label="{{ 'accessibility.close' | t }}"
+      >
+        {%- render 'a--icon', icon: 'close' -%}
+      </drawer-trigger>
+    </div>
+      <form
+        action="{{ routes.search_url }}"
+        method="get"
+        role="search"
+        {% if settings.force_native_search %}data-force-native-search="true"{% endif %}
+        class="w-full flex items-center gap-x-4 px-b-lg"
+      >
+        <input type="hidden" name="type" value="product">
+        <div class="flex gap-x-4 items-center w-full h-12 lg:h-14 border-b border-primary">
+          <input
+            type="search"
+            name="q"
+            value="{{ terms | escape }}"
+            placeholder="{{ 'general.search.search' | t }}"
+            id="Search-In-Drawer"
+            class="w-full h-full focus:outline-none translate-y-px text-ui-base caret-primary bg-transparent placeholder:opacity-50"
+            aria-invalid="false"
+            spellcheck="false"
+          >
+          <button class="button-icon bg-transparent!" type="submit">
+            {%- render 'a--icon', icon: 'search' -%}
+          </button>
+        </div>
+      </form>
+
+    <div
+      id="predictive-search-results-list"
+      class="flex-1 overflow-y-scroll hide-scroll-bar"
+      tabindex="-1"
+    >
+      {% # not found message %}
+      <div class="hidden p-2 js-error-message px-b-lg"></div>
+
+      {% # results wrapper %}
+      <div class="js-search-output-wrapper space-y-b-sm">
+        {% # popular searches %}
+        {% if settings.predictive_search_popular_cars != blank %}
+          <h4 class="px-b-lg trending-searches-title">
+            Popular Cars
+          </h4>
+          {%- liquid
+            capture feed
+            for collection in settings.predictive_search_popular_cars
+              if collection.metafields.custom.category_type != 'Car Model'
+                continue
+              endif
+              render 'm--car-model-card', card_collection: collection
+            endfor
+            endcapture
+            render 'm--electric-slider', feed: feed, feed_class: 'scroll-px-b-lg px-b-lg', slider_class: 'w-full mt-3 px', per_row_desktop: 2, per_row_tablet: 2, per_row_mobile: 2, bar: false, id: 'predictive-search-popular-cars-list', nav: false
+        -%}
+        {% endif %}
+
+        {% # trending products | search promotion %}
+        <div id="promoted-list" class="slide-right-sm space-y-b-sm" role="listbox" aria-labelledby="promoted-products" style="--nth-child: {{ predictive_search.resources.products.size | plus: 1 }}">
+          <h4 id="promoted-products" class="px-b-lg">
+            {{ 'general.search.you_might_be_interested_in' | t | replace: '+', ' ' }}
+          </h4>
+          {%- liquid
+            if settings.predictive_search_promoted_collection != blank
+              capture feed 
+                for product in settings.predictive_search_promoted_collection.products limit: 10 
+                  render 'm--product-card', card_product: product, type: 'lite', forloop_index: forloop.index, class: 'shrink-0 snap-start', sm_cols: 2, md_cols: 2, lg_cols: 2 
+                endfor 
+              endcapture 
+              render 'm--electric-slider', feed: feed, feed_class: 'px-b-lg scroll-px-b-lg', slider_class: 'w-full', per_row_desktop: 2, per_row_tablet: 2, per_row_mobile: 2, bar: false, id: 'predictive-search-promoted-list', nav: false
+            endif
+          -%}
+
+          <li id="predictive-search-option-search-keywords" class="hidden predictive-search__list-item px-b-lg" role="option">
+            <button
+              class="predictive-search__item predictive-search__item--term link link--text h5 animate-arrow"
+              tabindex="-1"
+            >
+              {{ search_for | replace: '+', ' ' }}
+            </button>
+          </li>
+        </div>
+
+        {% # Search form - shows when input has 3+ characters %}
+        <div id="search-form-container" class="hidden px-b-lg mt-6">
+          <form action="{{ routes.search_url }}" method="get" role="search" {% if settings.force_native_search %}data-force-native-search="true"{% endif %}>
+            <label for="search-form-input" class="sr-only">{{ 'general.search.search' | t }}</label>
+            <input id="search-form-input" type="search" value="" name="q" class="hidden">
+            <input type="hidden" name="type" value="product">
+            <button id="search-form-button" class="cursor-pointer hover:opacity-50 underline" type="submit">
+              <span id="search-form-label">{{ search_for | replace: '+', ' ' }}</span>
+            </button>
+          </form>
+        </div>
+      </div>
+      <span class="sr-only predictive-search-status" role="status" aria-hidden="true"></span>
+    </div>
+  </electric-search>
+{% endcapture %}
+
+{% render 'm--drawer',
+  content: search_content,
+  id: 'search-drawer',
+  positionMobile: 'right',
+  positionDesktop: 'right'
+%}

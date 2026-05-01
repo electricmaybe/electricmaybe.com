@@ -1,0 +1,59 @@
+/* Variant Preview Loading States */
+
+/* Loading animation for variant-dynamic elements */
+[data-variant-dynamic].opacity-20 {
+  transition: opacity 0.2s ease-in-out;
+}
+
+/* Hover indicator for variant preview links */
+a[data-variant-preview]:hover {
+  cursor: pointer;
+}
+
+/* Loading state for variant preview links */
+a[data-variant-preview][data-loading="true"] {
+  position: relative;
+}
+
+a[data-variant-preview][data-loading="true"]::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: variant-preview-spin 1s linear infinite;
+  opacity: 0.7;
+}
+
+@keyframes variant-preview-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Focus states for accessibility */
+a[data-variant-preview]:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Keyboard navigation support */
+a[data-variant-preview]:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  a[data-variant-preview][data-loading="true"]::after {
+    animation: none;
+  }
+  
+  [data-variant-dynamic].opacity-20 {
+    transition: none;
+  }
+}

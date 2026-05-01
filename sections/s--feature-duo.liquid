@@ -1,0 +1,156 @@
+{%- liquid
+  assign left_heading = section.settings.left_heading
+  assign left_body = section.settings.left_body
+  assign left_image = section.settings.left_image
+  assign left_url = section.settings.left_url
+
+  assign right_heading = section.settings.right_heading
+  assign right_body = section.settings.right_body
+  assign right_image = section.settings.right_image
+  assign right_url = section.settings.right_url
+-%}
+
+<section class="px-s-outer py-s-xs">
+  <div class="flex flex-col gap-y-s-xs lg:flex-row lg:gap-x-b-base">
+    <a
+      href="{{ left_url | default: '#' }}"
+      class="relative overflow-hidden flex flex-col justify-end text-on-accent w-full aspect-square md:aspect-[1.8] lg:aspect-[1.8] lg:w-[63%]"
+    >
+      <div class="absolute inset-0">
+        {%- if left_image != blank -%}
+          {%- render 'a--image',
+            image: left_image,
+            cols: 8,
+            aspect_ratio: 1.8,
+            picture_class: 'absolute inset-0 w-full h-full',
+            image_class: 'w-full h-full object-cover',
+            object_fit: 'object-cover',
+            crop: 'center'
+          -%}
+        {%- endif -%}
+      </div>
+      <div class="relative z-10 flex flex-col gap-y-s-xs px-s-inner py-b-xl lg:py-b-xl">
+        <div class="flex items-end gap-x-s-sm">
+          {%- if left_heading != blank -%}
+            <h2 class="h2 text-on-accent">
+              {{ left_heading | escape }}
+            </h2>
+          {%- endif -%}
+          <span class="w-6 h-6 shrink-0 text-on-accent">
+            {%- render 'a--icon', icon: 'arrow-l-up', class: 'w-full h-full' -%}
+          </span>
+        </div>
+        {%- if left_body != blank -%}
+          <p class="text-ui-small text-on-accent leading-[1.5] max-w-[640px]">
+            {{ left_body }}
+          </p>
+        {%- endif -%}
+      </div>
+    </a>
+
+    <div class="flex flex-col gap-y-s-xs w-full lg:flex-1">
+      <a
+        href="{{ right_url | default: '#' }}"
+        class="block overflow-hidden"
+      >
+        {%- if right_image != blank -%}
+          {%- render 'a--image',
+            image: right_image,
+            cols: 6,
+            aspect_ratio: 1.75,
+            picture_class: 'w-full aspect-[560/320] overflow-hidden',
+            image_class: 'w-full h-full object-cover',
+            object_fit: 'object-cover',
+            crop: 'center'
+          -%}
+        {%- endif -%}
+      </a>
+      <div class="flex px-s-inner flex-col gap-y-s-xs lg:pl-0 lg:py-10">
+        <div class="flex items-center justify-between gap-x-s-sm">
+          {%- if right_heading != blank -%}
+            <h2 class="h2 text-primary">
+              {{ right_heading | escape }}
+            </h2>
+          {%- endif -%}
+          <span class="w-6 h-6 shrink-0 text-primary">
+            {%- render 'a--icon', icon: 'arrow-l-up', class: 'w-full h-full' -%}
+          </span>
+        </div>
+        {%- if right_body != blank -%}
+          <p class="text-ui-small text-primary leading-[1.5]">
+            {{ right_body }}
+          </p>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Feature duo",
+  "tag": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "header",
+      "content": "Left card"
+    },
+    {
+      "type": "image_picker",
+      "id": "left_image",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "left_heading",
+      "label": "Heading",
+      "default": "Starter Pack"
+    },
+    {
+      "type": "richtext",
+      "id": "left_body",
+      "label": "Body",
+      "default": "<p>The BMW iX xDrive50 has a charging capacity of 11kW. So we recommend using a charging cable of atleast 11kW for optimal charging speeds.</p>"
+    },
+    {
+      "type": "url",
+      "id": "left_url",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Right card"
+    },
+    {
+      "type": "image_picker",
+      "id": "right_image",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "right_heading",
+      "label": "Heading",
+      "default": "EV Charging best practices"
+    },
+    {
+      "type": "richtext",
+      "id": "right_body",
+      "label": "Body",
+      "default": "<p>The BMW iX xDrive50 has a charging capacity of 11kW. So we recommend using a charging cable of atleast 11kW for optimal charging speeds.</p>"
+    },
+    {
+      "type": "url",
+      "id": "right_url",
+      "label": "Link"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Feature duo"
+    }
+  ]
+}
+{% endschema %}

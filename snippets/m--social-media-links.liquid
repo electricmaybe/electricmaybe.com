@@ -1,0 +1,34 @@
+{%- liquid
+  assign class_link = class_link | append: ' hover:opacity-50 focus:opacity-50 focus:outline-none transition-opacity'
+  if show_labels
+    assign class_list = class_list | append: ' grid grid-cols-2 gap-x-4 w-fit'
+  else
+    assign class_list = class_list | append: ' flex items-center flex-wrap gap-x-3 gap-y-2'
+  endif
+  assign social_icons = 'twitter,facebook,pinterest,instagram,linkedin,tiktok,snapchat,youtube,vimeo' | split: ','
+  for icon in social_icons
+    if settings[icon] != blank
+      assign used_social_icons = used_social_icons | append: icon | append: ','
+    endif
+  endfor
+  assign used_social_icons = used_social_icons | split: ','
+-%}
+{% if used_social_icons != blank %}
+  <ul class="{{ class_list }}" role="list" aria-label="Social media links">
+    {%- for icon in used_social_icons -%}
+        <li>
+          <a 
+            href="{{ settings[icon] }}" 
+            class="{{ class_link }}"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {% unless hide_icons %}
+              {%- render 'a--icon', icon: icon -%}
+            {% endunless %}
+            <span class="{% unless show_labels %}sr-only{% endunless %}">{{ icon | capitalize }}</span>
+          </a>
+        </li>
+    {%- endfor -%}
+  </ul>
+{% endif %}

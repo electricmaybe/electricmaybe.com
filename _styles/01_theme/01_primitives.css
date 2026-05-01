@@ -1,0 +1,116 @@
+@theme {
+  /* ----------------------------------------
+     Z-INDEX SEMANTIC LAYERS
+     ---------------------------------------- */
+  --layer-base: 0;
+  --layer-dropdown: 100;
+  --layer-sticky: 200;
+  --layer-drawer: 300;
+  --layer-modal: 400;
+  --layer-notification: 500;
+  --layer-debug: 999;
+
+  /* ----------------------------------------
+     COLORS - RESETS & HELPERS
+     ---------------------------------------- */
+  --color-*: initial;
+  --color-transparent: hsla(0 0 0 0);
+  --color-current: currentColor;
+
+  /* ----------------------------------------
+     SYSTEM COLORS
+     ---------------------------------------- */
+  --color-black: hsl(0 0% 0%);
+  --color-pure-black: hsl(0 0% 0%);
+  --color-white: hsl(0 0% 100%);
+  --color-pure-white: hsl(0 0% 100%);
+  --color-red: hsl(0 85% 38%);
+  --color-green: hsl(145 92% 28%);
+  --color-system-red: var(--color-red);
+  --color-system-green: var(--color-green);
+  --color-alert: var(--color-system-red);
+  --color-success: var(--color-system-green);
+
+  /* ----------------------------------------
+     COLOR PRIMITIVES
+     ---------------------------------------- */
+  --color-beige: hsl(43 24% 94%);
+  --color-terra: hsl(23 44% 82%);
+  --color-mint: hsl(99 24% 94%);
+  --color-brown: hsl(25 15% 15%);
+  --color-neutral-100: hsl(0 0% 97%);
+  --color-neutral-300: hsl(0 1% 90%);
+  --color-neutral-500: hsl(0 1% 83%);
+  --color-neutral-700: hsl(48 2% 59%);
+  --color-neutral-800: hsl(30 2% 33%);
+  --color-neutral-900: hsl(30 3% 13%);
+  --color-baban: blue;
+
+  /* Abbey color scale */
+  --color-abbey-50: hsl(180 4% 96%);
+  --color-abbey-100: hsl(180 7% 91%);
+  --color-abbey-200: hsl(180 6% 83%);
+  --color-abbey-300: hsl(180 6% 69%);
+  --color-abbey-400: hsl(186 7% 53%);
+  --color-abbey-500: hsl(191 8% 43%);
+  --color-abbey-600: hsl(195 9% 37%);
+  --color-abbey-700: hsl(195 8% 33%);
+  --color-abbey-800: hsl(195 7% 28%);
+  --color-abbey-900: hsl(195 7% 24%);
+  --color-abbey-950: hsl(195 11% 15%);
+  --color-abbey-1000: hsl(0 0% 100%);
+
+  /* Dune color scale */
+  --color-dune-50: hsl(60 7% 96%);
+  --color-dune-100: hsl(50 13% 89%);
+  --color-dune-200: hsl(40 15% 77%);
+  --color-dune-300: hsl(40 16% 64%);
+  --color-dune-400: hsl(40 18% 53%);
+  --color-dune-500: hsl(34 18% 47%);
+  --color-dune-600: hsl(33 16% 40%);
+  --color-dune-700: hsl(26 15% 33%);
+  --color-dune-800: hsl(18 10% 28%);
+  --color-dune-900: hsl(18 12% 21%);
+  --color-dune-950: hsl(20 14% 14%);
+  --color-dune-1000: hsl(240 3% 11%);
+
+  /* Dust color scale */
+  --color-dust-50: hsl(30 43% 96%);
+  --color-dust-100: hsl(30 35% 92%);
+  --color-dust-200: hsl(26 38% 83%);
+  --color-dust-300: hsl(25 35% 69%);
+  --color-dust-400: hsl(19 35% 60%);
+  --color-dust-500: hsl(14 38% 53%);
+  --color-dust-600: hsl(12 36% 48%);
+  --color-dust-700: hsl(10 34% 41%);
+  --color-dust-800: hsl(9 28% 34%);
+  --color-dust-900: hsl(9 28% 29%);
+  --color-dust-950: hsl(10 30% 15%);
+  --color-dust-1000: hsl(10 50% 7%);
+
+  /* Blue color scale */
+  --color-blue-50: hsl(211 95% 97%);
+  --color-blue-100: hsl(211 89% 94%);
+  --color-blue-200: hsl(211 89% 86%);
+  --color-blue-300: hsl(208 77% 73%);
+  --color-blue-400: hsl(208 80% 60%);
+  --color-blue-500: hsl(209 75% 48%);
+  --color-blue-600: hsl(211 82% 39%);
+  --color-blue-700: hsl(211 84% 32%);
+  --color-blue-800: hsl(215 76% 28%);
+  --color-blue-900: hsl(215 67% 25%);
+  --color-blue-950: hsl(215 69% 16%);
+  --color-blue-1000: hsl(225 97% 8%);
+}
+
+@utility block-visibility {
+  display: var(--mobile-visibility);
+
+  @media (width >= theme(--breakpoint-md)) {
+    display: var(--tablet-visibility);
+  }
+
+  @media (width >= theme(--breakpoint-lg)) {
+    display: var(--desktop-visibility);
+  }
+}

@@ -1,0 +1,56 @@
+{%- capture seo_title -%}
+  {{ page_title -}}
+  {%- if current_tags %} &ndash; tagged "{{ current_tags | join: ', ' }}"{% endif -%}
+  {%- if current_page != 1 %} &ndash; Page {{ current_page }}{% endif -%}
+  {%- unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless -%}
+{%- endcapture -%}
+<title>{{ seo_title | strip }}</title>
+
+{% liquid
+  assign theme_color = settings.scheme.settings.accent_1
+  assign favicon = settings.favicon | default: shop.brand.square_logo
+%}
+
+{% if theme_color != blank %}
+  <meta name="theme-color" content="{{ theme_color }}">
+{% endif %}
+
+{% if favicon != blank %}
+  <link fetchpriority="low" rel="icon" href="{{ favicon | image_url: width: 32, height: 32 }}" sizes="32x32">
+  <link fetchpriority="low" rel="icon" href="{{ favicon | image_url: width: 48, height: 48 }}" sizes="48x48">
+  <link fetchpriority="low" rel="apple-touch-icon" href="{{ favicon | image_url: width: 96, height: 96 }}" sizes="96x96">
+  <link fetchpriority="low" rel="apple-touch-icon" href="{{ favicon | image_url: width: 144, height: 144 }}" sizes="144x144">
+  <link fetchpriority="low" rel="apple-touch-icon" href="{{ favicon | image_url: width: 192, height: 192 }}" sizes="192x192">
+  <link fetchpriority="low" rel="apple-touch-icon" href="{{ favicon | image_url: width: 256, height: 256 }}" sizes="256x256">
+{% endif %}
+
+{% liquid
+  comment
+    VOLDT_SEO_IMPLEMENTATION_GUIDE: Organization + WebPage sitewide, then template-specific schema, then BreadcrumbList + ItemList where applicable.
+  endcomment
+  render '_head-json-ld', type: 'organization'
+  render '_head-json-ld-local-business'
+  render '_head-json-ld', type: 'webpage'
+
+  case request.page_type
+    when 'index'
+      render '_head-json-ld', type: 'website'
+      render '_head-json-ld', type: 'breadcrumb'
+      render '_head-json-ld', type: 'itemlist_home'
+    when 'collection'
+      render '_head-json-ld', collection: collection, type: 'collection'
+      render '_head-json-ld', type: 'breadcrumb'
+    when 'product'
+      render '_head-json-ld', product: product, type: 'product'
+      render '_head-json-ld', type: 'breadcrumb'
+    when 'article'
+      render '_head-json-ld', article: article, type: 'article'
+      render '_head-json-ld', type: 'breadcrumb'
+    when 'blog'
+      render '_head-json-ld', type: 'breadcrumb'
+    when 'page'
+      render '_head-json-ld', type: 'breadcrumb'
+    when 'search', 'cart', 'list-collections'
+      render '_head-json-ld', type: 'breadcrumb'
+  endcase
+%}

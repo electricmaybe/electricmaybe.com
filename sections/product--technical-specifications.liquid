@@ -1,0 +1,59 @@
+<div class="px-s-whole py-s-base">
+<div class="grid grid-cols-1 lg:grid-cols-12  gap-x-b-base w-full gap-y-s-base">
+  <div class="lg:col-span-4 order-1 lg:order-3">
+    {% render 'a--image',
+      image: section.settings.image,
+      cols: 4,
+      picture_class: 'block w-fit place-self-center',
+      object_fit: 'object-contain'
+    %}
+  </div>
+  <h2 class="h1 lg:col-span-12 order-2 lg:order-1">
+    {{ section.settings.heading }}
+  </h2>
+  <div class="flex items-stretch gap-x-b-base lg:col-span-8 text-ui-base leading-solid text-secondary order-3 lg:order-2" data-variant-dynamic="technical-specifications">
+    <table class="w-full no-border-table" cellspacing="0" cellpadding="0">
+      <tbody>
+      {% for i in (1..12) %}
+        {% assign spec_key = 'spec_' | append: i %}
+        {% assign spec_meta = product.metafields.custom[spec_key].value %}
+        {% if spec_meta and spec_meta.value_name != blank and spec_meta.spec_value != blank %}
+          <tr class="border-t border-secondary last:border-b py-s-base">
+            <td class="w-1/2 align-middle py-b-sm">{{ spec_meta.value_name }}</td>
+            <td class="w-1/2 font-medium align-middle py-b-sm">{{ spec_meta.spec_value }}</td>
+          </tr>
+        {% endif %}
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+{% schema %}
+{
+  "name": "Technical specifications",
+  "tag": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "<p>Technical Specifications</p>"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Technical specifications"
+    }
+  ]
+}
+{% endschema %}

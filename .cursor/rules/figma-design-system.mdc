@@ -1,0 +1,182 @@
+---
+description: Rules for implementing Figma designs using the Figma MCP server. Covers component organization, styling conventions, design tokens, asset handling, and the required Figma-to-code workflow for this Shopify theme (Liquid + Tailwind + native JS).
+globs:
+  - "sections/**/*.liquid"
+  - "snippets/**/*.liquid"
+  - "_styles/**/*.css"
+  - "assets/*.css"
+  - "_scripts/**/*.js"
+alwaysApply: false
+---
+
+# Figma Design System Rules — Voldt Theme
+
+This document defines how to translate Figma designs into code for this project. The theme is a **Shopify theme** (Liquid templates, Tailwind CSS v4, native JavaScript web components). Figma MCP output is typically React + Tailwind; treat that as design reference only and implement using this project’s stack and conventions.
+
+---
+
+## 1. Design System Structure
+
+### 1.1 Token Definitions
+
+**Location and format**
+
+- **Primitives (colors, z-index):** `_styles/01_theme/01_primitives.css`  
+  - Raw color scales: `--color-dune-*`, `--color-abbey-*`, `--color-dust-*`, `--color-blue-*`, system colors, `--layer-*`.
+- **Sizes (spacing, breakpoints, borders, grid):** `_styles/02_base/02.01_sizes.css`  
+  - Spacing: `--px-s-*`, `--py-s-*`, `--gaps-x-*`, `--gaps-y-*`, `--mx-s-outer`, `--height-b-*`, `--height-icon-*`.  
+  - Breakpoints: `--breakpoint-lg: 60rem`.  
+  - Border/stroke: `--border-*`, `--stroke-*`.  
+  - Grid: `--grid-columns-base`, `--grid-gutter-base`, `--grid-margin-base`, etc.
+- **Semantic colors:** `_styles/02_base/02.02_colors.css`  
+  - Use these, not raw primitives: `--background-color-surface`, `--background-color-subtle`, `--background-color-emphasis`, `--background-color-accent`, `--text-color-primary`, `--text-color-secondary`, `--text-color-on-accent`, `--border-color-primary`, `--border-color-secondary`.  
+  - Color schemes: utilities `color-schema-primary`, `color-schema-secondary`, `color-schema-muted`, `color-schema-accent-1`, `color-schema-accent-2`, `color-schema-accent-3`, `color-schema-contrast`.
+- **Typography:** `_styles/02_base/02.03_typography.css`  
+  - Font: `--font-body`, `--font-heading`, `--font-weight-*`.  
+  - Utilities: `text-body`, `text-body-lg`, `text-ui-base`, `text-caption`, `display-1`–`display-3`, heading classes `.h1`–`.h6`.
+
+**Rules**
+
+- IMPORTANT: Never hardcode hex/hsl colors in Liquid or CSS. Use semantic tokens (e.g. `bg-surface`, `text-primary`, `border-secondary`) or Tailwind theme values that reference these tokens.
+- Spacing and layout must use the project scale (e.g. `px-s-inner`, `py-s-base`, `gap-x-b-base`, `mx-s-outer`) or Tailwind utilities that map to them.
+- Typography must use the project’s font and size utilities (e.g. `text-body`, `font-heading`, `.h2`).
+
+### 1.2 Component Library
+
+**Where components live**
+
+- **Sections (full-width, schema-driven):** `sections/*.liquid` — e.g. `sections/s--hero-banner.liquid`, `sections/s--featured-collection.liquid`.
+- **Snippets (reusable UI):**  
+  - Atoms: `snippets/a--*.liquid` (e.g. `a--icon.liquid`, `a--button.liquid`, `a--input.liquid`).  
+  - Molecules: `snippets/m--*.liquid` (e.g. `m--product-card.liquid`, `m--accordion.liquid`, `m--modal.liquid`).  
+  - Feature-specific: `snippets/product--*.liquid`, `snippets/cart--*.liquid`, `snippets/header--*.liquid`, etc.
+- **Web components (JS):** `_scripts/*.js` — e.g. `electric-modal.js`, `electric-slider.js`, `electric-disclosure.js`. Reference implementation: `_scripts/electric-modal.js`.
+
+**Architecture**
+
+- No React/Vue. UI is Liquid (sections + snippets) plus native JS web components.
+- New UI from Figma: prefer adding or composing existing snippets/sections; add new snippets/sections only when no fit exists.
+- Sections must have a valid `{% schema %}` and semantic HTML; snippets must have LiquidDoc `{%- doc -%}` and follow `.cursor/rules/snippets.mdc` and `.cursor/rules/liquid.mdc`.
+
+### 1.3 Frameworks & Libraries
+
+- **Templating:** Liquid only (Shopify theme).
+- **Styling:** Tailwind CSS v4. Entry: `_styles/main.css` (imports Tailwind, tokens, component CSS). Compiled output: `assets/style.css`.
+- **Script:** Native JS only (no React/Vue). Web components with `#` private fields, AbortController for listeners, JSDoc; see `.cursor/rules/javascript-standards.mdc`.
+- **Build:** Tailwind processes `_styles/main.css`; content sources (for class scanning) are listed in `_styles/main.css` (`@source` for layout, blocks, sections, snippets, templates, assets).
+
+### 1.4 Asset Management
+
+- **Theme assets:** `assets/` — CSS, JS, and static files. Reference in Liquid with `{{ 'filename.css' | asset_url }}` or `{{ 'filename.js' | asset_url }}`.
+- **Images:** Use Shopify CDN via filters: `{{ image | image_url: width: N }}` for responsive widths; use `srcset` where appropriate (see existing snippets/sections).
+- **Icons:** Do not add new icon packages. Use the icon system below (inline SVG via `a--icon` or assets from Figma MCP when provided).
+- **Figma MCP assets:** If the Figma MCP server returns a localhost (or other) URL for an image/SVG, use that source directly. Do not replace with placeholders when a real URL is given.
+- Store any downloaded assets from Figma in `assets/` and reference via `asset_url`.
+
+### 1.5 Icon System
+
+- **Definition:** Icons are inline SVGs in `snippets/a--icon.liquid`, selected by name via `icon: 'name'`.
+- **Usage:** `{% render 'a--icon', icon: 'search', size: 'base', class: '...' %}`. Parameters: `icon` (required), `class`, `color`, `size` (xxs|xs|sm|base|lg|xl), `width`/`height`, `stroke`, `animate`, `aria_label`, `aria_hidden`, etc. See LiquidDoc in `a--icon.liquid`.
+- **Naming:** kebab-case (e.g. `chevron-d`, `arrow-r-up`, `circle-arrow-r`). Add new icons in the same file as new `when 'name'` branches; keep `fill="none"` and use `{{ color }}` or `currentColor` for strokes/fills.
+- **Sizing:** Prefer `size` (uses `--height-icon-*` tokens); or `width`/`height` for explicit dimensions. Stroke from size or `stroke` param (`stroke-sm`, `stroke-base`, etc.).
+
+### 1.6 Styling Approach
+
+- **Methodology:** Utility-first with Tailwind. Custom utilities and theme in `_styles/main.css` and `_styles/02_base/*.css`, `_styles/01_theme/*.css`.
+- **CRITICAL — Static classes only:** Tailwind scans at build time; Liquid runs on the server. Do not build class names with Liquid variables (e.g. no `duration-{{ x }}`, `text-{{ color }}`). Use fixed classes or conditionals that output full class names, e.g. `{% if size == 'sm' %}text-sm{% else %}text-base{% endif %}`.
+- **Responsive:** Mobile-first. Use `md:` and `lg:` prefixes; breakpoints align with `theme(--breakpoint-md)` and `theme(--breakpoint-lg)`.
+- **Semantic tokens in Tailwind:** Use `bg-surface`, `text-primary`, `border-secondary`, etc., which map to the CSS variables in `02.02_colors.css`. Do not introduce new ad-hoc color names; extend tokens in `_styles/` if needed.
+- **Custom component CSS:** Add in `_styles/` (e.g. `_styles/atoms/`, `_styles/molecules/`) and import from `_styles/main.css`.
+
+### 1.7 Project Structure
+
+```
+_layout/theme.liquid     # Main layout
+_scripts/                # Web components and utilities (native JS)
+_styles/                 # Tailwind entry, tokens, component CSS
+  main.css
+  01_theme/01_primitives.css
+  02_base/02.01_sizes.css, 02.02_colors.css, 02.03_typography.css
+  atoms/, molecules/, core/
+assets/                  # Compiled CSS/JS and static assets
+sections/                # Liquid section files
+snippets/                # Reusable Liquid snippets (a--*, m--*, etc.)
+templates/               # Page templates
+locales/                 # Translation files
+config/                  # Theme settings
+```
+
+- **Feature organization:** Sections and snippets are named by feature or type (e.g. `product--main`, `cart--drawer`, `s--hero-banner`, `m--product-card`). Follow existing naming (prefix + `--` + descriptor).
+
+---
+
+## 2. Figma MCP Integration Rules
+
+### 2.1 Required Flow (do not skip)
+
+1. Run **get_design_context** for the exact node(s) to implement.
+2. If the response is too large or truncated, run **get_metadata** to get a high-level map, then **get_design_context** again for only the required node(s).
+3. Run **get_screenshot** for a visual reference of the node/variant.
+4. After you have both design context and screenshot, download any assets needed (use MCP asset/localhost sources when provided), then implement.
+5. Implement in **this stack:** Liquid sections/snippets + Tailwind (and _styles tokens) + native JS if needed. Do not ship React/Vue or arbitrary new frameworks.
+6. Validate against the Figma screenshot for 1:1 look and behavior before marking complete.
+
+### 2.2 Implementation Rules
+
+- Treat Figma MCP output (e.g. React + Tailwind) as **design and behavior reference**, not as final code. Translate to Liquid + Tailwind + this theme’s tokens and components.
+- **Reuse existing snippets/sections** from `snippets/` and `sections/` instead of duplicating (e.g. buttons → `a--button`, icons → `a--icon`, cards → `m--*` cards, modals → `m--modal` / electric-modal).
+- Use the project’s **color system** (semantic tokens from `02.02_colors.css`), **typography** (`02.03_typography.css`, utilities), and **spacing/sizes** (`02.01_sizes.css`, Tailwind utilities that use them).
+- **Tailwind:** Only static class names; map Figma colors to semantic tokens (e.g. `bg-surface`, `text-primary`); use project breakpoints and spacing scale.
+- Respect **accessibility** (WCAG 2.1 AA): semantic HTML, ARIA where needed, keyboard and screen reader support; see `.cursor/rules/accessibility-rules.mdc`.
+- Respect **JS standards**: no new dependencies; if adding behavior, use native JS/web components per `.cursor/rules/javascript-standards.mdc`.
+- Aim for **1:1 visual parity** with the Figma design and validate with the screenshot.
+
+### 2.3 Asset Handling
+
+- The Figma MCP server can serve image and SVG assets. When it returns a **localhost (or other) source** for an image or SVG, use that source directly.
+- IMPORTANT: Do not add or rely on new icon libraries; use `snippets/a--icon.liquid` or assets provided by Figma MCP.
+- IMPORTANT: Do not use or create placeholders when a real asset URL is provided by the MCP.
+- Store downloaded assets in `assets/` and reference them via `{{ 'filename' | asset_url }}` in Liquid.
+
+---
+
+## 3. Project-Specific Conventions
+
+### 3.1 Liquid
+
+- Follow `.cursor/rules/liquid.mdc`: e.g. assign computed values before passing to `render`; no inline `append` in `render` parameters; valid tags/filters only.
+- Use `{%- doc -%}` and LiquidDoc for all new snippets; document params and examples per `.cursor/rules/liquid-doc-rules.mdc` and `.cursor/rules/snippets.mdc`.
+
+### 3.2 Sections
+
+- Every section: valid `{% schema %}`, semantic HTML, section-scoped classes. Follow `.cursor/rules/sections.mdc` and `.cursor/rules/schemas.mdc` for schema definitions.
+
+### 3.3 Accessibility
+
+- Semantic structure, ARIA where needed, keyboard and focus behavior, WCAG 2.1 AA. See `.cursor/rules/accessibility-rules.mdc`. Use the accessibility-pass skill when asked for an a11y audit.
+
+### 3.4 Performance
+
+- No layout thrashing; batch reads/writes; use requestAnimationFrame for animations; lazy-load images where appropriate. JS: AbortController, cleanup in disconnectedCallback, performance targets from project-overview (e.g. init < 16ms).
+
+### 3.5 Code Quality
+
+- JS: JSDoc for public APIs, private `#` fields, try/catch around critical work. Liquid: LiquidDoc and parameter defaults/validation. Tailwind: static classes and semantic tokens only.
+
+---
+
+## 4. Quick Reference: Mapping Figma to This Theme
+
+| Figma / MCP output     | This theme |
+|------------------------|------------|
+| React component        | Liquid section or snippet(s) |
+| Tailwind arbitrary colors | Semantic tokens: `bg-surface`, `text-primary`, `border-secondary`, etc. |
+| Tailwind spacing       | Project scale: `px-s-inner`, `gap-x-b-base`, `py-s-base`, etc. |
+| Icon component         | `{% render 'a--icon', icon: 'name', size: 'base' %}` |
+| Button                 | `{% render 'a--button', ... %}` or `a--button-tw` as per project |
+| Modal / overlay        | `m--modal` snippet + `_scripts/electric-modal.js` pattern |
+| Images                 | `{{ image \| image_url: width: N }}`; responsive with `srcset` |
+| New SVG icon           | Add in `snippets/a--icon.liquid` as new `when 'icon-name'` |
+| New color/size token   | Add in `_styles/02_base/` or `01_theme/` and use via Tailwind/utilities |
+
+Use this document together with the Figma MCP flow (get_design_context → get_screenshot → implement → validate) so that every Figma-driven change stays consistent with this design system and stack.

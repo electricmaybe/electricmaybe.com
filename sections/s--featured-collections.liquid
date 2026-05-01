@@ -1,0 +1,193 @@
+{%- comment -%}
+  s--featured-collections (collection template)
+
+  This section renders multiple featured collections with tab navigation.
+  Collections are configured via section blocks.
+
+  ### Setup (Shopify Admin)
+  1) Add this section to your collection template
+  2) Add collection blocks via the section editor
+  3) Each block requires:
+     - Collection reference (required)
+     - Tab title (optional - falls back to collection title if empty)
+
+{%- endcomment -%}
+
+{%- if section.blocks.size > 0 -%}
+  <section class="py-s-base" aria-label="Featured collections" data-featured-collections-section>
+    <div class="flex flex-col gap-y-s-base">
+      {%- comment -%} Tab Navigation {%- endcomment -%}
+      <div class="relative after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:w-12 after:content-[''] after:bg-linear-to-l after:from-surface after:to-transparent md:after:hidden">
+        <div class="subtle-scrollbar-x flex min-h-[60px] items-end overflow-x-auto overflow-y-hidden px-s-whole pr-b-xl pb-2 scroll-px-s-inner snap-x snap-mandatory gap-x-0 md:gap-x-0 md:pr-s-whole md:pb-0 h4 md:h2" role="tablist" aria-label="Collection navigation">
+          {%- for block in section.blocks -%}
+            {%- assign collection_ref = block.settings.collection -%}
+            {%- assign tab_title = block.settings.tab_title | default: '' -%}
+            {%- assign collection_title = tab_title | default: collection_ref.title | default: '' -%}
+            
+            {%- if collection_ref != blank and collection_title != blank -%}
+              <button
+                type="button"
+                role="tab"
+                aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+                aria-controls="collection-slider-{{ section.id }}-{{ block.id }}"
+                id="collection-tab-{{ section.id }}-{{ block.id }}"
+                class="text-left cursor-pointer snap-start border-b-2 px-b-xs py-1 opacity-50 transition-all duration-200 hover:bg-subtle hover:opacity-80 rounded-t-sm border-secondary {% if forloop.first %}shrink min-w-0 whitespace-normal md:shrink-0 md:min-w-max md:whitespace-nowrap{% else %}shrink-0 whitespace-nowrap{% endif %} 
+                aria-selected:bg-subtle aria-selected:border-primary aria-selected:opacity-100!
+                
+                "
+                data-collection-tab
+                data-collection-index="{{ forloop.index0 }}"
+                data-collection-id="{{ collection_ref.id }}"
+              >
+                {{ collection_title }}
+              </button>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      </div>
+
+      {%- comment -%} Collection Sliders {%- endcomment -%}
+      {%- for block in section.blocks -%}
+        {%- assign collection_ref = block.settings.collection -%}
+        
+        {%- if collection_ref != blank -%}
+          {%- capture feed -%}
+            {%- for product in collection_ref.products limit: 12 -%}
+              {%- render 'm--product-card', card_product: product, class: 'shrink-0 min-w-0 block snap-start', forloop_index: forloop.index, sm_cols: 2, md_cols: 2, lg_cols: 4 -%}
+            {%- endfor -%}
+          {%- endcapture -%}
+
+          {%- if feed != blank -%}
+            <div
+              id="collection-slider-{{ section.id }}-{{ block.id }}"
+              role="tabpanel"
+              aria-labelledby="collection-tab-{{ section.id }}-{{ block.id }}"
+              class="collection-slider-panel {% unless forloop.first %}hidden{% endunless %}"
+              data-collection-panel
+              data-collection-index="{{ forloop.index0 }}"
+            >
+              {% assign slider_id = 'featured-collections-' | append: section.id | append: '-' | append: block.id %}
+              {%- render 'm--electric-slider',
+                id: slider_id,
+                feed: feed,
+                per_row_mobile: 2.1,
+                per_row_tablet: 4,
+                per_row_desktop: 4.3,
+                feed_class: 'order-1 px-s-whole scroll-px-s-whole',
+                slider_navigation_wrapper_class: 'order-2 px-s-whole'
+              -%}
+            </div>
+          {%- endif -%}
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  </section>
+
+  <script>
+    (function() {
+      const section = document.querySelector('[data-featured-collections-section]');
+      if (!section) return;
+
+      const tabs = section.querySelectorAll('[data-collection-tab]');
+      const panels = section.querySelectorAll('[data-collection-panel]');
+
+      if (tabs.length === 0 || panels.length === 0) return;
+
+      /**
+       * Activate a collection tab and show corresponding panel
+       * @param {number} index - Index of the tab to activate
+       */
+      function activateTab(index) {
+        // Update tab buttons
+        tabs.forEach((tab, i) => {
+          const isActive = i === index;
+          tab.setAttribute('aria-selected', isActive.toString());
+        });
+
+        // Update panels
+        panels.forEach((panel, i) => {
+          const isActive = i === index;
+          panel.classList.toggle('hidden', !isActive);
+          panel.setAttribute('aria-hidden', (!isActive).toString());
+        });
+      }
+
+      // Handle tab clicks
+      tabs.forEach((tab, index) => {
+        tab.addEventListener('click', () => {
+          activateTab(index);
+        });
+
+        // Keyboard navigation
+        tab.addEventListener('keydown', (e) => {
+          let targetIndex = index;
+
+          switch(e.key) {
+            case 'ArrowLeft':
+              e.preventDefault();
+              targetIndex = index > 0 ? index - 1 : tabs.length - 1;
+              break;
+            case 'ArrowRight':
+              e.preventDefault();
+              targetIndex = index < tabs.length - 1 ? index + 1 : 0;
+              break;
+            case 'Home':
+              e.preventDefault();
+              targetIndex = 0;
+              break;
+            case 'End':
+              e.preventDefault();
+              targetIndex = tabs.length - 1;
+              break;
+            default:
+              return;
+          }
+
+          activateTab(targetIndex);
+          tabs[targetIndex].focus();
+        });
+      });
+    })();
+  </script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Featured collections",
+  "tag": "section",
+  "class": "full-spaced-section",
+  "blocks": [
+    {
+      "type": "collection",
+      "name": "Collection",
+      "settings": [
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Collection",
+          "info": "Select a collection to display in this tab"
+        },
+        {
+          "type": "text",
+          "id": "tab_title",
+          "label": "Tab title",
+          "info": "Optional custom title for the tab. If empty, the collection title will be used."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Featured collections",
+      "blocks": [
+        {
+          "type": "collection"
+        },
+        {
+          "type": "collection"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

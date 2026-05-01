@@ -1,0 +1,211 @@
+{%- comment -%}
+  Quick ATC Product Section
+  =========================
+  
+  Simplified product display for quick add-to-cart modal.
+  
+  This section is specifically designed for the quick-atc modal and includes:
+  - Product image slider with navigation
+  - Product badge (top right of images)
+  - Title, wishlist, rating, and price
+  - Variant pickers (excludes "see full collection" and "order swatches")
+  - Stock information
+  - Add to cart form with Affirm messaging
+  - "View Full Product Details" link to navigate to full product page
+  
+  Excluded from this section (compared to product--main):
+  - Video and 3D model buttons
+  - "View more images" button
+  - "Shop the look" feature
+  - Product details accordion
+  - Description accordion
+  - Size accordion
+  - Care accordion
+  - Shipping & returns accordion
+  - FAQ accordion
+  - "Complete the look" section
+{%- endcomment -%}
+
+{%- liquid
+  assign product_title = product.title
+  assign is_per_request = product.metafields.custom.is_per_request.value
+-%}
+
+<div
+  class="grid md:grid-cols-2 relative w-full h-auto"
+  data-section="{{ section.id }}"
+  data-product="{{ product.id }}"
+>
+  {%- liquid
+    ## START PRODUCT SLIDER ##
+    assign featured_media = product.selected_or_first_available_variant.featured_media | default: product.featured_media
+    assign featured_video = product.media | where: 'media_type', 'video' | first
+
+    if product.gift_card?
+      capture feed
+        echo '<div class="relative snap-start p-8 px-s-whole pr-0 mt-b-base h-full">'
+        echo '<div class="bg-emphasis w-full flex items-center justify-center py-s-sm">'
+        echo '<div class="w-full max-w-xl aspect-[1.5] bg-white rounded-lg p-6 flex flex-col items-center justify-center bg-cover" style="background-image: url('
+        echo 'card-bg.png' | asset_img_url: 'original'
+        echo ')">'
+        echo '<div class="flex justify-center mb-2">'
+        capture gift_card_logo
+          echo '<img src="'
+          echo 'logo.png' | asset_url
+          echo '" alt="'
+          echo shop.name | escape
+          echo '" class="h-3.5 lg:h-4" width="280" height="68" loading="lazy">'
+        endcapture
+        echo gift_card_logo | link_to: routes.root_url, class: 'flex items-center max-lg:w-full max-lg:justify-start max-lg:pl-5 max-lg:-order-1 invert', aria-label: shop.name
+        echo '</div>'
+        echo '<div class="text-center">'
+        echo '<div class="h5 text-on-accent font-light">$'
+        echo product.selected_or_first_available_variant.price | money_without_currency
+        echo ' E-Gift Card'
+        echo '</div>'
+        echo '</div>'
+        echo '</div>'
+        echo '</div>'
+        echo '</div>'
+      endcapture
+    else
+      capture feed
+        echo '<div class="relative snap-start bg-emphasis">'
+        render 'product--slider-item', media: featured_media, lazyload: false
+        echo '</div>'
+        assign product_media = product.media | reject: 'id', featured_media.id | reject: 'media_type', 'video'
+        assign offset = 0
+        if featured_video != blank
+          render 'product--slider-item', media: featured_video, lazyload: false, wrapper_class: 'h-auto snap-start', video_class: 'h-auto'
+        else
+          render 'product--slider-item', media: product_media.first
+          assign offset = 1
+        endif
+        for media in product_media limit: 3 offset: offset
+          render 'product--slider-item', media: media
+        endfor
+      endcapture
+    endif
+    render 'm--electric-slider', id: 'quick-atc-product-slider', feed: feed, gap: 'gap-x-b-base', bar: false, slider_class: 'w-full lg:w-144 lg:h-fit', feed_class: '', slider_navigation_wrapper_class: 'absolute px-0 right-3 bottom-3 z-1', per_row_mobile: 1, per_row_tablet: 1, per_row_desktop: 1, properties: 'data-drag="false" data-variant-dynamic="product-slider-qatc"'
+  -%}
+  
+  {%- comment -%} Product badge positioned at top right of slider {%- endcomment -%}
+  <div class="absolute top-3 right-3 z-10 md:left-auto md:right-3">
+    {% render 'product--badge', product: product, class: 'bg-white' %}
+  </div>
+
+  {% # START PRODUCT MAIN AREA %}
+  <div
+    class="py-s-sm px-s-whole space-y-4 lg:space-y-5 text-ui-base lg:w-144 md:w-full overflow-y-scroll md:max-lg:pr-8 pb-8 max-md:pb-12"
+    id="product-form-wrapper"
+  >
+    <div class="space-y-4">
+      <h2
+        class="text-2xl lg:text-4xl leading-tight flex justify-between items-center"
+      >
+        {{ product_title }}
+        <span data-variant-dynamic="product-main-wishlist-button">
+          {% render 'm--wishlist-button', product: product, class: 'pr-4', icon_size: '1.5rem' %}
+        </span>
+      </h2>
+      <div class="flex gap-3 items-end">
+        {%- render 'a--price-group', product: product, use_variant: true, direction: 'product-main' -%}
+      </div>
+    </div>
+    <div class="flex flex-col gap-y-4 lg:gap-y-5! py-4">
+      {% if is_per_request %}
+        <div class="flex flex-col gap-y-b-base">
+          {% render 'product--request-form', product: product %}
+        </div>
+      {% else %}
+        {% for option in product.options_with_values %}
+          {%- if option.name == 'Color' %}
+            <div class="flex flex-col gap-y-b-xs">
+              {% render 'product--form', quickAtcMode: true, class_variant_radios: 'pb-4' %}
+            </div>
+          {%- else -%}
+            <div class="flex flex-col gap-y-b-xs">
+              {% render 'product--form', quickAtcMode: true %}
+            </div>
+          {%- endif -%}
+        {% endfor %}
+      {% endif %}
+      
+      {%- comment -%} View Full Product Details Link {%- endcomment -%}
+      <div class="text-center pt-4">
+        <a 
+          href="{{ product.url }}" 
+          class="inline-flex items-center gap-2 text-ui-base font-medium hover:opacity-70 transition-opacity uppercase tracking-wide"
+        >
+          {{ 'products.product.view_full_details' | t }}
+          {% render 'a--icon', icon: 'chevron-r', width: '1rem' %}
+        </a>
+      </div>
+    </div>
+  </div>
+  {% # END PRODUCT MAIN AREA %}
+</div>
+
+{% schema %}
+{
+  "name": "Quick ATC Product",
+  "class": "h-full",
+  "limit": 1,
+  "settings": [],
+  "blocks": [
+    {
+      "type": "@app"
+    },
+    {
+      "type": "badges",
+      "limit": 1,
+      "name": "t:global.badges",
+      "settings": [
+        {
+          "type": "paragraph",
+          "content": "t:global_info.badges_globally"
+        }
+      ]
+    },
+    {
+      "type": "title",
+      "limit": 1,
+      "name": "t:global.title"
+    },
+    {
+      "type": "price",
+      "limit": 1,
+      "name": "t:global.price"
+    },
+    {
+      "type": "product_form",
+      "limit": 1,
+      "name": "t:global.product_form",
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "show_dynamic_checkout",
+          "default": true,
+          "label": "t:global.show_dynamic_checkout",
+          "info": "t:global_info.show_dynamic_checkout"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_gift_card_recipient",
+          "default": true,
+          "label": "t:global.show_gift_card_recipient",
+          "info": "t:global_info.show_gift_card_recipient"
+        }
+      ]
+    },
+    {
+      "type": "rating",
+      "limit": 1,
+      "name": "t:global.rating"
+    }
+  ],
+  "enabled_on": {
+    "templates": ["product"]
+  }
+}
+{% endschema %}

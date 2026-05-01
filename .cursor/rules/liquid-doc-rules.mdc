@@ -1,0 +1,595 @@
+---
+globs: snippets/*.liquid,blocks/*.liquid
+alwaysApply: false
+---
+# LiquidDoc Documentation Rules for Electric Maybe Shopify Theme
+
+## Overview
+This document establishes comprehensive documentation standards for all Liquid snippets and blocks in the Electric Maybe Shopify theme project. Following these rules ensures consistent, maintainable, and developer-friendly code documentation that integrates with Shopify's LiquidDoc tooling.
+
+## Core Documentation Standards
+
+### Required Structure for All Liquid Files
+Every snippet (`.liquid` files in `snippets/`) and block (`.liquid` files in `blocks/`) must include LiquidDoc documentation at the top of the file:
+
+```liquid
+{%- doc -%}
+[Component description - one clear sentence explaining purpose]
+
+[Detailed description - 2-3 sentences explaining functionality, use cases, and key features]
+
+@param {type} param_name - Parameter description
+@param {type} [optional_param] - Optional parameter description
+
+@example
+{% render 'component-name', param: value %}
+
+@example
+{% render 'component-name',
+  param1: value1,
+  param2: value2
+%}
+{%- enddoc -%}
+```
+
+### Documentation Tag Requirements
+- **Required**: All snippets and blocks must have `{%- doc -%}` block
+- **Position**: Must be the first content in the file (after any initial comments)
+- **Format**: Use `{%- doc -%}` and `{%- enddoc -%}` with whitespace control
+- **Content**: Must include description, parameters, and at least one example
+
+## Parameter Documentation Standards
+
+### Parameter Format
+```
+@param {type} param_name - Description of the parameter
+@param {type} [optional_param] - Optional parameter description
+```
+
+### Supported Parameter Types
+- `{string}` - Text values, URLs, class names
+- `{number}` - Numeric values, sizes, counts
+- `{boolean}` - True/false values, flags
+- `{object}` - Complex Liquid objects (product, collection, etc.)
+
+### Parameter Naming Conventions
+- Use `snake_case` for parameter names
+- Wrap optional parameters in square brackets: `[param_name]`
+- Use descriptive names that clearly indicate purpose
+- Avoid abbreviations unless widely understood
+
+### Parameter Description Requirements
+- Clear, concise explanation of purpose
+- Include default values when applicable
+- Mention any constraints or limitations
+- Reference related parameters when relevant
+
+## Example Documentation Standards
+
+### Example Format Requirements
+- Include at least one basic usage example
+- Include one complex example showing multiple parameters
+- Use realistic, practical values
+- Demonstrate common use cases
+- Show proper Liquid syntax formatting
+
+### Multi-line Example Format
+```liquid
+@example
+{% render 'component-name',
+  param1: 'value1',
+  param2: 42,
+  param3: true
+%}
+```
+
+## Component-Specific Documentation Rules
+
+### Atomic Components (`a--*.liquid`)
+- Focus on reusability and flexibility
+- Document all styling parameters
+- Include accessibility considerations
+- Show responsive behavior examples
+
+### Molecular Components (`m--*.liquid`)
+- Document composition of atomic components
+- Explain interaction patterns
+- Include state management parameters
+- Show integration examples
+
+### Section Components (`s--*.liquid`)
+- Document layout and structure parameters
+- Include content management parameters
+- Show responsive breakpoint behavior
+- Document theme customizer integration
+
+### Block Components (`blocks/*.liquid`)
+- Document content editing parameters
+- Include layout and styling options
+- Show theme editor integration
+- Document dynamic content handling
+
+## Accessibility Documentation
+
+### Required Accessibility Parameters
+For components that affect accessibility, document:
+- `aria_label` - Screen reader text
+- `aria_hidden` - Visibility control
+- `role` - ARIA role attributes
+- `tabindex` - Keyboard navigation
+
+### Accessibility Examples
+```liquid
+@example
+{% render 'a--icon', 
+  icon: 'search',
+  aria_label: 'Search products',
+  class: 'sr-only'
+%}
+```
+
+## Performance Documentation
+
+### Performance Parameters
+Document performance-related parameters:
+- `lazy_loading` - Image loading behavior
+- `preload` - Resource preloading
+- `debounce` - Event handling optimization
+- `cache` - Caching behavior
+
+## Error Handling Documentation
+
+### Error Parameters
+Document error handling parameters:
+- `fallback` - Fallback content
+- `error_message` - Error display text
+- `required` - Parameter requirement flags
+
+## Theme Integration Documentation
+
+### Theme Customizer Parameters
+Document theme editor integration:
+- `settings` - Theme setting references
+- `customizable` - Customization flags
+- `presets` - Preset configurations
+
+## Code Quality Standards
+
+### Documentation Validation
+- All parameters must be used in the component
+- Parameter types must match usage
+- Examples must be syntactically correct
+- Descriptions must be clear and accurate
+
+### Consistency Requirements
+- Use consistent terminology across components
+- Follow established naming conventions
+- Maintain consistent formatting
+- Use consistent example patterns
+
+## File Organization Standards
+
+### Documentation Structure
+1. **Component Description** - One clear sentence
+2. **Detailed Description** - 2-3 sentences explaining functionality
+3. **Required Parameters** - All mandatory parameters
+4. **Optional Parameters** - All optional parameters with defaults
+5. **Basic Example** - Simple usage demonstration
+6. **Advanced Example** - Complex usage with multiple parameters
+
+### Documentation Comments
+- Use clear, professional language
+- Avoid technical jargon unless necessary
+- Include practical use cases
+- Reference related components when relevant
+
+## Integration with Development Tools
+
+### Theme Check Integration
+Documentation must pass all Theme Check validations:
+- `UniqueDocParamNames` - No duplicate parameter names
+- `ValidDocParamTypes` - Valid parameter types
+- `UnusedDocParam` - All documented parameters used
+- `MissingRenderSnippetArguments` - Required parameters provided
+
+### Editor Integration
+Documentation enables:
+- Hover documentation in code editors
+- Code completion for parameters
+- Parameter validation warnings
+- Type checking for values
+
+## Maintenance Standards
+
+### Documentation Updates
+- Update documentation when parameters change
+- Add new parameters to documentation
+- Remove deprecated parameters
+- Update examples for new functionality
+
+### Review Process
+- Review documentation during code reviews
+- Validate examples work correctly
+- Ensure parameter descriptions are accurate
+- Check for consistency across components
+
+## Examples of Good Documentation
+
+### Atomic Component Example
+```liquid
+{%- doc -%}
+Icon component for displaying SVG icons with customizable styling and animations.
+
+This component provides a comprehensive set of icons including social media, navigation, UI elements, and e-commerce specific icons. Icons are rendered as inline SVG with customizable colors, sizes, and stroke widths.
+
+@param {string} icon - The icon name to display (required)
+@param {string} [class] - Additional CSS classes to apply to the SVG element
+@param {string} [color] - Icon color (defaults to 'currentColor')
+@param {number} [width] - Icon width in pixels (defaults to 24)
+@param {number} [height] - Icon height in pixels (defaults to 24)
+@param {string} [stroke] - Stroke width classes (defaults to 'stroke-base lg:stroke-lg')
+@param {boolean} [animate] - Whether to apply animation classes for interactive states
+
+@example
+{% render 'a--icon', icon: 'search' %}
+
+@example
+{% render 'a--icon', 
+  class: 'hover:opacity-50',
+  icon: 'chevron-d', 
+  color: '#000000', 
+  stroke: 'stroke-lg',
+  width: 32, 
+  height: 32,
+  animate: true 
+%}
+{%- enddoc -%}
+```
+
+### Molecular Component Example
+```liquid
+{%- doc -%}
+Product card component for displaying product information in grid layouts.
+
+This component renders a complete product card with image, title, price, and action buttons. It supports various display modes, hover effects, and responsive layouts. Includes built-in lazy loading and accessibility features.
+
+@param {object} product - Product object from Shopify (required)
+@param {string} [class] - Additional CSS classes for the card container
+@param {boolean} [show_vendor] - Display vendor name (defaults to false)
+@param {boolean} [show_rating] - Display product rating (defaults to true)
+@param {string} [image_size] - Product image size ('small', 'medium', 'large')
+@param {boolean} [lazy_load] - Enable lazy loading for images (defaults to true)
+@param {string} [badge_text] - Custom badge text to display
+
+@example
+{% render 'm--product-card', product: product %}
+
+@example
+{% render 'm--product-card',
+  product: product,
+  class: 'hover:shadow-lg',
+  show_vendor: true,
+  image_size: 'large',
+  badge_text: 'New'
+%}
+{%- enddoc -%}
+```
+
+## Compliance Checklist
+
+Before committing any Liquid file, ensure:
+
+- [ ] Documentation block is present at file top
+- [ ] Component description is clear and concise
+- [ ] All parameters are documented with types
+- [ ] Optional parameters are marked with brackets
+- [ ] At least one basic example is provided
+- [ ] At least one advanced example is provided
+- [ ] Parameter descriptions are accurate and helpful
+- [ ] Examples use realistic, practical values
+- [ ] Documentation passes Theme Check validation
+- [ ] Accessibility parameters are documented when relevant
+- [ ] Performance parameters are documented when relevant
+- [ ] Error handling is documented when relevant
+
+## References
+
+- [Shopify LiquidDoc Documentation](https://shopify.dev/docs/storefronts/themes/tools/liquid-doc)
+- [Theme Check Documentation](https://shopify.dev/docs/storefronts/themes/tools/theme-check)
+- [Liquid Template Language](https://shopify.dev/docs/api/liquid)
+- [Shopify Theme Development Best Practices](https://shopify.dev/docs/storefronts/themes/best-practices) # LiquidDoc Documentation Rules for Electric Maybe Shopify Theme
+
+## Overview
+This document establishes comprehensive documentation standards for all Liquid snippets and blocks in the Electric Maybe Shopify theme project. Following these rules ensures consistent, maintainable, and developer-friendly code documentation that integrates with Shopify's LiquidDoc tooling.
+
+## Core Documentation Standards
+
+### Required Structure for All Liquid Files
+Every snippet (`.liquid` files in `snippets/`) and block (`.liquid` files in `blocks/`) must include LiquidDoc documentation at the top of the file:
+
+```liquid
+{%- doc -%}
+[Component description - one clear sentence explaining purpose]
+
+[Detailed description - 2-3 sentences explaining functionality, use cases, and key features]
+
+@param {type} param_name - Parameter description
+@param {type} [optional_param] - Optional parameter description
+
+@example
+{% render 'component-name', param: value %}
+
+@example
+{% render 'component-name',
+  param1: value1,
+  param2: value2
+%}
+{%- enddoc -%}
+```
+
+### Documentation Tag Requirements
+- **Required**: All snippets and blocks must have `{%- doc -%}` block
+- **Position**: Must be the first content in the file (after any initial comments)
+- **Format**: Use `{%- doc -%}` and `{%- enddoc -%}` with whitespace control
+- **Content**: Must include description, parameters, and at least one example
+
+## Parameter Documentation Standards
+
+### Parameter Format
+```
+@param {type} param_name - Description of the parameter
+@param {type} [optional_param] - Optional parameter description
+```
+
+### Supported Parameter Types
+- `{string}` - Text values, URLs, class names
+- `{number}` - Numeric values, sizes, counts
+- `{boolean}` - True/false values, flags
+- `{object}` - Complex Liquid objects (product, collection, etc.)
+
+### Parameter Naming Conventions
+- Use `snake_case` for parameter names
+- Wrap optional parameters in square brackets: `[param_name]`
+- Use descriptive names that clearly indicate purpose
+- Avoid abbreviations unless widely understood
+
+### Parameter Description Requirements
+- Clear, concise explanation of purpose
+- Include default values when applicable
+- Mention any constraints or limitations
+- Reference related parameters when relevant
+
+## Example Documentation Standards
+
+### Example Format Requirements
+- Include at least one basic usage example
+- Include one complex example showing multiple parameters
+- Use realistic, practical values
+- Demonstrate common use cases
+- Show proper Liquid syntax formatting
+
+### Multi-line Example Format
+```liquid
+@example
+{% render 'component-name',
+  param1: 'value1',
+  param2: 42,
+  param3: true
+%}
+```
+
+## Component-Specific Documentation Rules
+
+### Atomic Components (`a--*.liquid`)
+- Focus on reusability and flexibility
+- Document all styling parameters
+- Include accessibility considerations
+- Show responsive behavior examples
+
+### Molecular Components (`m--*.liquid`)
+- Document composition of atomic components
+- Explain interaction patterns
+- Include state management parameters
+- Show integration examples
+
+### Section Components (`s--*.liquid`)
+- Document layout and structure parameters
+- Include content management parameters
+- Show responsive breakpoint behavior
+- Document theme customizer integration
+
+### Block Components (`blocks/*.liquid`)
+- Document content editing parameters
+- Include layout and styling options
+- Show theme editor integration
+- Document dynamic content handling
+
+## Accessibility Documentation
+
+### Required Accessibility Parameters
+For components that affect accessibility, document:
+- `aria_label` - Screen reader text
+- `aria_hidden` - Visibility control
+- `role` - ARIA role attributes
+- `tabindex` - Keyboard navigation
+
+### Accessibility Examples
+```liquid
+@example
+{% render 'a--icon', 
+  icon: 'search',
+  aria_label: 'Search products',
+  class: 'sr-only'
+%}
+```
+
+## Performance Documentation
+
+### Performance Parameters
+Document performance-related parameters:
+- `lazy_loading` - Image loading behavior
+- `preload` - Resource preloading
+- `debounce` - Event handling optimization
+- `cache` - Caching behavior
+
+## Error Handling Documentation
+
+### Error Parameters
+Document error handling parameters:
+- `fallback` - Fallback content
+- `error_message` - Error display text
+- `required` - Parameter requirement flags
+
+## Theme Integration Documentation
+
+### Theme Customizer Parameters
+Document theme editor integration:
+- `settings` - Theme setting references
+- `customizable` - Customization flags
+- `presets` - Preset configurations
+
+## Code Quality Standards
+
+### Documentation Validation
+- All parameters must be used in the component
+- Parameter types must match usage
+- Examples must be syntactically correct
+- Descriptions must be clear and accurate
+
+### Consistency Requirements
+- Use consistent terminology across components
+- Follow established naming conventions
+- Maintain consistent formatting
+- Use consistent example patterns
+
+## File Organization Standards
+
+### Documentation Structure
+1. **Component Description** - One clear sentence
+2. **Detailed Description** - 2-3 sentences explaining functionality
+3. **Required Parameters** - All mandatory parameters
+4. **Optional Parameters** - All optional parameters with defaults
+5. **Basic Example** - Simple usage demonstration
+6. **Advanced Example** - Complex usage with multiple parameters
+
+### Documentation Comments
+- Use clear, professional language
+- Avoid technical jargon unless necessary
+- Include practical use cases
+- Reference related components when relevant
+
+## Integration with Development Tools
+
+### Theme Check Integration
+Documentation must pass all Theme Check validations:
+- `UniqueDocParamNames` - No duplicate parameter names
+- `ValidDocParamTypes` - Valid parameter types
+- `UnusedDocParam` - All documented parameters used
+- `MissingRenderSnippetArguments` - Required parameters provided
+
+### Editor Integration
+Documentation enables:
+- Hover documentation in code editors
+- Code completion for parameters
+- Parameter validation warnings
+- Type checking for values
+
+## Maintenance Standards
+
+### Documentation Updates
+- Update documentation when parameters change
+- Add new parameters to documentation
+- Remove deprecated parameters
+- Update examples for new functionality
+
+### Review Process
+- Review documentation during code reviews
+- Validate examples work correctly
+- Ensure parameter descriptions are accurate
+- Check for consistency across components
+
+## Examples of Good Documentation
+
+### Atomic Component Example
+```liquid
+{%- doc -%}
+Icon component for displaying SVG icons with customizable styling and animations.
+
+This component provides a comprehensive set of icons including social media, navigation, UI elements, and e-commerce specific icons. Icons are rendered as inline SVG with customizable colors, sizes, and stroke widths.
+
+@param {string} icon - The icon name to display (required)
+@param {string} [class] - Additional CSS classes to apply to the SVG element
+@param {string} [color] - Icon color (defaults to 'currentColor')
+@param {number} [width] - Icon width in pixels (defaults to 24)
+@param {number} [height] - Icon height in pixels (defaults to 24)
+@param {string} [stroke] - Stroke width classes (defaults to 'stroke-base lg:stroke-lg')
+@param {boolean} [animate] - Whether to apply animation classes for interactive states
+
+@example
+{% render 'a--icon', icon: 'search' %}
+
+@example
+{% render 'a--icon', 
+  class: 'hover:opacity-50',
+  icon: 'chevron-d', 
+  color: '#000000', 
+  stroke: 'stroke-lg',
+  width: 32, 
+  height: 32,
+  animate: true 
+%}
+{%- enddoc -%}
+```
+
+### Molecular Component Example
+```liquid
+{%- doc -%}
+Product card component for displaying product information in grid layouts.
+
+This component renders a complete product card with image, title, price, and action buttons. It supports various display modes, hover effects, and responsive layouts. Includes built-in lazy loading and accessibility features.
+
+@param {object} product - Product object from Shopify (required)
+@param {string} [class] - Additional CSS classes for the card container
+@param {boolean} [show_vendor] - Display vendor name (defaults to false)
+@param {boolean} [show_rating] - Display product rating (defaults to true)
+@param {string} [image_size] - Product image size ('small', 'medium', 'large')
+@param {boolean} [lazy_load] - Enable lazy loading for images (defaults to true)
+@param {string} [badge_text] - Custom badge text to display
+
+@example
+{% render 'm--product-card', product: product %}
+
+@example
+{% render 'm--product-card',
+  product: product,
+  class: 'hover:shadow-lg',
+  show_vendor: true,
+  image_size: 'large',
+  badge_text: 'New'
+%}
+{%- enddoc -%}
+```
+
+## Compliance Checklist
+
+Before committing any Liquid file, ensure:
+
+- [ ] Documentation block is present at file top
+- [ ] Component description is clear and concise
+- [ ] All parameters are documented with types
+- [ ] Optional parameters are marked with brackets
+- [ ] At least one basic example is provided
+- [ ] At least one advanced example is provided
+- [ ] Parameter descriptions are accurate and helpful
+- [ ] Examples use realistic, practical values
+- [ ] Documentation passes Theme Check validation
+- [ ] Accessibility parameters are documented when relevant
+- [ ] Performance parameters are documented when relevant
+- [ ] Error handling is documented when relevant
+
+## References
+
+- [Shopify LiquidDoc Documentation](https://shopify.dev/docs/storefronts/themes/tools/liquid-doc)
+- [Theme Check Documentation](https://shopify.dev/docs/storefronts/themes/tools/theme-check)
+- [Liquid Template Language](https://shopify.dev/docs/api/liquid)
+- [Shopify Theme Development Best Practices](https://shopify.dev/docs/storefronts/themes/best-practices) 

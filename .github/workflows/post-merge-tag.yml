@@ -1,0 +1,130 @@
+# climaybe — Post-Merge Tag (Single-store & Multi-store)
+# Only handles staging → main: minor bump from latest tag (e.g. v3.1.13 → v3.2.0).
+# No version in code or PR title; system infers from latest tag.
+# Hotfix / non-staging merges are tagged by the nightly workflow (02:00 US Eastern), not here.
+
+name: Post-Merge Tag
+
+on:
+  push:
+    branches: [main]
+
+# Prevent concurrent version bumps
+concurrency:
+  group: post-merge-tag
+  cancel-in-progress: false
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      is_release: ${{ steps.check.outputs.is_release }}
+    steps:
+      - name: Check if this push is from a merged staging → main PR
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          COMMIT_MSG=$(echo "${{ github.event.head_commit.message }}" | head -1)
+
+          if echo "$COMMIT_MSG" | grep -q "chore(release): bump version"; then
+            echo "Skipping post-merge tag: version bump commit."
+            echo "is_release=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          PR_NUMBER=$(echo "$COMMIT_MSG" | grep -oP '#\K\d+' | head -1 || true)
+          if [ -z "$PR_NUMBER" ]; then
+            echo "Skipping post-merge tag: no PR number in merge commit."
+            echo "is_release=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          PR_DATA=$(gh api repos/${{ github.repository }}/pulls/$PR_NUMBER 2>/dev/null || echo "")
+          if [ -z "$PR_DATA" ]; then
+            echo "Skipping post-merge tag: could not load PR."
+            echo "is_release=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          HEAD_REF=$(echo "$PR_DATA" | jq -r '.head.ref')
+          if [ "$HEAD_REF" = "staging" ]; then
+            echo "is_release=true" >> $GITHUB_OUTPUT
+            echo "Detected staging → main merge; will minor bump from latest tag."
+          else
+            echo "Skipping post-merge tag: push is not a staging → main merge (head: $HEAD_REF)."
+            echo "is_release=false" >> $GITHUB_OUTPUT
+          fi
+
+  # Resolve latest tag on main for changelog base
+  release-base:
+    needs: detect
+    if: needs.detect.outputs.is_release == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      last_tag: ${{ steps.tag.outputs.last_tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Get latest tag (or create from settings_schema.json)
+        id: tag
+        run: |
+          LAST_TAG=$(git tag --merged HEAD | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
+          if [ -z "$LAST_TAG" ]; then
+            LAST_TAG=$(git tag --merged HEAD | grep -E '^v[0-9]+\.[0-9]+$' | sort -V | tail -1)
+          fi
+          if [ -z "$LAST_TAG" ]; then
+            SCHEMA="config/settings_schema.json"
+            if [ -f "$SCHEMA" ]; then
+              LAST_TAG=$(node -e "
+                const fs = require('fs');
+                const arr = JSON.parse(fs.readFileSync('$SCHEMA', 'utf-8'));
+                const info = arr.find(x => x.name === 'theme_info');
+                const v = (info && info.theme_version) ? String(info.theme_version).trim() : '';
+                if (!v) process.exit(1);
+                let parts = v.replace(/^v/i, '').split('.');
+                if (parts.length === 2) parts.push('0');
+                if (parts.length < 3) parts = parts.concat(Array(3 - parts.length).fill('0')).slice(0, 3);
+                console.log('v' + parts.slice(0, 3).join('.'));
+              " 2>/dev/null || true)
+            fi
+            if [ -z "$LAST_TAG" ]; then
+              LAST_TAG="v0.0.0"
+            fi
+            if ! git rev-parse -q --verify "refs/tags/$LAST_TAG" >/dev/null; then
+              git tag -a "$LAST_TAG" -m "Initial version from settings_schema.json"
+              git push origin "$LAST_TAG"
+              echo "Created initial tag $LAST_TAG from settings_schema.json"
+            fi
+          fi
+          echo "last_tag=$LAST_TAG" >> $GITHUB_OUTPUT
+          echo "Changelog base: $LAST_TAG"
+
+  # Generate changelog (commits since last tag)
+  changelog:
+    needs: [detect, release-base]
+    if: needs.detect.outputs.is_release == 'true'
+    uses: ./.github/workflows/ai-changelog.yml
+    with:
+      base_ref: ${{ needs.release-base.outputs.last_tag }}
+      head_ref: HEAD
+    secrets:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+  # Minor bump from latest tag (no explicit version; auto v3.1.x → v3.2.0)
+  bump:
+    needs: [detect, release-base, changelog]
+    if: needs.detect.outputs.is_release == 'true'
+    uses: ./.github/workflows/version-bump.yml
+    with:
+      bump_type: minor
+      changelog: ${{ needs.changelog.outputs.changelog }}
+    secrets: inherit

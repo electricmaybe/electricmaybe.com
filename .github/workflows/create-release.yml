@@ -1,0 +1,220 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_run:
+    workflows: ['Post-Merge Tag', 'Nightly Hotfix Tag']
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve release tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            TAG_NAME="${GITHUB_REF#refs/tags/}"
+          else
+            git fetch --tags origin
+            TAG_NAME=$(git tag --merged HEAD | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
+            if [ -z "$TAG_NAME" ]; then
+              TAG_NAME=$(git tag --merged HEAD | grep -E '^v[0-9]+\.[0-9]+$' | sort -V | tail -1)
+            fi
+          fi
+
+          if [ -z "$TAG_NAME" ]; then
+            echo "No release tag found, skipping."
+            echo "tag_name=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "Using tag: $TAG_NAME"
+
+      - name: Check if release already exists
+        id: release_check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_NAME="${{ steps.tag.outputs.tag_name }}"
+          if [ -z "$TAG_NAME" ]; then
+            echo "release_exists=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            echo "Release for $TAG_NAME already exists, skipping."
+            echo "release_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "release_exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create release archive
+        if: steps.release_check.outputs.release_exists != 'true'
+        run: |
+          mkdir release-temp
+          mkdir -p .sys/release-notes
+
+          for dir in assets layout locales sections snippets config; do
+            mkdir -p "release-temp/$dir"
+            find "$dir" -type f ! -name "*.md" -exec cp --parents {} release-temp/ \;
+          done
+
+          mkdir -p release-temp/templates
+          find templates -type f ! -name "*.md" ! -name "page.test-*" -exec cp --parents {} release-temp/ \;
+
+          find release-temp -type f -name "*.liquid" -exec sed -i '
+            /{% comment %}/{
+              N
+              /{% comment %}\s*\nINTERNAL/{
+                :a
+                N
+                /{% endcomment %}/!ba
+                d
+              }
+            }' {} \;
+
+          cd release-temp
+          zip -r ../release.zip ./*
+          cd ..
+          rm -rf release-temp
+
+      - name: Generate release notes from commits
+        if: steps.release_check.outputs.release_exists != 'true'
+        id: notes
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          TAG_NAME="${{ steps.tag.outputs.tag_name }}"
+          NOTES_FILE=".sys/release-notes/release-note-${TAG_NAME}.md"
+          mkdir -p .sys/release-notes
+
+          git fetch --tags origin
+
+          PREV_TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | grep -Fxv "$TAG_NAME" | head -1 || true)
+          if [ -z "$PREV_TAG" ]; then
+            PREV_TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+$' | grep -Fxv "$TAG_NAME" | head -1 || true)
+          fi
+
+          if [ -n "$PREV_TAG" ]; then
+            RANGE="${PREV_TAG}..${TAG_NAME}"
+          else
+            RANGE="$TAG_NAME"
+          fi
+
+          COMMITS=$(git log --pretty=format:"%s" "$RANGE" 2>/dev/null || true)
+          if [ -z "$COMMITS" ]; then
+            COMMITS=$(git log --pretty=format:"%s" -n 30 "$TAG_NAME" 2>/dev/null || true)
+          fi
+
+          # Filter out noisy system-generated sync/merge commits so release notes stay readable.
+          FILTERED_COMMITS=$(printf '%s\n' "$COMMITS" | sed '/^[[:space:]]*$/d' | grep -Eiv \
+            '^Sync main → staging-|^Sync main -> staging-|^Merge pull request #|^Merge branch |^Merge live-.* into main \[hotfix-backport\]$|^chore: sync root to stores/.+ \[root-to-stores\]$|^chore: keep store root JSONs from stores/.+ \[stores-to-root\]$|^Update from Shopify for theme ')
+          if [ -z "$FILTERED_COMMITS" ]; then
+            NOISY_ONLY_COMMITS=true
+          else
+            NOISY_ONLY_COMMITS=false
+          fi
+
+          # Score how many commit subjects follow conventional-commit style.
+          TOTAL_COUNT=$(printf '%s\n' "$FILTERED_COMMITS" | sed '/^[[:space:]]*$/d' | wc -l | tr -d ' ')
+          CONVENTIONAL_COUNT=$(printf '%s\n' "$FILTERED_COMMITS" | sed '/^[[:space:]]*$/d' | grep -Eic '^(feat|fix|refactor|perf|docs|style|test|build|ci|chore|revert)(\([^)]+\))?!?: ')
+          if [ -z "$TOTAL_COUNT" ] || [ "$TOTAL_COUNT" -eq 0 ]; then
+            TOTAL_COUNT=1
+          fi
+          QUALITY=$((CONVENTIONAL_COUNT * 100 / TOTAL_COUNT))
+
+          {
+            echo "# Release Notes"
+            echo
+            echo "## ${TAG_NAME}"
+            if [ -n "$PREV_TAG" ]; then
+              echo
+              echo "_Changes since ${PREV_TAG}_"
+            fi
+            echo
+          } > "$NOTES_FILE"
+
+          # If commit quality is low and Gemini is available, ask AI to summarize merchant-facing notes.
+          if [ "$QUALITY" -lt 50 ] && [ -n "$GEMINI_API_KEY" ] && [ "$NOISY_ONLY_COMMITS" != "true" ]; then
+            printf '%s\n' "$FILTERED_COMMITS" > .sys/release-notes/commits-for-ai.txt
+
+            PROMPT=$(cat <<'PROMPT_EOF'
+          You generate release notes for a Shopify theme.
+          Given commit subjects, write concise markdown with these sections when relevant:
+          - Features
+          - Fixes
+          - Improvements
+          - Chore
+
+          Rules:
+          - Keep notes merchant-friendly and specific.
+          - Do not include commit hashes.
+          - Do not invent changes.
+          - If a section has no items, omit it.
+          PROMPT_EOF
+            )
+
+            PAYLOAD=$(jq -n \
+              --arg prompt "$PROMPT" \
+              --rawfile commits .sys/release-notes/commits-for-ai.txt \
+              '{
+                "contents": [{
+                  "parts": [{"text": ($prompt + "\n\nCommits:\n" + $commits)}]
+                }],
+                "generationConfig": {
+                  "temperature": 0.2,
+                  "maxOutputTokens": 1024
+                }
+              }')
+
+            RESPONSE=$(curl -s -X POST \
+              "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}" \
+              -H "Content-Type: application/json" \
+              -d "$PAYLOAD")
+            AI_NOTES=$(echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text // empty' 2>/dev/null || true)
+
+            if [ -n "$AI_NOTES" ] && [ "$AI_NOTES" != "null" ]; then
+              printf '%s\n' "$AI_NOTES" >> "$NOTES_FILE"
+            else
+              echo "## Changes" >> "$NOTES_FILE"
+              echo >> "$NOTES_FILE"
+              if [ "$NOISY_ONLY_COMMITS" = "true" ]; then
+                echo "- No notable merchant-facing changes in this release." >> "$NOTES_FILE"
+              else
+                printf '%s\n' "$FILTERED_COMMITS" | sed '/^[[:space:]]*$/d' | sed 's/^/- /' >> "$NOTES_FILE"
+              fi
+            fi
+          else
+            echo "## Changes" >> "$NOTES_FILE"
+            echo >> "$NOTES_FILE"
+            if [ "$NOISY_ONLY_COMMITS" = "true" ]; then
+              echo "- No notable merchant-facing changes in this release." >> "$NOTES_FILE"
+            else
+              printf '%s\n' "$FILTERED_COMMITS" | sed '/^[[:space:]]*$/d' | sed 's/^/- /' >> "$NOTES_FILE"
+            fi
+          fi
+
+          echo "notes_file=$NOTES_FILE" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        if: steps.release_check.outputs.release_exists != 'true'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.tag.outputs.tag_name }}
+          files: release.zip
+          body_path: ${{ steps.notes.outputs.notes_file }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

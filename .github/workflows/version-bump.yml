@@ -1,0 +1,196 @@
+# climaybe — Version Bump (Reusable Workflow)
+# Bumps version in settings_schema.json and package.json (if present), creates a git tag, and pushes.
+# Only runs on main (called from post-merge-tag and nightly-hotfix). staging / staging-* / live-* do not run version bump.
+
+name: Version Bump
+
+on:
+  workflow_call:
+    inputs:
+      bump_type:
+        description: 'Type of version bump: minor or patch'
+        required: true
+        type: string
+      version:
+        description: 'Explicit version to set (e.g., v3.2.0). If empty, auto-increments based on bump_type.'
+        required: false
+        type: string
+        default: ''
+      changelog:
+        description: 'Changelog text for the tag annotation'
+        required: false
+        type: string
+        default: ''
+    outputs:
+      new_version:
+        description: 'The new version tag that was created'
+        value: ${{ jobs.bump.outputs.new_version }}
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    outputs:
+      new_version: ${{ steps.bump.outputs.new_version }}
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Determine new version
+        id: bump
+        run: |
+          BUMP_TYPE="${{ inputs.bump_type }}"
+          EXPLICIT_VERSION="${{ inputs.version }}"
+
+          if [ -n "$EXPLICIT_VERSION" ]; then
+            # Use explicit version; ensure v prefix and always three-part (e.g. v3.2.0)
+            NEW_VERSION="${EXPLICIT_VERSION#v}"
+            PARTS=$(echo "$NEW_VERSION" | tr '.' '\n' | wc -l)
+            if [ "$PARTS" -eq "2" ]; then
+              NEW_VERSION="${NEW_VERSION}.0"
+            fi
+            NEW_VERSION="v${NEW_VERSION}"
+          else
+            # Highest semver among tags reachable from HEAD — not `git describe`, which picks
+            # the graph-nearest tag and can choose an old tag on the merged branch after staging→main.
+            LATEST_TAG=$(git tag --merged HEAD | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
+            # Legacy tags without patch (v1.0) if no strict triple match
+            if [ -z "$LATEST_TAG" ]; then
+              LATEST_TAG=$(git tag --merged HEAD | grep -E '^v[0-9]+\.[0-9]+$' | sort -V | tail -1)
+            fi
+            if [ -z "$LATEST_TAG" ]; then
+              # No semver tags: theme_version from settings_schema.json, else v0.0.0
+              SCHEMA="config/settings_schema.json"
+              if [ -f "$SCHEMA" ]; then
+                LATEST_TAG=$(node -e "
+                  const fs = require('fs');
+                  const arr = JSON.parse(fs.readFileSync('$SCHEMA', 'utf-8'));
+                  const info = arr.find(x => x.name === 'theme_info');
+                  const v = (info && info.theme_version) ? String(info.theme_version).trim() : '';
+                  if (!v) process.exit(1);
+                  let parts = v.replace(/^v/i, '').split('.');
+                  if (parts.length === 2) parts.push('0');
+                  if (parts.length < 3) parts = parts.concat(Array(3 - parts.length).fill('0')).slice(0, 3);
+                  console.log('v' + parts.slice(0, 3).join('.'));
+                " 2>/dev/null || true)
+              fi
+              [ -z "$LATEST_TAG" ] && LATEST_TAG="v0.0.0"
+            fi
+            LATEST_TAG="${LATEST_TAG#v}"
+
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$LATEST_TAG"
+            MAJOR=${MAJOR:-0}
+            MINOR=${MINOR:-0}
+            PATCH=${PATCH:-0}
+
+            if [ "$BUMP_TYPE" = "minor" ]; then
+              MINOR=$((MINOR + 1))
+              PATCH=0
+            elif [ "$BUMP_TYPE" = "patch" ]; then
+              PATCH=$((PATCH + 1))
+            fi
+
+            NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+          fi
+
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version: $NEW_VERSION"
+
+      - name: Refuse non-increasing version
+        env:
+          NEW_VERSION: ${{ steps.bump.outputs.new_version }}
+        run: |
+          git fetch --tags origin
+          MAX_EXISTING=$(git tag --merged HEAD | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
+          if [ -z "$MAX_EXISTING" ]; then
+            MAX_EXISTING=$(git tag --merged HEAD | grep -E '^v[0-9]+\.[0-9]+$' | sort -V | tail -1)
+          fi
+          if [ -z "$MAX_EXISTING" ]; then
+            echo "No merged semver tags; skipping monotonic check."
+            exit 0
+          fi
+          HI=$(printf '%s\n' "$MAX_EXISTING" "$NEW_VERSION" | sort -V | tail -1)
+          if [ "$HI" != "$NEW_VERSION" ] || [ "$NEW_VERSION" = "$MAX_EXISTING" ]; then
+            echo "::error::Refusing to release ${NEW_VERSION}: latest merged tag is ${MAX_EXISTING}; new tag must be strictly higher (semver)."
+            exit 1
+          fi
+          echo "OK: ${NEW_VERSION} > ${MAX_EXISTING}"
+
+      - name: Update settings_schema.json and package.json
+        env:
+          NEW_VERSION: ${{ steps.bump.outputs.new_version }}
+        run: |
+          export VERSION_PLAIN="${NEW_VERSION#v}"
+          SCHEMA_FILE="config/settings_schema.json"
+
+          if [ -f "$SCHEMA_FILE" ]; then
+            node -e "
+              const fs = require('fs');
+              const v = process.env.VERSION_PLAIN;
+              const schema = JSON.parse(fs.readFileSync('$SCHEMA_FILE', 'utf-8'));
+              const themeInfo = schema.find(s => s.name === 'theme_info');
+              if (themeInfo) themeInfo.theme_version = v;
+              fs.writeFileSync('$SCHEMA_FILE', JSON.stringify(schema, null, 2) + '\n');
+            "
+            echo "Updated $SCHEMA_FILE to ${NEW_VERSION}"
+          else
+            echo "No $SCHEMA_FILE found, skipping schema update."
+          fi
+
+          if [ -f "package.json" ]; then
+            node -e "
+              const fs = require('fs');
+              const pkg = JSON.parse(fs.readFileSync('package.json', 'utf-8'));
+              pkg.version = process.env.VERSION_PLAIN;
+              fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+            "
+            echo "Updated package.json version to ${VERSION_PLAIN}"
+          else
+            echo "No package.json found, skipping."
+          fi
+
+      # Changelog must be env, not ${{ }} inside the script: multiline markdown breaks the shell
+      # (lines starting with "-" run as commands; words like "markdown" become bogus invocations).
+      - name: Commit and tag
+        env:
+          CHANGELOG: ${{ inputs.changelog }}
+        run: |
+          NEW_VERSION="${{ steps.bump.outputs.new_version }}"
+          TAG_CREATED="false"
+
+          # Stage changes
+          git add -A
+
+          # Only commit if there are changes
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(release): bump version to ${NEW_VERSION}"
+          fi
+
+          # Guard against duplicate tag creation (local or remote).
+          if git ls-remote --exit-code --tags origin "refs/tags/${NEW_VERSION}" >/dev/null 2>&1; then
+            echo "Tag ${NEW_VERSION} already exists on origin, reusing."
+          elif git rev-parse -q --verify "refs/tags/${NEW_VERSION}" >/dev/null; then
+            echo "Tag ${NEW_VERSION} already exists locally, reusing."
+          else
+            if [ -n "$CHANGELOG" ]; then
+              printf '%s\n' "$CHANGELOG" | git tag -a "$NEW_VERSION" -F -
+            else
+              git tag -a "$NEW_VERSION" -m "Release ${NEW_VERSION}"
+            fi
+            TAG_CREATED="true"
+          fi
+
+          git push origin HEAD
+          if [ "$TAG_CREATED" = "true" ]; then
+            git push origin "$NEW_VERSION"
+          fi

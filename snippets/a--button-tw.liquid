@@ -1,0 +1,134 @@
+{% # theme-check-disable UnusedSnippet %}
+{% liquid
+  assign style = style | default: 'primary'
+  assign tag = tag | default: 'a'
+  assign size = size | default: 'button-small lg:button-medium'
+  assign content = content | default: 'text-only'
+  assign label = label | default: 'button'
+  assign icon_size = icon_size | default: iconSize | default: 'h-2.5'
+  assign icon_class = icon_class | append: ' w-auto'
+  assign position = position | default: 'relative'
+  if href
+    assign url = href
+  endif
+  if translation
+    assign label = translation | t
+  endif
+
+  assign role = 'button'
+  if tag == 'a'
+    assign role = 'link'
+  endif
+
+  assign aria_label = aria_label | default: ariaLabel | default: label | downcase
+
+  # Base button classes
+  assign base_classes = 'button inline-flex items-center cursor-pointer rounded-(--buttons-border-radius) justify-center transition-colors focus:ring-3 [&_span]:uppercase'
+
+  # Size classes
+  case size
+    when 'button-small'
+      assign size_classes = 'px-5 min-h-8 text-xs/solid'
+      assign span_classes = 'gap-2'
+      assign absolute_classes = '-mx-5'
+    when 'button-medium'
+      assign size_classes = 'px-6 min-h-12 text-sm/solid'
+      assign span_classes = 'gap-2'
+      assign absolute_classes = '-mx-6'
+    when 'button-large'
+      assign size_classes = 'px-9 min-h-14 text-base/solid'
+      assign span_classes = 'gap-2'
+      assign absolute_classes = '-mx-9'
+  endcase
+
+  # Style classes
+  case style
+    when 'primary'
+      assign style_classes = 'bg-neutral-900 text-pure-white transition font-medium hover:opacity-80'
+    when 'secondary'
+      assign style_classes = 'bg-background2 font-medium transition border-(length:--border-secondary-width) border-outline text-body hover:brightness-95'
+    when 'ghost'
+      assign style_classes = 'text-body rounded-5 hover:bg-body/10'
+  endcase
+
+  # Content classes
+  if content == 'icon-only'
+    assign content_classes = 'icon-only'
+  endif
+
+  # State classes
+  assign state_classes = 'data-[state=loading]:pointer-events-none data-[state=success]:pointer-events-none data-[state=success]:text-background1 data-[state=success]:border-success [&:not(.link)]:data-[state=success]:bg-success [&:not(.link)]:hover:data-[state=success]:bg-success data-[state=error]:bg-alert data-[state=error]:text-background1 data-[state=error]:outline data-[state=error]:outline-1 data-[state=error]:outline-alert hover:data-[state=error]:outline-2'
+
+  # Combine all classes
+  assign all_classes = base_classes | append: ' ' | append: size_classes | append: ' ' | append: style_classes | append: ' ' | append: content_classes | append: ' ' | append: state_classes | append: ' ' | append: class | append: ' ' | append: content | append: ' ' | append: position
+%}
+
+<{{ tag }}
+    class="{{ all_classes }}"
+  {% if id %}id="{{ id }}"{% endif %}
+  {% if url or tag == 'a' %}href="{{ url }}"{% endif %}
+  {% if aria_label %}aria-label="{{ aria_label }}"{% elsif name %}aria-label="{{ name }}"{% endif %}
+  {% if type %}type='{{ type }}'{% endif %}
+  {% if name %}name="{{ name }}"{% endif %}
+  {{ properties }}
+  role="{{ role }}">
+
+    <span class="relative pointer-events-none flex items-center transition-opacity duration-500 delay-150 opacity-100 default-context whitespace-nowrap {{ span_classes }} [data-[state=loading]_&]:invisible [data-[state=loading]_&]:opacity-0 [data-[state=success]_&]:invisible [data-[state=success]_&]:opacity-0 [data-[state=error]_&]:invisible [data-[state=error]_&]:opacity-0">
+      {% if icon %}
+        {{ labelLeft }}
+        {% if content == 'icon-left' %}
+          {%- render 'a--icon' icon: icon class: icon_class size: icon_size -%}
+        {% endif %}
+        {{ label }}
+        {% if content == 'icon-right' %}
+          {%- render 'a--icon' icon: icon class: icon_class size: icon_size -%}
+        {% endif %}
+        {{ labelRight }}
+      {% else %}
+        {{ label }}
+      {% endif %}
+    </span>
+
+    {%- if states -%}
+      <span aria-hidden="true" class="absolute flex items-center opacity-0 transition-opacity gap-8 loading-context {% if content == 'icon-right' %}flex-row-reverse{% endif %} {{ absolute_classes }} [data-[state=loading]_&]:visible [data-[state=loading]_&]:opacity-100">
+        {%- unless content == 'icon-only' -%}
+          {{ loading_label }}
+        {%- endunless -%}
+        {%- render 'a--icon' icon: 'loading' class: 'animate-spin' size: icon_size -%}
+      </span>
+      <span aria-hidden="true" class="absolute flex items-center opacity-0 transition-opacity gap-8 success-context {% if content == 'icon-right' %}flex-row-reverse{% endif %} {{ absolute_classes }} [data-[state=success]_&]:visible [data-[state=success]_&]:opacity-100">
+        {%- unless content == 'icon-only' -%}
+          {{ success_label }}
+        {%- endunless -%}
+      </span>
+      <span aria-hidden="true" class="absolute flex items-center opacity-0 transition-opacity gap-8 error-context {% if content == 'icon-right' %}flex-row-reverse{% endif %} {{ absolute_classes }} [data-[state=error]_&]:visible [data-[state=error]_&]:opacity-100">
+        {%- unless content == 'icon-only' -%}
+          {{ error_label }}
+        {%- endunless -%}
+      </span>
+    {%- endif -%}
+</{{ tag }}>
+
+<style>
+  @keyframes rotating {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .button .loading-context svg {
+    animation: rotating 1s linear infinite;
+  }
+  .shopify-payment-button {
+    @apply h-12 cursor-pointer relative;
+  }
+  .shopify-payment-button__button:not(.shopify-payment-button__button--branded) {
+    @apply px-6 h-12 text-sm/solid cursor-pointer items-center rounded-xs justify-center transition bg-background2 text-body;
+    border: 1px solid oklch(var(--color-outline)) !important;
+  }
+  .shopify-payment-button__button:not(.shopify-payment-button__button--branded):hover {
+    @apply brightness-95 bg-background2! text-body!;
+  }
+  .shopify-payment-button__more-options {
+    @apply absolute w-auto mt-0.5! text-xs/tight!;
+  }
+</style>
+{% # theme-check-enable UnusedSnippet %}

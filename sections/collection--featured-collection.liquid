@@ -1,0 +1,84 @@
+{%- comment -%}
+  collection--featured-collection
+
+  Collection page variant for featured collection.
+
+  Uses metafield `custom.featured_collection` from the current collection
+  (Collection reference) when available, and falls back to section settings.
+{%- endcomment -%}
+
+{%- liquid
+  assign featured_collection = section.settings.collection
+
+  if collection != blank
+    assign featured_collection = collection.metafields.custom.featured_collection.value | default: collection.metafields.custom.featured_collection | default: section.settings.collection
+  endif
+
+  assign featured_title = section.settings.title | default: featured_collection.title | default: ''
+  assign slider_id = 'featured-collection-' | append: section.id
+-%}
+
+{%- if featured_collection != blank -%}
+  {%- capture feed -%}
+    {%- for product in featured_collection.products limit: 12 -%}
+      {%- render 'm--product-card', card_product: product, class: 'shrink-0 min-w-0 block snap-start', forloop_index: forloop.index, sm_cols: 2, md_cols: 2, lg_cols: 4 -%}
+    {%- endfor -%}
+  {%- endcapture -%}
+  {%- if feed != blank -%}{%- endif -%}
+
+  <section class="py-s-base" aria-label="{{ featured_title | default: 'Featured collection' | escape }}">
+    <div class="flex flex-col gap-y-b-lg">
+      {%- if featured_title != blank -%}
+        <h2 class="h1 px-s-whole">
+          {{ featured_title }}
+        </h2>
+      {%- endif -%}
+
+      {%- render 'm--electric-slider',
+        id: slider_id,
+        feed: feed,
+        per_row_mobile: 2.1,
+        per_row_tablet: 4,
+        per_row_desktop: 4.3,
+        gap: 'grid-gutter-base',
+        bar: true,
+        type: 'bottom',
+        slider_class: 'gap-y-b-lg',
+        feed_class: 'order-1 px-s-whole scroll-px-s-whole grid-gutter-base [&_>_*]:min-w-0',
+        slider_navigation_wrapper_class: 'order-2 px-s-whole! pt-b-base',
+        small: true
+      -%}
+    </div>
+  </section>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Featured collection",
+  "tag": "section",
+  "class": "full-spaced-section",
+  "settings": [
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Fallback collection",
+      "info": "Fallback only. This is used only when the current collection has no value in `custom.featured_collection`."
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "info": "Optional override. If empty, the section uses the featured collection title."
+    },
+    {
+      "type": "paragraph",
+      "content": "Primary source: current collection metafield `custom.featured_collection` (Collection reference). If empty, this section falls back to the setting above."
+    }
+  ],
+  "presets": [
+    {
+      "name": "Collection featured collection"
+    }
+  ]
+}
+{% endschema %}

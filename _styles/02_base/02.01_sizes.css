@@ -1,0 +1,367 @@
+@theme {
+  --column-span: 1;
+  --md-column-span: 1;
+  --lg-column-span: 1;
+
+  --breakpoint-lg: 60rem;
+  --container-lg: 60rem;
+
+  --height-b-xxs: --spacing(6);
+  --height-b-xs: --spacing(8);
+  --height-b-sm: --spacing(10);
+  --height-b-md: --spacing(12);
+  --height-b-lg: --spacing(14);
+  --height-b-xl: --spacing(16);
+  --height-b-2xl: --spacing(18);
+  --height-b-3xl: --spacing(20);
+
+  --height-xs: --spacing(80);
+  --height-sm: --spacing(96);
+  --height-md: --spacing(120);
+  --height-lg: --spacing(144);
+  --height-xl: --spacing(192);
+
+  --height-icon-xxs: --spacing(2);
+  --height-icon-xs: --spacing(3);
+  --height-icon-sm: --spacing(4);
+  --height-icon-base: --spacing(5);
+  --height-icon-lg: --spacing(6);
+  --height-icon-xl: --spacing(10);
+
+  --border-width-100: calc(1px / var(--rem-base, 16) * 1rem);
+  --border-width-200: calc(1.25px / var(--rem-base, 16) * 1rem);
+  --border-width-300: calc(1.5px / var(--rem-base, 16) * 1rem);
+  --border-width-400: calc(2.5px / var(--rem-base, 16) * 1rem);
+
+  --border-sm: var(--border-width-100);
+  --border-base: var(--border-width-200);
+  --border-lg: var(--border-width-300);
+  --border-xl: var(--border-width-400);
+
+  --stroke-sm: var(--border-width-100);
+  --stroke-base: var(--border-width-200);
+  --stroke-lg: var(--border-width-300);
+  --stroke-xl: var(--border-width-400);
+
+  --px-s-inner: --spacing(2);
+  --px-s-outer: --spacing(0);
+  --px-s-whole: --spacing(2);
+  --mx-s-outer: --spacing(2);
+
+  --px-b-xs: --spacing(2);
+  --px-b-sm: --spacing(3);
+  --px-b-base: --spacing(4);
+  --px-b-lg: --spacing(6);
+  --px-b-xl: --spacing(8);
+  --px-b-xxl: --spacing(12);
+
+  --py-s-xs: --spacing(8);
+  --py-s-sm: --spacing(16);
+  --py-s-base: --spacing(24);
+  --py-s-lg: --spacing(24);
+  --py-s-xl: --spacing(24);
+  --py-s-xxl: --spacing(24);
+
+  --py-b-xs: --spacing(2);
+  --py-b-sm: --spacing(3);
+  --py-b-base: --spacing(4);
+  --py-b-lg: --spacing(6);
+  --py-b-xl: --spacing(8);
+  --py-b-xxl: --spacing(12);
+
+  --gaps-y-s-xs: --spacing(4);
+  --gaps-y-s-sm: --spacing(6);
+  --gaps-y-s-base: --spacing(8);
+  --gaps-y-s-lg: --spacing(12);
+  --gaps-y-s-xl: --spacing(16);
+  --gaps-y-s-xxl: --spacing(24);
+
+  --gaps-x-s-xs: --spacing(4);
+  --gaps-x-s-sm: --spacing(6);
+  --gaps-x-s-base: --spacing(8);
+  --gaps-x-s-lg: --spacing(12);
+  --gaps-x-s-xl: --spacing(16);
+  --gaps-x-s-xxl: --spacing(24);
+
+  --gaps-y-b-xxs: --spacing(1.5);
+  --gaps-y-b-xs: --spacing(2);
+  --gaps-y-b-sm: --spacing(3);
+  --gaps-y-b-base: --spacing(4);
+  --gaps-y-b-lg: --spacing(6);
+  --gaps-y-b-xl: --spacing(8);
+  --gaps-y-b-xxl: --spacing(12);
+
+  --gaps-x-b-sm: --spacing(1);
+  --gaps-x-b-base: --spacing(2);
+  --gaps-x-b-lg: --spacing(3);
+  --gaps-x-b-xl: --spacing(4);
+
+  --max-w-base: --spacing(96);
+
+  --grid-columns-base: 4;
+  --grid-gutter-base: var(--gaps-x-b-base);
+  --grid-margin-base: var(--px-s-inner);
+
+  --grid-columns-wide: 2;
+  --grid-gutter-wide: var(--grid-gutter-base);
+  --grid-margin-wide: var(--px-s-inner);
+}
+
+/*
+  Ensure icon tokens exist on mobile/tablet.
+  Tailwind may prune @theme tokens that are only referenced via runtime var() usage (e.g. in `a--icon`).
+  These explicit :root assignments keep `--height-icon-*` available for scale-based SVG sizing.
+*/
+:root {
+  --height-icon-xxs: calc(var(--spacing) * 2);
+  --height-icon-xs: calc(var(--spacing) * 3);
+  --height-icon-sm: calc(var(--spacing) * 4);
+  --height-icon-base: calc(var(--spacing) * 5);
+  --height-icon-lg: calc(var(--spacing) * 6);
+  --height-icon-xl: calc(var(--spacing) * 10);
+}
+
+@media (width >= theme(--breakpoint-md)) {
+  :root {
+    --grid-columns-base: 6;
+  }
+}
+
+@media (width >= theme(--breakpoint-lg)) {
+  :root {
+    --height-b-xxs: --spacing(8);
+    --height-b-xs: --spacing(10);
+    --height-b-sm: --spacing(12);
+    --height-b-md: --spacing(14);
+    --height-b-lg: --spacing(16);
+    --height-b-xl: --spacing(18);
+    --height-b-2xl: --spacing(20);
+    --height-b-3xl: --spacing(24);
+
+    --border-width-100: calc(1.25px / var(--rem-base, 16) * 1rem);
+    --border-width-200: calc(1.5px / var(--rem-base, 16) * 1rem);
+    --border-width-300: calc(2px / var(--rem-base, 16) * 1rem);
+    --border-width-400: calc((3px / var(--rem-base, 16)) * 1rem);
+
+    --height-icon-xxs: --spacing(3);
+    --height-icon-xs: --spacing(4);
+    --height-icon-sm: --spacing(5);
+    --height-icon-base: --spacing(6);
+    --height-icon-lg: --spacing(8);
+    --height-icon-xl: --spacing(12);
+
+    --px-s-inner: --spacing(16);
+    --px-s-outer: --spacing(8);
+    --mx-s-outer: --spacing(8);
+    --px-s-whole: --spacing(24);
+
+    --px-b-xs: --spacing(3);
+    --px-b-sm: --spacing(4);
+    --px-b-base: --spacing(6);
+    --px-b-lg: --spacing(8);
+    --px-b-xl: --spacing(12);
+    --px-b-xxl: --spacing(16);
+
+    --py-s-xs: --spacing(8);
+    --py-s-sm: --spacing(24);
+    --py-s-base: --spacing(48);
+    --py-s-lg: --spacing(48);
+
+    --py-b-xs: --spacing(3);
+    --py-b-sm: --spacing(4);
+    --py-b-base: --spacing(6);
+    --py-b-lg: --spacing(8);
+    --py-b-xl: --spacing(12);
+    --py-b-xxl: --spacing(16);
+
+    --gaps-x-b-sm: --spacing(2);
+    --gaps-x-b-base: --spacing(3);
+    --gaps-x-b-lg: --spacing(4);
+    --gaps-x-b-xl: --spacing(6);
+
+    --gaps-y-b-xxs: --spacing(2);
+    --gaps-y-b-xs: --spacing(3);
+    --gaps-y-b-sm: --spacing(4);
+    --gaps-y-b-base: --spacing(6);
+    --gaps-y-b-lg: --spacing(8);
+    --gaps-y-b-xl: --spacing(12);
+    --gaps-y-b-xxl: --spacing(16);
+
+    --gaps-x-s-xs: --spacing(6);
+    --gaps-x-s-sm: --spacing(8);
+    --gaps-x-s-base: --spacing(12);
+    --gaps-x-s-lg: --spacing(16);
+    --gaps-x-s-xl: --spacing(24);
+
+    --gaps-y-s-xs: --spacing(6);
+    --gaps-y-s-sm: --spacing(8);
+    --gaps-y-s-base: --spacing(12);
+    --gaps-y-s-lg: --spacing(16);
+    --gaps-y-s-xl: --spacing(24);
+    --gaps-y-s-xxl: --spacing(24);
+
+    --max-w-base: --spacing(120)l;
+
+    --grid-columns-base: 12;
+    --grid-margin-base: var(--px-s-whole);
+
+    --grid-margin-wide: var(--px-s-outer);
+  }
+}
+
+@utility h-* {
+  height: --value(--height-*);
+}
+
+@utility stroke-* {
+  stroke-width: --value(--border-*);
+}
+
+@utility border-* {
+  border-width: --value(--border-*);
+}
+
+@utility my-* {
+  margin-block: --value(--gaps-y-*);
+}
+
+@utility mt-* {
+  margin-block-start: --value(--gaps-y-*);
+}
+
+@utility mb-* {
+  margin-block-end: --value(--gaps-y-*);
+}
+
+@utility mx-* {
+  margin-inline: --value(--mx-*);
+}
+
+@utility ml-* {
+  margin-inline-start: --value(--mx-*);
+}
+
+@utility mr-* {
+  margin-inline-end: --value(--mx-*);
+}
+
+@utility px-* {
+  padding-inline: --value(--px-*);
+}
+
+@utility pl-* {
+  padding-inline-start: --value(--px-*);
+}
+
+@utility pr-* {
+  padding-inline-end: --value(--px-*);
+}
+
+@utility scroll-px-* {
+  scroll-padding-inline: --value(--px-*);
+}
+
+@utility py-* {
+  padding-block: --value(--py-*);
+}
+
+@utility pb-* {
+  padding-block-end: --value(--py-*);
+}
+
+@utility pt-* {
+  padding-block-start: --value(--py-*);
+}
+
+@utility gap-x-* {
+  column-gap: --value(--gaps-x-*);
+}
+
+@utility space-y-* {
+  & > :not(:last-child) {
+    --tw-space-y-reverse: 0;
+    margin-block-start: calc(--value(--gaps-y-*) * var(--tw-space-y-reverse));
+    margin-block-end: calc(--value(--gaps-y-*) * calc(1 - var(--tw-space-y-reverse)));
+  }
+}
+
+@utility gap-y-* {
+  row-gap: --value(--gaps-y-*);
+}
+
+@utility icon-* {
+  width: --value(--icon-size-*);
+  height: --value(--icon-size-*);
+}
+
+@utility max-w-* {
+  max-width: --value(--max-w-*);
+}
+
+@utility grid-gutter-* {
+  column-gap: --value(--grid-gutter-*);
+}
+
+@utility grid-margin-* {
+  padding-inline: --value(--grid-margin-*);
+}
+
+@utility grid-base {
+  grid-template-columns: repeat(var(--grid-columns-base), minmax(0, 1fr));
+  column-gap: var(--grid-gutter-base);
+  padding-inline: var(--grid-margin-base);
+}
+
+@utility grid-wide {
+  grid-template-columns: repeat(var(--grid-columns-wide), minmax(0, 1fr));
+  column-gap: var(--grid-gutter-wide);
+  padding-inline: var(--grid-margin-wide);
+}
+
+@utility wrapper {
+  @apply !max-w-(--container-width) w-full mx-auto px-s-whole;
+}
+
+@utility container {
+  @apply !max-w-(--container-width) w-full mx-auto px-s-whole;
+}
+
+@utility w-column-basis {
+  /* needs --columns and --column-span values on the parent element */
+  /* first get the total width of the gaps */
+  --total-gap-mobile: calc(var(--gap) * (var(--columns) - 1));
+  --total-gap-tablet: calc(var(--gap) * (var(--md-columns) - 1));
+  --total-gap-desktop: calc(var(--gap) * (var(--lg-columns) - 1));
+
+  /* then substract the total gap from the total width to find the total width of the usable columns */
+  --total-width-without-gap-mobile: calc(100% - var(--total-gap-mobile));
+  --total-width-without-gap-tablet: calc(100% - var(--total-gap-tablet));
+  --total-width-without-gap-desktop: calc(100% - var(--total-gap-desktop));
+
+  /* find actual column width */
+  --column-width-mobile: calc(
+    var(--total-width-without-gap-mobile) / var(--columns)
+  );
+  --column-width-tablet: calc(
+    var(--total-width-without-gap-tablet) / var(--md-columns)
+  );
+  --column-width-desktop: calc(
+    var(--total-width-without-gap-desktop) / var(--lg-columns)
+  );
+
+  /* find the items width by multiplying it with columns and add the gap in between */
+  --width-mobile: calc(
+    var(--column-width-mobile) * var(--column-span) + (var(--column-span) - 1) *
+      var(--gap)
+  );
+  --width-tablet: calc(
+    var(--column-width-tablet) * var(--md-column-span) +
+      (var(--md-column-span) - 1) * var(--gap)
+  );
+  --width-desktop: calc(
+    var(--column-width-desktop) * var(--lg-column-span) +
+      (var(--lg-column-span) - 1) * var(--gap)
+  );
+
+  @apply w-(--width-mobile) md:w-(--width-tablet) lg:w-(--width-desktop);
+}

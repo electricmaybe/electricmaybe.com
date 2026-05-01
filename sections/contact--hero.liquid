@@ -1,0 +1,211 @@
+{%- liquid
+  assign overlay_header_active = false
+  if section.settings.overlay_header and section.index == 1
+    assign overlay_header_active = true
+  endif
+-%}
+
+{%- capture content -%}
+  {%- render 'm--contact-hero',
+    title: section.settings.contact_title,
+    description: section.settings.contact_description
+  -%}
+{%- endcapture -%}
+
+{%- capture banner_footer -%}
+  {%- for block in section.blocks -%}
+    {%- if block.type != 'contact_info' -%}
+      {%- continue -%}
+    {%- endif -%}
+    <div class="contact-info contact-info--on-banner hidden lg:flex w-full text-on-accent items-center self-stretch mt-auto px-s-outer pb-0">
+      <div class="px-s-inner py-s-xs w-full">
+        <div class="flex flex-col gap-y-s-sm w-full text-left" {{ block.shopify_attributes }}>
+          {%- if block.settings.contact_info_title != blank -%}
+            <p class="h3 text-on-accent">
+              {{ block.settings.contact_info_title | escape }}
+            </p>
+          {%- endif -%}
+          <div class="flex w-full items-center gap-x-s-base">
+            {%- if block.settings.contact_info_primary != blank -%}
+              <div class="flex-1 lg:flex-none lg:basis-1/3 text-ui-base leading-[1.2] text-on-accent [&_p]:m-0">
+                {{ block.settings.contact_info_primary }}
+              </div>
+            {%- endif -%}
+            <span class="w-px self-stretch bg-subtle"></span>
+            {%- if block.settings.contact_info_secondary != blank -%}
+              <div class="flex-1 text-ui-base leading-[1.2] text-on-accent [&_p]:m-0">
+                {{ block.settings.contact_info_secondary }}
+              </div>
+            {%- endif -%}
+          </div>
+        </div>
+      </div>
+    </div>
+  {%- endfor -%}
+{%- endcapture -%}
+
+{%- capture below_content -%}
+  {%- for block in section.blocks -%}
+    {%- if block.type != 'contact_info' -%}
+      {%- continue -%}
+    {%- endif -%}
+    <div class="contact-info contact-info--below w-full px-s-outer lg:hidden">
+      <div class="px-s-inner py-s-xs">
+        <div class="flex flex-col gap-y-s-xs w-full text-left" {{ block.shopify_attributes }}>
+          {%- if block.settings.contact_info_title != blank -%}
+            <p class="h3 text-primary">
+              {{ block.settings.contact_info_title | escape }}
+            </p>
+          {%- endif -%}
+          {%- if block.settings.contact_info_primary != blank -%}
+            <div class="text-ui-base leading-[1.2] text-primary [&_p]:m-0">
+              {{ block.settings.contact_info_primary }}
+            </div>
+          {%- endif -%}
+          <span class="h-px w-full border-b border-secondary"></span>
+          {%- if block.settings.contact_info_secondary != blank -%}
+            <div class="text-ui-base leading-[1.2] text-primary [&_p]:m-0">
+              {{ block.settings.contact_info_secondary }}
+            </div>
+          {%- endif -%}
+        </div>
+      </div>
+    </div>
+  {%- endfor -%}
+{%- endcapture -%}
+
+{%- render 'm--hero-wrapper',
+  section: section,
+  content: content,
+  banner_footer: banner_footer,
+  below_content: below_content,
+  overlay_header_active: overlay_header_active
+-%}
+
+{% schema %}
+{
+  "name": "Contact hero",
+  "tag": "section",
+  "class": "section-contact-hero",
+  "settings": [
+    { "type": "checkbox", "id": "overlay_header", "label": "Overlay header", "default": true },
+    { "type": "text", "id": "contact_title", "label": "Title", "default": "Contact Voldt." },
+    { "type": "richtext", "id": "contact_description", "label": "Description" },
+    {
+      "type": "select",
+      "id": "height",
+      "label": "Height mobile",
+      "default": "h-128",
+      "options": [
+        { "value": "h-auto", "label": "Auto" },
+        { "value": "h-64", "label": "XS" },
+        { "value": "h-96", "label": "S" },
+        { "value": "h-128", "label": "M" },
+        { "value": "h-160", "label": "L" },
+        { "value": "h-screen", "label": "Screen" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "height_md",
+      "label": "Height tablet",
+      "default": "md:h-128",
+      "options": [
+        { "value": "md:h-auto", "label": "Auto" },
+        { "value": "md:h-64", "label": "XS" },
+        { "value": "md:h-80", "label": "S" },
+        { "value": "md:h-128", "label": "M" },
+        { "value": "md:h-160", "label": "L" },
+        { "value": "md:h-screen", "label": "Screen" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "height_lg",
+      "label": "Height desktop",
+      "default": "lg:h-[48vw]",
+      "options": [
+        { "value": "lg:h-auto", "label": "Auto" },
+        { "value": "lg:h-[24vw]", "label": "S" },
+        { "value": "lg:h-[32vw]", "label": "M" },
+        { "value": "lg:h-[48vw]", "label": "L" },
+        { "value": "lg:h-screen", "label": "Screen" }
+      ]
+    },
+    { "type": "image_picker", "id": "image_mobile", "label": "Mobile image" },
+    { "type": "image_picker", "id": "image_tablet", "label": "Tablet image" },
+    { "type": "image_picker", "id": "image_desktop", "label": "Desktop image" },
+    {
+      "type": "select",
+      "id": "position_mobile",
+      "label": "Position mobile",
+      "default": "items-start justify-start text-left",
+      "options": [
+        { "value": "items-start justify-start text-left", "label": "Top Left" },
+        { "value": "items-start justify-center text-center", "label": "Top Center" },
+        { "value": "items-start justify-end text-right", "label": "Top Right" },
+        { "value": "items-center justify-start text-left", "label": "Middle Left" },
+        { "value": "items-center justify-center text-center", "label": "Middle Center" },
+        { "value": "items-center justify-end text-right", "label": "Middle Right" },
+        { "value": "items-end justify-start text-left", "label": "Bottom Left" },
+        { "value": "items-end justify-center text-center", "label": "Bottom Center" },
+        { "value": "items-end justify-end text-right", "label": "Bottom Right" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "position_tablet",
+      "label": "Position tablet",
+      "default": "md:items-center md:justify-center md:text-center",
+      "options": [
+        { "value": "md:items-start md:justify-start md:text-left", "label": "Top Left" },
+        { "value": "md:items-start md:justify-center md:text-center", "label": "Top Center" },
+        { "value": "md:items-start md:justify-end md:text-right", "label": "Top Right" },
+        { "value": "md:items-center md:justify-start md:text-left", "label": "Middle Left" },
+        { "value": "md:items-center md:justify-center md:text-center", "label": "Middle Center" },
+        { "value": "md:items-center md:justify-end md:text-right", "label": "Middle Right" },
+        { "value": "md:items-end md:justify-start md:text-left", "label": "Bottom Left" },
+        { "value": "md:items-end md:justify-center md:text-center", "label": "Bottom Center" },
+        { "value": "md:items-end md:justify-end md:text-right", "label": "Bottom Right" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "position_desktop",
+      "label": "Position desktop",
+      "default": "lg:items-start lg:justify-start lg:text-left",
+      "options": [
+        { "value": "lg:items-start lg:justify-start lg:text-left", "label": "Top Left" },
+        { "value": "lg:items-start lg:justify-center lg:text-center", "label": "Top Center" },
+        { "value": "lg:items-start lg:justify-end lg:text-right", "label": "Top Right" },
+        { "value": "lg:items-center lg:justify-start lg:text-left", "label": "Middle Left" },
+        { "value": "lg:items-center lg:justify-center lg:text-center", "label": "Middle Center" },
+        { "value": "lg:items-center lg:justify-end lg:text-right", "label": "Middle Right" },
+        { "value": "lg:items-end lg:justify-start lg:text-left", "label": "Bottom Left" },
+        { "value": "lg:items-end lg:justify-center lg:text-center", "label": "Bottom Center" },
+        { "value": "lg:items-end lg:justify-end lg:text-right", "label": "Bottom Right" }
+      ]
+    },
+    { "type": "color", "id": "overlay_color", "label": "Overlay color", "default": "#000000" },
+    { "type": "range", "id": "overlay_opacity", "label": "Overlay opacity", "min": 0, "max": 100, "step": 5, "default": 30, "unit": "%" },
+    { "type": "range", "id": "overlay_blur", "label": "Overlay blur", "min": 0, "max": 10, "step": 1, "default": 0, "unit": "px" }
+  ],
+  "blocks": [
+    {
+      "type": "contact_info",
+      "name": "Contact Info",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "contact_info_title", "label": "Detail title", "default": "Contact Information" },
+        { "type": "richtext", "id": "contact_info_primary", "label": "Details (left)" },
+        { "type": "richtext", "id": "contact_info_secondary", "label": "Details (right)" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Contact hero"
+    }
+  ]
+}
+{% endschema %}

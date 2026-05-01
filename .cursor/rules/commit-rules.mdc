@@ -1,0 +1,286 @@
+---
+description: Git commit conventions for Shopify theme projects (type + description)
+globs:
+  - "**/*"
+alwaysApply: false
+---
+# Commit Rules for Shopify Theme Projects
+
+## Commit Convention
+
+Follow conventional commit format for all commits:
+
+```
+<type>: <description>
+```
+
+## Commit Types
+
+### `fix:` - Bug Fixes
+- Fixes for broken functionality
+- Bug patches and error corrections
+- Performance fixes
+
+**Examples:**
+```
+fix: modal close button not working
+fix: cart total calculation error
+fix: mobile navigation menu overlap
+```
+
+### `feat:` - New Features
+- New functionality additions
+- Feature implementations
+- New components or sections
+
+**Examples:**
+```
+feat: add product quick view functionality
+feat: implement infinite scroll for collections
+feat: add newsletter signup modal
+```
+
+### `refactor:` - Code Refactoring
+- Code restructuring without changing functionality
+- Performance improvements
+- Code cleanup and optimization
+
+**Examples:**
+```
+refactor: optimize product card rendering
+refactor: restructure JavaScript build system
+refactor: improve web component lifecycle management
+```
+
+### `style:` - UI/Styling Changes
+- Visual design updates
+- CSS/styling modifications
+- Layout adjustments
+
+**Examples:**
+```
+style: update button hover states
+style: improve mobile responsive design
+style: adjust typography spacing
+```
+
+### `remove:` - Code Removal
+- Removing unused code
+- Deleting deprecated features
+- Cleaning up legacy code
+
+**Examples:**
+```
+remove: unused JavaScript functions
+remove: deprecated Liquid snippets
+remove: old CSS classes
+```
+
+### `wip:` - Work in Progress
+- Incomplete features
+- Experimental code
+- Development in progress
+- Temporary implementations
+
+**Examples:**
+```
+wip: product quick view modal (incomplete)
+wip: experimental infinite scroll implementation
+wip: temporary mobile navigation solution
+```
+
+### `docs:` - Documentation
+- README updates
+- Code documentation
+- Comment additions
+- Documentation improvements
+
+**Examples:**
+```
+docs: update installation instructions
+docs: add component usage examples
+docs: improve code comments
+```
+
+### `ai:` - AI Rules & Automation
+- AI-generated code improvements
+- Automated refactoring
+- Code optimization rules
+- AI-assisted development
+
+**Examples:**
+```
+ai: implement automated code formatting rules
+ai: optimize web component performance with AI suggestions
+ai: add intelligent error handling patterns
+```
+
+### `chore:` - Maintenance Tasks
+- Build system updates
+- Configuration changes
+- Dependency management
+- Development tool updates
+
+**Examples:**
+```
+chore: update Tailwind CSS to v4
+chore: add new npm scripts
+chore: update Shopify CLI version
+```
+
+### `upgrade:` - Dependencies
+- Package updates
+- Version upgrades
+- Security patches
+
+**Examples:**
+```
+upgrade: update Shopify CLI to latest version
+upgrade: bump Tailwind CSS dependencies
+upgrade: security patch for npm packages
+```
+
+## Commit Message Guidelines
+
+### Description Format
+- Use imperative mood ("add" not "added")
+- Keep descriptions concise but descriptive
+- Start with lowercase letter
+- No period at the end
+
+### Good Examples
+```
+fix: resolve cart total calculation error
+feat: implement product quick view modal
+refactor: optimize web component performance
+style: improve mobile navigation layout
+```
+
+### Bad Examples
+```
+fix: fixed the bug
+feat: Added new feature
+refactor: Refactored code for better performance.
+style: Updated styling
+```
+
+## Multi-line Commit Messages
+
+For complex changes, use multi-line format:
+
+```
+fix: resolve cart total calculation error
+
+- Fix floating point precision issues
+- Add proper error handling for invalid prices
+- Update cart API response validation
+
+Closes #123
+```
+
+## Breaking Changes
+
+For breaking changes, use `!` after the type and include migration notes:
+
+```
+refactor!: restructure web component API
+
+BREAKING CHANGE: Component initialization now requires config object
+Migration: Update component calls to use new API format
+
+- Old: new MyComponent()
+- New: new MyComponent({ config: {} })
+```
+
+## Scope (Optional)
+
+You can add scope to specify the area of change:
+
+```
+fix(web-components): resolve event listener memory leak
+feat(sections): add new product grid layout
+style(header): improve mobile navigation
+```
+
+## File-specific Commits
+
+When committing changes to specific file types, include context:
+
+```
+fix(liquid): resolve template rendering error in product page
+feat(js): add new utility functions for DOM manipulation
+style(css): update button component styling
+```
+
+## Commit Frequency
+
+- Commit frequently with small, focused changes
+- Each commit should represent a single logical change
+- Avoid large commits with multiple unrelated changes
+- Use feature branches for complex changes
+
+## Pre-commit Checklist
+
+Before committing, ensure:
+- [ ] Code follows project standards
+- [ ] All tests pass (if applicable)
+- [ ] No console errors in browser
+- [ ] Responsive design works on all breakpoints
+- [ ] Accessibility requirements met
+- [ ] Performance impact considered
+
+## Branch Naming
+
+Use descriptive branch names:
+- `feature/product-quick-view`
+- `fix/cart-calculation-bug`
+- `refactor/web-components`
+- `style/mobile-navigation`
+
+## Pull Request Guidelines
+
+When creating pull requests:
+- Use descriptive titles
+- Include detailed descriptions
+- Reference related issues
+- Add screenshots for UI changes
+- Test on multiple devices/browsers
+
+## Examples by Category
+
+### Web Components
+```
+fix: resolve web component memory leak in disconnectedCallback
+feat: add new electric-slider component with touch support
+refactor: optimize web component event handling
+```
+
+### Shopify Sections
+```
+fix: resolve section rendering error in collection page
+feat: add new product recommendations section
+style: improve section spacing and layout
+```
+
+### JavaScript
+```
+fix: resolve async/await error in cart API
+feat: add utility functions for DOM manipulation
+refactor: optimize JavaScript build system
+```
+
+### CSS/Styling
+```
+style: update button component design system
+style: improve mobile responsive breakpoints
+style: add new color palette variables
+```
+
+### Liquid Templates
+```
+fix: resolve Liquid syntax error in product template
+feat: add new product variant selector
+refactor: optimize Liquid template performance
+```
+
+This commit convention ensures clear, consistent, and informative commit messages that help track project progress and facilitate collaboration.

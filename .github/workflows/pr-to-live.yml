@@ -1,0 +1,145 @@
+# climaybe — PR to Live (Multi-store)
+# After stores-to-root completes on a staging-* branch,
+# opens a PR from staging-<alias> to live-<alias>.
+
+name: PR to Live
+
+on:
+  workflow_run:
+    workflows: ["Stores to Root"]
+    types: [completed]
+    branches:
+      - 'staging-*'
+  workflow_dispatch:
+
+jobs:
+  create-pr:
+    # Run on successful Stores to Root completion, or explicit dispatch.
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      SHOPIFY_THEME_ACCESS_TOKEN: ${{ secrets.SHOPIFY_THEME_ACCESS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract store alias
+        id: alias
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            BRANCH="${{ github.ref_name }}"
+          else
+            BRANCH="${{ github.event.workflow_run.head_branch }}"
+          fi
+
+          if [[ "$BRANCH" != staging-* ]]; then
+            echo "Branch $BRANCH is not a staging-* branch, skipping."
+            exit 0
+          fi
+
+          ALIAS="${BRANCH#staging-}"
+          ALIAS_SECRET=$(echo "$ALIAS" | tr '[:lower:]-' '[:upper:]_')
+          echo "alias=$ALIAS" >> $GITHUB_OUTPUT
+          echo "alias_secret=$ALIAS_SECRET" >> $GITHUB_OUTPUT
+          echo "staging_branch=$BRANCH" >> $GITHUB_OUTPUT
+          echo "live_branch=live-${ALIAS}" >> $GITHUB_OUTPUT
+
+      - name: Resolve store domain from climaybe.config.json
+        id: store
+        env:
+          SHOPIFY_STORE_URL_SCOPED: ${{ secrets[format('SHOPIFY_STORE_URL_{0}', steps.alias.outputs.alias_secret)] }}
+          SHOPIFY_STORE_URL_DEFAULT: ${{ secrets.SHOPIFY_STORE_URL }}
+        run: |
+          ALIAS="${{ steps.alias.outputs.alias }}"
+          DOMAIN_CONFIG=$(node -e "
+            const fs = require('fs');
+            const cfg = JSON.parse(fs.readFileSync('./climaybe.config.json', 'utf8'));
+            const domain = cfg?.stores?.['${ALIAS}'] || '';
+            process.stdout.write(domain);
+          ")
+          DOMAIN="${SHOPIFY_STORE_URL_SCOPED:-}"
+          if [ -z "$DOMAIN" ]; then
+            DOMAIN="${SHOPIFY_STORE_URL_DEFAULT:-}"
+          fi
+          if [ -z "$DOMAIN" ]; then
+            DOMAIN="$DOMAIN_CONFIG"
+          fi
+          DOMAIN=$(echo "$DOMAIN" | sed -E 's#^https?://##; s#/.*$##')
+          echo "domain=$DOMAIN" >> $GITHUB_OUTPUT
+
+      - name: Create PR to live branch
+        env:
+          SHOPIFY_THEME_ACCESS_TOKEN_SCOPED: ${{ secrets[format('SHOPIFY_THEME_ACCESS_TOKEN_{0}', steps.alias.outputs.alias_secret)] }}
+          SHOPIFY_THEME_ACCESS_TOKEN_DEFAULT: ${{ secrets.SHOPIFY_THEME_ACCESS_TOKEN }}
+        run: |
+          STAGING="${{ steps.alias.outputs.staging_branch }}"
+          LIVE="${{ steps.alias.outputs.live_branch }}"
+          ALIAS="${{ steps.alias.outputs.alias }}"
+          DOMAIN="${{ steps.store.outputs.domain }}"
+          STAGING_THEME_ID=""
+          REPO_NAME="${GITHUB_REPOSITORY#*/}"
+          SHOPIFY_TOKEN="${SHOPIFY_THEME_ACCESS_TOKEN_SCOPED:-$SHOPIFY_THEME_ACCESS_TOKEN_DEFAULT}"
+
+          # Check if live branch exists
+          if ! git ls-remote --heads origin "$LIVE" | grep -q "$LIVE"; then
+            echo "Live branch $LIVE does not exist, skipping."
+            exit 0
+          fi
+
+          # Check for existing open PR
+          EXISTING_PR=$(gh pr list --base "$LIVE" --head "$STAGING" --state open --json number --jq '.[0].number' 2>/dev/null || echo "")
+
+          if [ -n "$EXISTING_PR" ]; then
+            echo "PR #$EXISTING_PR already open for $STAGING → $LIVE"
+            exit 0
+          fi
+
+          # Create PR
+          BODY=$(printf "Deployment PR for **%s** store.\n\nReview the changes and merge to deploy." "$ALIAS")
+
+          if [ -n "$DOMAIN" ]; then
+            # Try to resolve a staging/non-live theme ID for this store.
+            if [ -n "$SHOPIFY_TOKEN" ]; then
+              if ! command -v shopify >/dev/null 2>&1; then
+                npm install -g @shopify/cli @shopify/theme >/dev/null 2>&1 || true
+              fi
+
+              THEME_JSON=$(shopify theme list \
+                --store "$DOMAIN" \
+                --password "$SHOPIFY_TOKEN" \
+                --json 2>/dev/null || echo "[]")
+
+              STAGING_THEME_ID=$(echo "$THEME_JSON" | jq -r '
+                # Prefer exact branch theme naming: "<repo>/<staging-branch>"
+                (map(select(.role != "main" and .name == ($repo + "/" + $branch)))[0].id)
+                # Fallback: branch suffix match (still branch-specific)
+                // (map(select(.role != "main" and (.name | endswith("/" + $branch))))[0].id)
+                // empty
+              ' --arg repo "$REPO_NAME" --arg branch "$STAGING")
+            fi
+
+            if [ -n "$STAGING_THEME_ID" ]; then
+              PREVIEW_URL="https://${DOMAIN}?preview_theme_id=${STAGING_THEME_ID}"
+              CUSTOMIZE_URL="https://${DOMAIN}/admin/themes/${STAGING_THEME_ID}/editor"
+              BODY="${BODY}"$'\n\n'"**Customize URL (Staging Theme):** ${CUSTOMIZE_URL}"$'\n'"**Preview URL (Staging Theme):** ${PREVIEW_URL}"
+            else
+              BODY="${BODY}"$'\n\n'"⚠️ Staging theme link not found for branch \`${STAGING}\`."$'\n'"Expected naming: \`${REPO_NAME}/${STAGING}\` (or suffix match \`/${STAGING}\`)."
+            fi
+          fi
+
+          BODY="${BODY}"$'\n\n'"*Generated by climaybe*"
+
+          PR_URL=$(gh pr create \
+            --base "$LIVE" \
+            --head "$STAGING" \
+            --title "Deploy to ${ALIAS}" \
+            --body "$BODY" 2>/dev/null || echo "")
+
+          if [ -n "$PR_URL" ]; then
+            echo "Created PR: $PR_URL"
+          else
+            echo "No changes to deploy for $ALIAS or PR creation failed."
+          fi

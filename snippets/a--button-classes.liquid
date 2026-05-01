@@ -1,0 +1,70 @@
+{%- doc -%}
+Outputs the Tailwind class string for the button component. Used by a--button-new; not intended for direct use in sections.
+
+Builds base, size, layout, and style classes. Size variants (sm, base, lg) are single-scale only (no responsive md:/lg:). Icon-only uses aspect-square and size-specific height/border; text and icon-with-text get padding and typography. Layout 'right' uses flex-row-reverse; 'justified' uses justify-between and overrides horizontal padding.
+
+@param {string} [size] - 'sm', 'base', 'lg' (default: 'base')
+@param {string} [style] - 'primary', 'secondary' (default: 'primary')
+@param {string} [content] - 'text-only', 'icon-with-text', 'icon-only' (default: 'text-only')
+@param {string} [layout] - 'left', 'right', 'justified' (default: 'left')
+
+@example
+{% render 'a--button-classes', size: 'lg', style: 'primary', content: 'icon-with-text', layout: 'left' %}
+{%- enddoc -%}
+{%- liquid
+  assign size = size | default: 'base'
+  assign style = style | default: 'primary'
+  assign content = content | default: 'text-only'
+  assign layout = layout | default: 'left'
+
+  assign base = 'button inline-flex focus:ring-0 items-center justify-center cursor-pointer transition-opacity rounded-full'
+
+  comment
+    Common to all
+  endcomment
+  if content == 'icon-only'
+    assign size_classes =  'aspect-square px-0'
+    if size == 'sm'
+      assign size_classes = size_classes | append: ' h-b-xs border-base'
+    elsif size == 'base'
+      assign size_classes = size_classes | append: ' h-b-md border-base'
+    elsif size == 'lg'
+      assign size_classes = size_classes | append: ' h-b-lg border-lg'
+    endif
+  else
+    assign size_classes = size_classes | append: ' gap-x-b-base'
+    if size == 'sm'
+      assign size_classes = size_classes | append: ' h-b-xs px-b-base text-ui-small border-sm'
+    elsif size == 'base'
+      assign size_classes = size_classes | append: ' h-b-md px-b-lg text-ui-base border-base'
+    else
+      assign size_classes = size_classes | append: ' h-b-lg px-b-xl text-lg border-base'
+    endif
+  endif
+
+  comment
+    Layout: justified uses px-justified (Figma: sm/base = px-b-base, lg = px-b-lg)
+  endcomment
+  assign layout_classes = ''
+  if content == 'icon-with-text' and layout == 'right'
+    assign layout_classes = '[&_>_div]:flex-row-reverse'
+  elsif content == 'icon-with-text' and layout == 'justified'
+    assign layout_classes = '[&_>_div]:flex-row-reverse [&_>_div]:justify-between w-full'
+    if size == 'lg'
+      assign layout_classes = layout_classes | append: ' !px-b-lg'
+    else
+      assign layout_classes = layout_classes | append: ' !px-b-base'
+    endif
+  endif
+
+  comment
+    Style: only what changes per variant
+  endcomment
+  assign style_classes = 'disabled:opacity-30'
+  if style == 'primary'
+    assign style_classes = style_classes | append: ' bg-accent text-on-accent border-(--background-color-accent) hover:opacity-80'
+  elsif style == 'secondary'
+    assign style_classes = style_classes | append: ' bg-transparent text-(--background-color-accent) border-(--background-color-accent) hover:opacity-70'
+  endif
+-%}
+{{ base }} {{ size_classes }} {{ layout_classes }} {{ style_classes }}

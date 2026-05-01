@@ -1,0 +1,81 @@
+---
+description: Electric Maybe Shopify Theme project overview and development standards
+globs:
+  - "**/*"
+alwaysApply: true
+---
+# Electric Maybe Shopify Theme Development Rules
+
+## Project Overview
+This is a professional Shopify theme project for Electric Maybe agency. All code must follow the highest standards for performance, accessibility, and maintainability.
+
+## JavaScript Development Standards
+
+All JavaScript code must follow the comprehensive standards defined in `javascript-standards.mdc`. 
+
+### Core Requirements
+- **Zero external dependencies** - Native browser APIs only
+- **Performance first** - Operations < 16ms
+- **Accessibility always** - WCAG 2.1 AA minimum
+- **Memory conscious** - Proper cleanup, no leaks
+- **Documentation complete** - JSDoc for all public APIs
+
+### Key Patterns
+- Private fields/methods with `#` syntax (never `_` or `private`)
+- AbortController for all event listeners
+- Try-catch boundaries around critical operations
+- RequestAnimationFrame for animations
+- Debounce/throttle for expensive operations
+- Custom events with typed detail objects
+
+### Reference Implementation
+Use `_scripts/electric-modal.js` as the gold standard for all web components.
+
+## Liquid Template Standards
+
+### Sections (sections/*.liquid)
+- Semantic HTML structure
+- ARIA attributes for accessibility
+- Performance-optimized asset loading
+- Responsive design patterns
+- Schema settings properly typed
+
+### Snippets (snippets/*.liquid)
+- Reusable and modular
+- Clear parameter documentation
+- DRY principles
+- Consistent naming conventions
+
+## CSS/Tailwind Standards
+- Mobile-first responsive design
+- Utility-first with Tailwind classes
+- Custom properties for theming
+- Performance-optimized animations
+- Print styles where appropriate
+
+## File Organization
+```
+_scripts/        # Web components and utilities
+assets/          # Compiled CSS/JS and static assets
+sections/        # Liquid section files
+snippets/        # Reusable Liquid snippets
+templates/       # Page templates
+locales/         # Translation files
+config/          # Theme settings
+```
+
+## Code Review Requirements
+All code must pass the checklist in `javascript-standards.mdc` before merge.
+
+## Browser Support
+- Chrome 74+ (for private class fields)
+- Firefox 90+
+- Safari 15+
+- Edge 79+
+
+## Performance Targets
+- Component initialization: < 16ms
+- Event handlers: < 8ms
+- Animation frames: 60fps
+- First Contentful Paint: < 1.5s
+- Time to Interactive: < 3.5s

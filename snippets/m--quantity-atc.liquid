@@ -1,0 +1,243 @@
+{%- liquid
+  # mode types
+  # qatc: quick add to cart when plus is clicked
+  # atc: same like qatc, just show add to cart text instead of plus
+  # qty: acts as a quantity input, add to cart button is separate on product--form
+  # link: acts as a link to the product page
+
+  unless product_form_id
+    assign product_form_id = 'product-form-' | append: section.id | append: block.id | append: product.id | append: identifier
+  endunless
+
+  assign quantity = 0
+  assign sold_out = false
+
+  # set mode if no mode is set
+  unless mode
+    if variant or lineItem
+      assign mode = 'qatc'
+    endif
+    if product and request.page_type != 'product'
+      if product.has_only_default_variant
+        assign mode = 'qatc'
+      else
+        assign mode = 'link'
+      endif
+    endif
+  endunless
+
+  # set mode to sold-out if variant or product is sold-out
+  if product.available == false
+    assign sold_out = true
+  elsif variant and variant.available == false
+    assign sold_out = true
+  elsif product and product.has_only_default_variant and product.selected_or_first_available_variant.available == false
+    assign sold_out = true
+  endif
+
+  # define id, product and quantity depending on the input
+  if lineItem
+    assign id = lineItem.id
+    assign product = lineItem.product
+
+    assign quantity = lineItem.quantity
+  elsif variant
+    assign id = variant.id
+    assign product = variant.product
+
+    assign quantity = 0
+    unless cart.empty? and mode != 'qatc'
+      assign quantity = cart.items | where: 'variant', variant | map: 'quantity' | first | default: 0
+    endunless
+  else
+    assign id = product.selected_or_first_available_variant.id
+    assign quantity = 0
+    unless cart.empty? and mode != 'qatc'
+      assign quantity = cart.items | where: 'variant', product.selected_or_first_available_variant | map: 'quantity' | first | default: 0
+    endunless
+  endif
+
+  unless variant
+    assign variant = lineItem.variant | default: product.selected_or_first_available_variant
+  endunless
+
+  # reset quantity if mode is not qatc
+  if mode != 'qatc'
+    assign quantity = 0
+  endif
+
+  if mode == 'qatc' and request.page_type == 'product'
+    assign mode = 'atc'
+  endif
+
+  if mode == 'qty'
+    assign quantity = variant.quantity_rule.min
+  endif
+-%}
+
+{% if sold_out and mode == 'qatc' or mode == 'atc' or mode == 'link' %}
+  <div class="px-2 py-1 text-center whitespace-nowrap rounded-full border pointer-events-none text-body border-secondary">
+    {{ 'products.product.sold_out' | t }}
+  </div>
+{% elsif mode == 'link' %}
+  {% assign modal_id = product_form_id | append: '-modal' %}
+  <button
+    data-modal-trigger="{{ modal_id }}"
+    data-modal-product-url="{{ product.url }}"
+    data-modal-product-title="{{ product.title | escape }}"
+    data-modal-vertical="{{ verticalModal | default: false }}"
+    aria-label="quick view modal"
+    class="p-2.5 -m-2.5 transition-transform duration-300 ease-in-out group-hover:-translate-y-1 focus:ring-0 focus:outline-0"
+  >
+    {%- render 'a--icon', width: '1rem', icon: 'plus' -%}
+  </button>
+
+  <!-- Modal content template -->
+  <template data-modal-content="{{ modal_id }}">
+    <div class="w-full max-h-[90vh] pb-2 relative overflow-scroll text-left bg-background2 {% unless verticalModal %}md:max-w-(--breakpoint-md) lg:max-w-(--breakpoint-lg){% endunless %}">
+      <div class="flex justify-between items-center p-4 bg-background1">
+        <div class="font-medium text-base/tight">{{ product.title }}</div>
+        {%- render 'a--button',
+          tag: 'button',
+          content: 'icon-only',
+          icon: 'close',
+          size: 'sm',
+          icon_class: 'h-3',
+          style: 'secondary',
+          aria_label: 'Close modal',
+          properties: 'data-modal-close'
+        -%}
+      </div>
+      <section-fetcher
+        {% if verticalModal %}
+          data-section-id="api--quick-view-vertical"
+        {% else %}
+          data-section-id="api--quick-view"
+        {% endif %}
+        data-url="{{ product.url }}"
+      >
+      </section-fetcher>
+    </div>
+  </template>
+{% else %}
+  <quantity-input
+    data-mode="{{ mode }}"
+    data-id="{{ id }}"
+    data-quantity="{{ quantity }}"
+    available="{{ variant.available }}"
+    class="block shrink-0 w-fit min-w-8 relative {% if mode == 'qatc' or mode == 'link' %}group-hover:-translate-y-1{% endif %} transition-transform duration-300 ease-in-out {% if mode == 'qty' %}h-full{% endif %}"
+  >
+    {%- render 'm--error-message', style: 'notification' -%}
+    <div role="status" class="hidden spinner absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-100">
+      <svg
+        aria-hidden="true"
+        class="w-6 h-6 text-secondary fill-dune-300"
+        viewBox="0 0 100 101"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+        <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+      </svg>
+      <span class="sr-only">{{ 'accessibility.loading' | t }}</span>
+    </div>
+    <label
+      class="sr-only"
+      for="Quantity-{{ product_form_id }}"
+    >
+      {{ 'products.product.quantity.label' | t }}
+    </label>
+    <div class="{% if mode == 'qty' %}rounded! h-full{% endif %} flex shrink-0 w-fit min-w-8 text-sm/solid overflow-hidden border border-secondary relative {% if vertical == true %}flex-col-reverse{% endif %}">
+      <button aria-label="minus" class="p-4 -m-1.5 focus:ring-0 focus:outline-0 cursor-pointer">
+        <span class="sr-only">
+          {{- 'products.product.quantity.decrease' | t: product: product.title | escape -}}
+        </span>
+        {% if mode == 'qty' %}
+          {%- render 'a--icon', width: '1rem', icon: 'minus' -%}
+        {% else %}
+          <span class="{% if vertical == true %}translate-y-0.5{% else %}translate-x-0.5{% endif %}">
+            {%- render 'a--icon', width: '1rem', icon: 'minus' -%}
+          </span>
+        {% endif %}
+      </button>
+      <button aria-label="delete" class="flex p-4 -m-1.5 focus:ring-0 focus:outline-0 cursor-pointer">
+        <span class="sr-only">
+          {{- 'products.product.quantity.delete' | t: product: product.title | escape -}}
+        </span>
+        {% if mode == 'qty' %}
+          {%- render 'a--icon', width: '1rem', icon: 'minus' -%}
+        {% else %}
+          <span class="block {% if vertical == true %}-translate-y-0.5{% else %}translate-x-0.5{% endif %}">
+            {%- render 'a--icon', width: '1rem', icon: 'minus' -%}
+          </span>
+        {% endif %}
+      </button>
+      <span
+        data-quantity-display
+        class="flex items-center justify-center w-4 h-auto py-2 pointer-events-none"
+      >
+        {% if mode == 'qty' %}
+          <input
+            id="Quantity-{{ product_form_id }}"
+            name="quantity"
+            class="w-full text-center"
+            data-min="{{ variant.quantity_rule.min }}"
+            min="{{ variant.quantity_rule.min }}"
+            {% if variant.quantity_rule.max != null %}
+              data-max="{{ variant.quantity_rule.max }}"
+              max="{{ variant.quantity_rule.max }}"
+            {% endif %}
+            step="{{ variant.quantity_rule.increment }}"
+            type="number"
+            value="{{ quantity }}"
+          >
+        {% else %}
+          {{- quantity -}}
+        {% endif %}
+      </span>
+      <button
+        aria-label="plus"
+        type="button"
+        class="flex p-4 -m-1.5 focus:ring-0 focus:outline-0 cursor-pointer"
+      >
+        <span class="sr-only">
+          {{- 'products.product.quantity.increase' | t: product: product.title | escape -}}
+        </span>
+        {% if mode == 'atc' %}
+          <span class="p-2.5 px-4 -m-2.5 transition add-to-cart">
+            <span class="flex gap-2 items-center transition-opacity hide-when-spinner">
+              {%- render 'a--icon', width: '1rem', icon: 'cart' -%}
+              <span class="font-medium whitespace-nowrap text-xs/solid">{{ 'products.product.add_to_cart' | t }}</span>
+            </span>
+          </span>
+        {% endif %}
+        {% if mode == 'qty' %}
+          {%- render 'a--icon', width: '1rem', icon: 'plus', class: 'h-full flex items-center' -%}
+        {% else %}
+          <span class="plus {% if quantity > 0 %}{% if vertical == true %}translate-y-0.5{% else %}-translate-x-0.5{% endif %}{% endif %}">
+            {%- render 'a--icon', width: '1rem', icon: 'plus' -%}
+          </span>
+        {% endif %}
+      </button>
+      {% unless mode == 'qty' %}
+        {%- form 'product',
+          product,
+          id: product_form_id,
+          class: 'form',
+          novalidate: 'novalidate',
+          data-type: 'add-to-cart-form'
+        -%}
+          <input
+            id="Quantity-{{ product_form_id }}"
+            class="hidden"
+            name="quantity"
+            min="0"
+            type="number"
+            value="{{ quantity }}"
+          >
+          <input id="variant-id-{{ product_form_id }}" type="hidden" name="id" value="{{ id }}">
+        {%- endform -%}
+      {% endunless %}
+    </div>
+  </quantity-input>
+{%- endif -%}

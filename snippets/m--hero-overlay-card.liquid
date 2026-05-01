@@ -1,0 +1,74 @@
+{%- doc -%}
+Overlay hero card for desktop hero compositions with image, copy, and optional CTA.
+
+This snippet renders the inline overlay cards used by model hero variants on large screens. It mirrors the current visual pattern from the legacy hero section while keeping the card markup reusable.
+
+@param {object} block - Hero card block object
+
+@example
+{% render 'm--hero-overlay-card', block: block %}
+{%- enddoc -%}
+
+{%- liquid
+  assign card_is_clickable = false
+  assign card_tag = 'div'
+  assign card_aria_label = block.settings.heading | strip_html | strip | default: block.settings.button_label | strip
+
+  if block.settings.button_label != blank and block.settings.button_url != blank
+    assign card_is_clickable = true
+    assign card_tag = 'a'
+  endif
+-%}
+
+<{{ card_tag }}
+  class="flex-1{% if card_is_clickable %} group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent{% endif %}"
+  {% if card_is_clickable %}
+    href="{{ block.settings.button_url }}"
+    aria-label="{{ card_aria_label | escape }}"
+  {% endif %}
+  {{ block.shopify_attributes }}
+>
+  <div class="flex flex-col lg:flex-row gap-b-base h-56 overflow-hidden px-0 relative">
+    <div class="flex flex-1 flex-col justify-end py-b-base relative z-10">
+      <div class="flex flex-col gap-y-b-base">
+        <div class="flex flex-col gap-y-b-xxs">
+          {%- if block.settings.heading != blank -%}
+            <h3 class="h4 text-on-accent flex items-center gap-x-b-sm">
+              {{- block.settings.heading -}}
+              <span class="w-6 h-6 md:w-6 md:h-6 lg:w-8 lg:h-8 shrink-0">
+                {%- render 'a--icon', icon: 'arrow-r-up', width: '32', class: 'w-full h-full text-on-accent' -%}
+              </span>
+            </h3>
+          {%- endif -%}
+
+          {%- if block.settings.description != blank -%}
+            <p class="text-ui-small text-on-accent/80">
+              {{- block.settings.description -}}
+            </p>
+          {%- endif -%}
+        </div>
+
+        {%- if block.settings.button_label != blank and block.settings.button_url != blank -%}
+          <span
+            class="{% render 'a--button-classes', style: 'primary', size: 'base', content: 'text-only' %} pointer-events-none"
+            aria-hidden="true"
+          >
+            {{- block.settings.button_label -}}
+          </span>
+        {%- endif -%}
+      </div>
+    </div>
+
+    {%- if block.settings.image != blank -%}
+      <div class="relative flex-1">
+        {%- render 'a--image-responsive',
+          image: block.settings.image,
+          picture_class: 'w-full h-full',
+          image_class: 'w-full h-full object-contain',
+          object_fit: 'object-contain',
+          crop: 'right'
+        -%}
+      </div>
+    {%- endif -%}
+  </div>
+</{{ card_tag }}>

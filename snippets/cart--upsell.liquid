@@ -1,0 +1,140 @@
+{%- liquid
+  assign productId = product.id
+  if cart != blank and cart.item_count > 0
+    assign productId = cart.items.first.product.id
+  endif
+
+  assign upsell_limit = 4
+  assign upsell_fetch_limit = 10
+  assign cart_product_ids = cart.items | map: 'product_id'
+  assign upsell_success_label = upsell_success_label | default: 'sections.cart.upsell_added' | t
+  assign upsell_error_label = upsell_error_label | default: 'sections.cart.upsell_error' | t
+  assign render_context = render_context | default: ''
+  assign recommendations_section_id = 'api--cart--upsell'
+  if render_context == 'drawer'
+    assign recommendations_section_id = 'api--cart--upsell-drawer'
+  endif
+  assign recommendations_url = routes.product_recommendations_url | append: '?section_id=' | append: recommendations_section_id | append: '&product_id=' | append: productId | append: '&intent=complementary&limit=' | append: upsell_fetch_limit
+  assign fallback_recommendations_url = routes.product_recommendations_url | append: '?section_id=' | append: recommendations_section_id | append: '&product_id=' | append: productId | append: '&intent=related&limit=' | append: upsell_fetch_limit
+-%}
+<related-products
+  data-url="{{ recommendations_url }}"
+  data-fallback-url="{{ fallback_recommendations_url }}"
+  data-eager="true"
+  data-min-count="1"
+  data-render-context="{{ render_context }}"
+  class="block"
+>
+  {%- if recommendations.performed and recommendations.products_count > 0 -%}
+    {%- capture upsell_cards -%}
+      {%- assign shown = 0 -%}
+      {%- for product in recommendations.products -%}
+        {%- if cart_product_ids contains product.id -%}
+          {%- continue -%}
+        {%- endif -%}
+
+        {%- assign shown = shown | plus: 1 -%}
+      {%- liquid
+        assign is_per_request = product.metafields.custom.is_per_request.value
+        assign price_text = product.price | money
+        assign price_class = 'text-secondary whitespace-nowrap'
+        assign label = 'products.product.add_to_cart' | t: product: product.title | escape
+        assign properties = 'data-add-to-cart-trigger data-product-id="' | append: product.id | append: '" data-variant-id="' | append: product.selected_or_first_available_variant.id | append: '"'
+
+        if is_per_request
+          assign price_text = 'products.product.price_on_request' | t
+          assign price_class = 'text-primary whitespace-nowrap'
+        endif
+      -%}
+        <div class="snap-start">
+          <div class="rounded-full border border-secondary flex flex-col gap-y-b-sm h-full min-w-0 px-b-xs py-b-xs">
+            <div class="flex items-center gap-x-b-base min-w-0">
+              <span class="rounded-full overflow-hidden shrink-0">
+              <img
+                src="{{ product.featured_image | image_url: width: 64 }}"
+                alt="{{ product.title | escape }}"
+                width="32"
+                height="32"
+                loading="lazy"
+                decoding="async"
+                class="w-8 h-8 object-contain -mix-blend-darken"
+              >
+              </span>
+              <div class="flex flex-col text-ui-small flex-1 min-w-0">
+                <span class="text-primary truncate">{{ product.title }}</span>
+                <span class="{{ price_class }}">
+                  {{ price_text }}
+                </span>
+              </div>
+              {% unless is_per_request %}
+                <product-card-atc class="shrink-0">
+                  {%- render 'a--button',
+                    tag: 'button',
+                    size: 'sm',
+                    content: 'icon-only',
+                    icon: 'plus',
+                    icon_class: 'w-[24px]! h-[24px]!',
+                    states: true,
+                    loading_label: 'spinner',
+                    success_label: upsell_success_label,
+                    error_label: upsell_error_label,
+                    aria_label: label,
+                    class: 'relative rounded-full w-[36px]! h-[36px]!',
+                    properties: properties
+                  -%}
+
+                  {%- assign identifier = 'accessory' | append: shown -%}
+                  {%- assign form_id = 'product-form-' | append: section.id | append: '-' | append: product.id | append: '-' | append: identifier -%}
+                  {%- form 'product',
+                    product,
+                    id: form_id,
+                    class: 'hidden',
+                    novalidate: 'novalidate',
+                    data-type: 'add-to-cart-form'
+                  -%}
+                    <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+                    <input type="hidden" name="quantity" value="1">
+                  {%- endform -%}
+                </product-card-atc>
+              {% endunless %}
+            </div>
+          </div>
+        </div>
+
+        {%- if shown >= upsell_limit -%}{%- break -%}{%- endif -%}
+      {%- endfor -%}
+    {%- endcapture -%}
+
+    {%- if upsell_cards != blank -%}
+      <div data-cart-upsell-content>
+      {%- liquid
+        assign upsell_desktop_columns = 4
+        if render_context == 'drawer'
+          assign upsell_desktop_columns = 2.05
+        endif
+      -%}
+      <div data-cart-upsell-slider class="{% if render_context == 'drawer' %}block{% else %}lg:hidden{% endif %}">
+        {%- render 'm--electric-slider',
+          id: 'cart-upsell',
+          feed: upsell_cards,
+          per_row_mobile: 2.05,
+          per_row_tablet: 2.05,
+          per_row_desktop: upsell_desktop_columns,
+          gap: 'gap-x-b-base',
+          bar: false,
+          nav: false,
+          type: 'none',
+          feed_class: 'scroll-px-s-whole px-s-whole [&_>_*]:w-[330px]!',
+          slider_class: 'w-full'
+        -%}
+      </div>
+
+      {%- unless render_context == 'drawer' -%}
+        <div data-cart-upsell-grid class="max-lg:hidden grid grid-cols-2 lg:grid-cols-4 gap-x-b-base gap-y-b-base">
+          {{ upsell_cards }}
+        </div>
+      {%- endunless -%}
+      </div>
+    {%- endif -%}
+  {%- endif -%}
+</related-products>

@@ -1,0 +1,30 @@
+<div 
+  class="px-s-whole py-s-base h2 md:grid md:grid-cols-3 gap-x-b-base"
+  style="--text: {{ section.settings.text_size }}rem; --text-md: {{ section.settings.text_size_md }}rem; --text-lg: {{ section.settings.text_size_lg }}rem"
+>
+  <span class="col-span-2">
+    {{ section.settings.body_text }}
+  </span>
+</div>
+
+{% schema %}
+{
+  "name": "Big text",
+  "tag": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "body_text",
+      "label": "Text"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Big text"
+    }
+  ]
+}
+{% endschema %}

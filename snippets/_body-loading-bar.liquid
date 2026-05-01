@@ -1,0 +1,22 @@
+{%- doc -%}
+Loading banner component that displays a thin progress bar at the top of the page.
+
+This component shows a floating progress bar that fills to 50% during page transitions and completes to 100% when the page is fully loaded. It provides visual feedback for page loading states without blocking the full screen.
+
+@param {string} [class] - Additional CSS classes for the loading bar container
+@param {string} [color] - Background color for the progress bar (defaults to 'bg-subtle')
+@param {number} [height] - Height of the loading bar in pixels (defaults to 8)
+@param {string} [target] - Target element to bind to (defaults to 'body')
+
+@example
+{% render '_body-loading-bar' %}
+
+{%- enddoc -%}
+
+<loading-banner
+  class="absolute top-0 left-0 h-1 w-full pointer-events-none"
+  data-color="bg-neutral-300"
+  data-target="{{ target }}"
+></loading-banner>
+
+<script src="{{ 'loading-banner.js' | asset_url }}" defer></script>

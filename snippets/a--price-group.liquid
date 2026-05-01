@@ -1,0 +1,83 @@
+{%- liquid
+  # Handle different price sources (product, variant, line item)
+  if line_item
+    assign target = line_item
+    if show_line_price
+      assign price = line_item.final_line_price
+      assign compare_at_price = line_item.variant.compare_at_price | times: line_item.quantity
+    else
+      assign price = line_item.final_price
+      assign compare_at_price = line_item.original_price
+    endif
+    assign available = true
+  elsif use_variant
+    assign target = product.selected_or_first_available_variant
+  else
+    unless price
+      assign target = target | default: product
+    endunless
+  endif
+
+  # Set price and compare at price
+  assign compare_at_price = compare_at_price | default: target.compare_at_price
+  assign price = price | default: target.price | default: 1999
+  assign available = available | default: target.available | default: false, allow_false: true
+  assign compare_at_price_class = ''
+  assign price_class = 'text-red font-medium'
+  assign is_per_request = false
+  assign request_label = 'products.product.price_on_request' | t
+  assign request_price_class = 'text-ui-small font-medium text-primary'
+
+  if line_item and line_item.product.metafields.custom.is_per_request.value
+    assign is_per_request = true
+  elsif product and product.metafields.custom.is_per_request.value
+    assign is_per_request = true
+  elsif target.product and target.product.metafields.custom.is_per_request.value
+    assign is_per_request = true
+  elsif target.metafields.custom.is_per_request.value
+    assign is_per_request = true
+  endif
+
+  case direction
+    when 'vertical'
+      assign wrapper_class = wrapper_class | append: ' flex flex-col gap-0.5 items-end'
+      assign request_price_class = 'text-ui-small font-medium text-primary text-right'
+    when 'vertical-mobile'
+      assign wrapper_class = wrapper_class | append: ' flex flex-col lg:flex-col gap-0.5 items-end'
+      assign request_price_class = 'text-ui-small font-medium text-primary text-right'
+    when 'vertical-reverse'
+      assign wrapper_class = wrapper_class | append: ' flex flex-col-reverse gap-0.5 items-end'
+      assign request_price_class = 'text-ui-small font-medium text-primary text-right'
+    when 'product-main'
+      assign wrapper_class = wrapper_class | append: ' flex flex-row-reverse gap-x-b-xl text-2xl'
+      assign compare_at_price_class = 'opacity-50'
+      assign price_class = 'text-red'
+      assign request_price_class = 'text-base lg:text-xl font-medium text-primary'
+      assign save_percentage = compare_at_price | minus: price | times: 100 | divided_by: compare_at_price | divided_by: 10.0 | ceil | times: 10
+      assign save_message = 'products.product.save_message' | t: save_amount: save_percentage
+    else
+      # horizontal
+      assign wrapper_class = wrapper_class | append: ' flex gap-3'
+  endcase
+-%}
+<!-- Main price component wrapper -->
+<div class="{{ wrapper_class }}" {% if direction == 'product-main' %}data-variant-dynamic="variant-price"{% endif %}>
+  {% if is_per_request %}
+    <div class="{{ request_price_class }}">{{ request_label }}</div>
+  {% elsif compare_at_price > price and hide_compare_price != true %}
+    <div class="{{ compare_at_price_class }}">
+      <s>{{ compare_at_price | money }}</s>
+      {% if direction == 'product-main' %}
+        <div class="text-ui-small font-medium no-underline">{{ 'products.product.traditional_retail' | t }}</div>
+      {% endif %}
+    </div>
+    <div class="{{ price_class }}">
+      {{ price | money }}
+      {% if direction == 'product-main' %}
+        <div class="text-ui-small font-medium text-primary hidden!">{{ save_message }}</div>
+      {% endif %}
+    </div>
+  {% else %}
+    {% if savings %}-{% endif %}{{ price | money }}
+  {% endif %}
+</div>

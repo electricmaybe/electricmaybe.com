@@ -1,0 +1,61 @@
+<cart-dynamic class="flex flex-col gap-y-b-xxs text-ui-base leading-[1.2]" data-section-id="api--cart--summary" {{ block.shopify_attributes }}>
+  {% comment %}
+    can also be updated on connect
+  {% endcomment %}
+  <div class="flex items-center justify-between">
+    {{ 'sections.cart.subtotal' | t }}
+    {%- render 'a--price-group', wrapper_class: '', size: 'large', price: cart.total_price -%}
+  </div>
+  {% if cart.cart_level_discount_applications.size > 0 %}
+    {% for discount_application in cart.cart_level_discount_applications %}
+      {% assign deduct = deduct | plus: discount_application.total_allocated_amount %}
+      <div class="flex items-center justify-between">
+        <div class="flex gap-2">
+          {{ 'general.cart.promotion' | t }}
+          <span class="px-0.5 flex gap-1 items-center text-xs uppercase font-medium">
+            {%- render 'a--icon', icon: 'label', width: '1rem' %}
+            <span class="translate-y-px">
+              {{ discount_application.title -}}
+            </span>
+          </span>
+        </div>
+        {%- render 'a--price-group',
+          wrapper_class: '',
+          size: 'large',
+          target: discount_application.total_allocated_amount,
+          savings: true
+        -%}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  {% if customer.store_credit_account.balance > 0 %}
+    {% assign deduct = deduct | plus: customer.store_credit_account.balance %}
+    <div class="flex items-center justify-between">
+      {{ 'sections.cart.store_credit' | t }}
+      {%- render 'a--price-group',
+        wrapper_class: '',
+        size: 'large',
+        price: customer.store_credit_account.balance,
+        savings: true
+      -%}
+    </div>
+  {% endif %}
+  <div class="flex items-center justify-between w-full">
+    {{ 'sections.cart.shipping' | t }}
+    <span>
+      {{ 'sections.cart.shipping_text' | t }}
+    </span>
+  </div>
+  <div class="flex items-center justify-between">
+    <span class="font-medium">{{ 'sections.cart.total' | t }}</span>
+    {% assign total = cart.total_price | minus: deduct %}
+    {% assign compare_at_price = cart.total_price | plus: total_savings %}
+    {%- render 'a--price-group',
+      wrapper_class: '',
+      size: 'large',
+      price: total,
+      compare_at_price: compare_at_price
+    -%}
+  </div>
+</cart-dynamic>

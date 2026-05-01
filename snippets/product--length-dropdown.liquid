@@ -1,0 +1,109 @@
+{%- doc -%}
+  Length dropdown for sticky bar. Shows available lengths for current variant; changing it syncs to the main form's length slider (same radios) so variant and main slider stay in sync.
+
+  @param {object} option - Length option object from product.options_with_values (required)
+  @param {string} name - Form name prefix, must match main length slider (e.g. 'name')
+  @param {string} product_form_id - Main product form ID (required)
+  @example
+  {% render 'product--length-dropdown', option: length_option, name: 'name', product_form_id: product_form_id %}
+{%- enddoc -%}
+{%- liquid
+  assign option = option | default: empty
+  assign name = name | default: 'name'
+  assign product_form_id = product_form_id | default: ''
+
+  unless option != empty and product_form_id != blank
+    break
+  endunless
+
+  assign length_option_index = option.position | minus: 1
+  assign current_variant = product.selected_or_first_available_variant
+
+  assign selected_options_excluding_length = ''
+  for opt in product.options_with_values
+    if forloop.index0 != length_option_index and current_variant.options[forloop.index0]
+      if selected_options_excluding_length == ''
+        assign selected_options_excluding_length = current_variant.options[forloop.index0]
+      else
+        assign selected_options_excluding_length = selected_options_excluding_length | append: '|||' | append: current_variant.options[forloop.index0]
+      endif
+    endif
+  endfor
+  assign selected_options_array = selected_options_excluding_length | split: '|||'
+
+  assign sortable_length_entries = ''
+  for value_obj in option.values
+    assign value_str = value_obj.value | default: value_obj
+    assign has_matching_variant = false
+
+    for variant in product.variants
+      assign variant_matches = true
+      assign selected_option_array_index = 0
+      for opt in product.options_with_values
+        if forloop.index0 == length_option_index
+          if variant.options[forloop.index0] != value_str
+            assign variant_matches = false
+            break
+          endif
+        else
+          assign selected_value = selected_options_array[selected_option_array_index]
+          if selected_value and variant.options[forloop.index0] != selected_value
+            assign variant_matches = false
+            break
+          endif
+          assign selected_option_array_index = selected_option_array_index | plus: 1
+        endif
+      endfor
+      if variant_matches
+        assign has_matching_variant = true
+      endif
+    endfor
+
+    if has_matching_variant
+      assign clean_value = value_str | replace: ' Meter', '' | replace: ' meter', '' | replace: 'm', '' | replace: 'M', '' | strip | times: 1
+      assign sort_key = clean_value | plus: 100000 | append: '' | slice: 1, 5
+      assign sortable_entry = sort_key | append: '::' | append: value_str
+      if sortable_length_entries == ''
+        assign sortable_length_entries = sortable_entry
+      else
+        assign sortable_length_entries = sortable_length_entries | append: '|||' | append: sortable_entry
+      endif
+    endif
+  endfor
+
+  assign sorted_length_entries = sortable_length_entries | split: '|||' | sort
+  assign filtered_option_values = ''
+  for sorted_entry in sorted_length_entries
+    assign entry_parts = sorted_entry | split: '::'
+    assign sorted_value = entry_parts[1]
+    if sorted_value != blank
+      if filtered_option_values == ''
+        assign filtered_option_values = sorted_value
+      else
+        assign filtered_option_values = filtered_option_values | append: '|||' | append: sorted_value
+      endif
+    endif
+  endfor
+
+  assign available_values = filtered_option_values | split: '|||'
+  assign selected_value = option.selected_value
+-%}
+<div class="sticky-length-dropdown flex items-center gap-2">
+  <label for="sticky-length-select" class="text-ui-small font-medium text-primary whitespace-nowrap">{{ option.name }}</label>
+  <select
+    id="sticky-length-select"
+    class="sticky-length-select border border-secondary rounded-md bg-surface text-primary text-ui-small py-2 pl-3 pr-8 min-w-20 focus:outline-none focus:border-primary"
+    data-length-dropdown
+    data-form-id="{{ product_form_id }}"
+    data-option-name="{{ option.name }}"
+    data-option-position="{{ option.position }}"
+    data-option-name-attr="{{ name }}"
+    aria-label="{{ option.name }}"
+  >
+    {%- for value in available_values -%}
+      <option value="{{ value | escape }}" {% if value == selected_value %}selected{% endif %}>
+        {{ value | replace: ' Meter', 'm' }}
+      </option>
+    {%- endfor -%}
+  </select>
+</div>

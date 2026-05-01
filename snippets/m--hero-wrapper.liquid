@@ -1,0 +1,450 @@
+{%- doc -%}
+Hero wrapper for image-based hero sections with shared media, overlay, positioning, and optional footer slots.
+
+This snippet centralizes the repeated hero shell used across the refactored hero sections. It renders the background media, overlay, shared content positioning, and optional banner/below slots while leaving the actual hero body to molecule snippets passed through the `content` variable.
+
+For height presets **M and below** (XS/S/M/Auto on each breakpoint), hero copy sits in normal flow with `min-height` on the media shell so tall content expands the section instead of clipping inside a fixed absolute box. **L** and **Screen** keep the full-bleed absolute overlay layout.
+
+@param {object} section - Section object providing settings and shopify attributes
+@param {string} [content] - Primary hero content markup rendered inside the media area
+@param {string} [banner_footer] - Optional banner footer rendered inside the hero media at the bottom
+@param {string} [below_content] - Optional content rendered below the hero media
+@param {string} [numbered_cards] - Optional numbered cards area rendered below the hero
+@param {string} [card_section] - Optional cards section rendered below the hero
+@param {string} [overlay_cards] - Optional overlay cards rendered on desktop inside the hero
+@param {boolean} [show_overlay_cards] - Enables desktop overlay cards and hides below cards on desktop
+@param {boolean} [overlay_header_active] - Enables overlay header styling when hero is first on the page
+
+@example
+{% render 'm--hero-wrapper',
+  section: section,
+  content: content
+%}
+
+@example
+{% render 'm--hero-wrapper',
+  section: section,
+  content: content,
+  banner_footer: banner_footer,
+  card_section: card_section,
+  overlay_cards: overlay_cards,
+  show_overlay_cards: show_overlay_cards,
+  overlay_header_active: overlay_header_active
+%}
+{%- enddoc -%}
+
+{%- liquid
+  assign s = section.settings
+  assign content = content | default: ''
+  assign banner_footer = banner_footer | default: ''
+  assign below_content = below_content | default: ''
+  assign numbered_cards = numbered_cards | default: ''
+  assign card_section = card_section | default: ''
+  assign overlay_cards = overlay_cards | default: ''
+  assign show_overlay_cards = show_overlay_cards | default: false
+  assign overlay_header_active = overlay_header_active | default: false
+
+  assign height_class = s.height | default: 'h-128'
+  assign height_md_class = s.height_md | default: 'md:h-128'
+  assign height_lg_class = s.height_lg | default: 'lg:h-[32vw]'
+
+  assign media_all_auto_height = false
+  if height_class == 'h-auto' and height_md_class == 'md:h-auto' and height_lg_class == 'lg:h-auto'
+    assign media_all_auto_height = true
+  endif
+
+  # M and below: in-flow content + min-height; L / screen stay absolute overlay.
+  assign hero_stack_sm = false
+  if height_class == 'h-auto' or height_class == 'h-64' or height_class == 'h-96' or height_class == 'h-128'
+    assign hero_stack_sm = true
+  endif
+
+  assign hero_stack_md = false
+  if height_md_class == 'md:h-auto' or height_md_class == 'md:h-64' or height_md_class == 'md:h-80' or height_md_class == 'md:h-128'
+    assign hero_stack_md = true
+  endif
+
+  assign hero_stack_lg = false
+  if height_lg_class == 'lg:h-auto' or height_lg_class == 'lg:h-[24vw]' or height_lg_class == 'lg:h-[32vw]'
+    assign hero_stack_lg = true
+  endif
+
+  if hero_stack_sm
+    case height_class
+      when 'h-64'
+        assign height_class_resolved = 'min-h-64'
+      when 'h-96'
+        assign height_class_resolved = 'min-h-96'
+      when 'h-128'
+        assign height_class_resolved = 'min-h-128'
+      when 'h-auto'
+        assign height_class_resolved = 'h-auto'
+      else
+        assign height_class_resolved = height_class
+    endcase
+  else
+    assign height_class_resolved = height_class
+  endif
+
+  if hero_stack_md
+    case height_md_class
+      when 'md:h-64'
+        assign height_md_class_resolved = 'md:min-h-64'
+      when 'md:h-80'
+        assign height_md_class_resolved = 'md:min-h-80'
+      when 'md:h-128'
+        assign height_md_class_resolved = 'md:min-h-128'
+      when 'md:h-auto'
+        assign height_md_class_resolved = 'md:h-auto'
+      else
+        assign height_md_class_resolved = height_md_class
+    endcase
+  else
+    assign height_md_class_resolved = height_md_class
+  endif
+
+  if hero_stack_lg
+    case height_lg_class
+      when 'lg:h-[24vw]'
+        assign height_lg_class_resolved = 'lg:min-h-[24vw]'
+      when 'lg:h-[32vw]'
+        assign height_lg_class_resolved = 'lg:min-h-[32vw]'
+      when 'lg:h-auto'
+        assign height_lg_class_resolved = 'lg:h-auto'
+      else
+        assign height_lg_class_resolved = height_lg_class
+    endcase
+  else
+    assign height_lg_class_resolved = height_lg_class
+  endif
+
+  assign media_height_class = height_class_resolved | append: ' ' | append: height_md_class_resolved | append: ' ' | append: height_lg_class_resolved
+
+  assign position_mobile = s.position_mobile | default: 'items-center justify-center text-center'
+  assign position_tablet = s.position_tablet | default: 'md:items-center md:justify-center md:text-center'
+  assign position_desktop = s.position_desktop | default: 'lg:items-center lg:justify-start lg:text-left'
+
+  assign overlay_color = s.overlay_color | default: '#000000'
+  assign overlay_opacity = s.overlay_opacity | default: 30 | divided_by: 100.0
+  assign overlay_blur = s.overlay_blur | default: 0
+
+  assign show_sm = s.show_sm | default: true, allow_false: true
+  assign show_md = s.show_md | default: true, allow_false: true
+  assign show_lg = s.show_lg | default: true, allow_false: true
+-%}
+
+{%- if overlay_header_active -%}
+  <style>
+    .shopify-section-group-header-group {
+      height: 0;
+      background: transparent;
+    }
+
+    header-element:not([data-threshold-passed="true"]):not(.menu-open):not([data-nav-open="true"]):not([data-menu-open="true"]):not(:hover):not(:focus-within) #Header {
+      background-color: transparent !important;
+    }
+
+    header-element[data-threshold-passed="true"] #Header,
+    header-element.menu-open #Header,
+    header-element[data-nav-open="true"] #Header,
+    header-element[data-menu-open="true"] #Header,
+    header-element:hover #Header,
+    header-element:focus-within #Header {
+      background-color: var(--color-dune-50) !important;
+    }
+
+    header-element:not([data-threshold-passed="true"]):not(.menu-open):not([data-nav-open="true"]):not([data-menu-open="true"]):not(:hover):not(:focus-within) #Header .header__main,
+    header-element:not([data-threshold-passed="true"]):not(.menu-open):not([data-nav-open="true"]):not([data-menu-open="true"]):not(:hover):not(:focus-within) #Header .header__desktop-navigation,
+    header-element:not([data-threshold-passed="true"]):not(.menu-open):not([data-nav-open="true"]):not([data-menu-open="true"]):not(:hover):not(:focus-within) #Header .header__desktop-navigation a,
+    header-element:not([data-threshold-passed="true"]):not(.menu-open):not([data-nav-open="true"]):not([data-menu-open="true"]):not(:hover):not(:focus-within) #Header .header-action {
+      color: var(--color-dune-50) !important;
+    }
+
+    header-element:not([data-threshold-passed="true"]):not(.menu-open):not([data-nav-open="true"]):not([data-menu-open="true"]):not(:hover):not(:focus-within) #Header .logo-black {
+      display: none !important;
+    }
+
+    header-element:not([data-threshold-passed="true"]):not(.menu-open):not([data-nav-open="true"]):not([data-menu-open="true"]):not(:hover):not(:focus-within) #Header .logo-white {
+      display: inline-flex !important;
+    }
+
+    header-element[data-threshold-passed="true"] #Header .logo-black,
+    header-element.menu-open #Header .logo-black,
+    header-element[data-nav-open="true"] #Header .logo-black,
+    header-element[data-menu-open="true"] #Header .logo-black,
+    header-element:hover #Header .logo-black,
+    header-element:focus-within #Header .logo-black {
+      display: inline-flex !important;
+    }
+
+    header-element[data-threshold-passed="true"] #Header .logo-white,
+    header-element.menu-open #Header .logo-white,
+    header-element[data-nav-open="true"] #Header .logo-white,
+    header-element[data-menu-open="true"] #Header .logo-white,
+    header-element:hover #Header .logo-white,
+    header-element:focus-within #Header .logo-white {
+      display: none !important;
+    }
+  </style>
+{%- endif -%}
+
+<style>
+  #shopify-section-{{ section.id }} {
+    --mobile-visibility: {% if show_sm %}block{% else %}none{% endif %};
+    --tablet-visibility: {% if show_md %}block{% else %}none{% endif %};
+    --desktop-visibility: {% if show_lg %}block{% else %}none{% endif %};
+  }
+
+  #shopify-section-{{ section.id }} .mini-cards--on-banner img.mini-card-icon {
+    filter: invert(1);
+  }
+
+  #shopify-section-{{ section.id }} .hero-media-picture > img {
+    height: inherit;
+  }
+
+  #shopify-section-{{ section.id }} .text-left .hero-content {
+    align-items: flex-start;
+    text-align: left;
+    margin-inline: 0;
+  }
+
+  #shopify-section-{{ section.id }} .text-center .hero-content {
+    align-items: center;
+    text-align: center;
+    margin-inline: auto;
+  }
+
+  #shopify-section-{{ section.id }} .text-right .hero-content {
+    align-items: flex-end;
+    text-align: right;
+    margin-left: auto;
+    margin-right: 0;
+  }
+
+  #shopify-section-{{ section.id }} .text-left [data-hero-actions] {
+    justify-content: flex-start;
+  }
+
+  #shopify-section-{{ section.id }} .text-center [data-hero-actions] {
+    justify-content: center;
+  }
+
+  #shopify-section-{{ section.id }} .text-right [data-hero-actions] {
+    justify-content: flex-end;
+  }
+
+  @media (min-width: 768px) {
+    #shopify-section-{{ section.id }} .md\:text-left .hero-content {
+      align-items: flex-start;
+      text-align: left;
+      margin-inline: 0;
+    }
+
+    #shopify-section-{{ section.id }} .md\:text-center .hero-content {
+      align-items: center;
+      text-align: center;
+      margin-inline: auto;
+    }
+
+    #shopify-section-{{ section.id }} .md\:text-right .hero-content {
+      align-items: flex-end;
+      text-align: right;
+      margin-left: auto;
+      margin-right: 0;
+    }
+
+    #shopify-section-{{ section.id }} .md\:text-left [data-hero-actions] {
+      justify-content: flex-start;
+    }
+
+    #shopify-section-{{ section.id }} .md\:text-center [data-hero-actions] {
+      justify-content: center;
+    }
+
+    #shopify-section-{{ section.id }} .md\:text-right [data-hero-actions] {
+      justify-content: flex-end;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    #shopify-section-{{ section.id }} .lg\:text-left .hero-content {
+      align-items: flex-start;
+      text-align: left;
+      margin-inline: 0;
+    }
+
+    #shopify-section-{{ section.id }} .lg\:text-center .hero-content {
+      align-items: center;
+      text-align: center;
+      margin-inline: auto;
+    }
+
+    #shopify-section-{{ section.id }} .lg\:text-right .hero-content {
+      align-items: flex-end;
+      text-align: right;
+      margin-left: auto;
+      margin-right: 0;
+    }
+
+    #shopify-section-{{ section.id }} .lg\:text-left [data-hero-actions] {
+      justify-content: flex-start;
+    }
+
+    #shopify-section-{{ section.id }} .lg\:text-center [data-hero-actions] {
+      justify-content: center;
+    }
+
+    #shopify-section-{{ section.id }} .lg\:text-right [data-hero-actions] {
+      justify-content: flex-end;
+    }
+  }
+
+  {% if hero_stack_sm %}
+    @media (max-width: 767.98px) {
+      #shopify-section-{{ section.id }} .hero-content-slot {
+        position: relative;
+        inset: auto;
+        width: 100%;
+        min-height: 0;
+      }
+
+      #shopify-section-{{ section.id }} .hero-content-slot > .hero-content-slot__main {
+        flex: 0 1 auto;
+        height: auto;
+        min-height: 0;
+      }
+    }
+  {% endif %}
+
+  {% if hero_stack_md %}
+    @media (min-width: 768px) and (max-width: 1023.98px) {
+      #shopify-section-{{ section.id }} .hero-content-slot {
+        position: relative;
+        inset: auto;
+        width: 100%;
+        min-height: 0;
+      }
+
+      #shopify-section-{{ section.id }} .hero-content-slot > .hero-content-slot__main {
+        flex: 0 1 auto;
+        height: auto;
+        min-height: 0;
+      }
+    }
+  {% endif %}
+
+  {% if hero_stack_lg %}
+    @media (min-width: 1024px) {
+      #shopify-section-{{ section.id }} .hero-content-slot {
+        position: relative;
+        inset: auto;
+        width: 100%;
+        min-height: 0;
+      }
+
+      #shopify-section-{{ section.id }} .hero-content-slot > .hero-content-slot__main {
+        flex: 0 1 auto;
+        height: auto;
+        min-height: 0;
+      }
+    }
+  {% endif %}
+</style>
+
+<section
+  class="relative w-full overflow-visible lg:overflow-hidden block-visibility"
+  {{ section.shopify_attributes }}
+>
+  <div class="relative w-full {{ media_height_class }} z-1">
+    {%- if media_all_auto_height -%}
+      <div aria-hidden="true">
+        {%- render 'a--image-responsive',
+          image_mobile: s.image_mobile,
+          image_tablet: s.image_tablet,
+          image_desktop: s.image_desktop,
+          picture_class: 'hero-media-picture block w-full',
+          image_class: 'w-full object-cover',
+          object_fit: 'object-cover',
+          crop: 'center',
+          fetchpriority: 'high'
+        -%}
+      </div>
+    {%- else -%}
+      <div class="absolute inset-0 overflow-hidden" aria-hidden="true">
+        {%- render 'a--image-responsive',
+          image_mobile: s.image_mobile,
+          image_tablet: s.image_tablet,
+          image_desktop: s.image_desktop,
+          picture_class: 'hero-media-picture absolute inset-0 block w-full h-full',
+          image_class: 'w-full h-full object-cover',
+          object_fit: 'object-cover',
+          crop: 'center',
+          fetchpriority: 'high'
+        -%}
+      </div>
+    {%- endif -%}
+
+    {%- if overlay_opacity > 0 -%}
+      <div
+        class="absolute inset-0 pointer-events-none"
+        style="background-color: {{ overlay_color }}; opacity: {{ overlay_opacity }};"
+        aria-hidden="true"
+      ></div>
+    {%- endif -%}
+
+    {%- if overlay_blur > 0 -%}
+      <div
+        class="absolute inset-0 pointer-events-none"
+        style="backdrop-filter: blur({{ overlay_blur }}px); -webkit-backdrop-filter: blur({{ overlay_blur }}px);"
+        aria-hidden="true"
+      ></div>
+    {%- endif -%}
+
+    <div class="hero-content-slot absolute inset-0 flex flex-col pb-0{% if overlay_header_active %} pt-15 lg:pt-28{% endif %}">
+      {%- if content != blank -%}
+        <div class="hero-content-slot__main flex flex-1 w-full h-full {{ position_mobile }} {{ position_tablet }} {{ position_desktop }}">
+          <div class="px-s-outer py-s-xs w-full">
+            <div class="px-s-inner flex flex-col gap-y-s-xs w-full">
+              {{- content -}}
+            </div>
+          </div>
+        </div>
+      {%- endif -%}
+
+      {%- if banner_footer != blank -%}
+        {{- banner_footer -}}
+      {%- endif -%}
+
+      {%- if show_overlay_cards and overlay_cards != blank -%}
+        <div class="hero-banner__overlay-cards hidden lg:flex w-full mt-auto px-s-outer pb-s-xs">
+          <div class="px-s-inner w-full">
+            <div class="flex gap-b-base gap-x-b-base">
+              {{- overlay_cards -}}
+            </div>
+          </div>
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+
+  {%- if below_content != blank -%}
+    {{- below_content -}}
+  {%- endif -%}
+
+  {%- if numbered_cards != blank -%}
+    <div class="numbered-cards w-full px-s-outer bg-emphasis">
+      <div class="flex flex-col md:flex-row w-full">
+        {{- numbered_cards -}}
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- if card_section != blank -%}
+    <div class="w-full{% if show_overlay_cards %} lg:hidden{% endif %}">
+      <div class="flex flex-col md:flex-row gap-b-base lg:gap-b-base relative">
+        {{- card_section -}}
+      </div>
+    </div>
+  {%- endif -%}
+</section>

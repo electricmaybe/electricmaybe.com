@@ -1,0 +1,41 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin language editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "general": {
+    "cart": {
+      "title": "Dein Warenkorb"
+    }
+  },
+  "sections": {
+    "cart": {
+      "cart": "Warenkorb",
+      "title": "Dein Warenkorb",
+      "caption": "Artikel",
+      "remove_title": "Entferne {{ title }}",
+      "subtotal": "Zwischensumme",
+      "new_subtotal": "Neue Zwischensumme",
+      "total": "Gesamt",
+      "shipping_text": "Wird beim Checkout berechnet",
+      "shipping": "Versand",
+      "note": "Bestellhinweis",
+      "checkout": "Zur Kasse",
+      "empty": "Dein Warenkorb ist leer",
+      "add_items": "Füge Artikel hinzu, um fortzufahren",
+      "cart_error": "Fehler beim Aktualisieren des Warenkorbs. Bitte erneut versuchen.",
+      "cart_quantity_error_html": "Du kannst nur {{ quantity }} dieses Artikels hinzufügen",
+      "savings": "Ersparnis",
+      "store_credit": "Guthaben (falls vorhanden)",
+      "store_credit_text_html": "Du hast <span class=\"text-green\">{{ amount }}</span> Guthaben für den Checkout",
+      "add_a_gift_message": "Geschenknachricht hinzufügen",
+      "add_a_gift_message_tooltip": "Der Empfänger erhält eine E-Mail mit deiner Nachricht beim Versand. Rückgabeinfos enthalten. Geschenkkarten kommen innerhalb von 2 Stunden per E-Mail.",
+      "checkout_button_usp_text": "100 Tage Rückgabe & 3 Jahre Garantie"
+    }
+  }
+}

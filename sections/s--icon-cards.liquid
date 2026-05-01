@@ -1,0 +1,127 @@
+{%- capture mini_cards -%}
+  {%- for block in section.blocks -%}
+    {%- if block.type != 'mini_card' -%}
+      {%- continue -%}
+    {%- endif -%}
+    {%- assign mini_text = block.settings.text -%}
+    {%- assign mini_icon_image = block.settings.icon_image -%}
+    {%- assign mini_icon = block.settings.icon -%}
+    {%- assign mini_icon_viewbox = '0 0 32 32' -%}
+    {%- case mini_icon -%}
+      {%- when 'delivery' -%}
+        {%- assign mini_icon_viewbox = '0 0 25 27' -%}
+      {%- when 'secure_2' -%}
+        {%- assign mini_icon_viewbox = '0 0 22 24' -%}
+      {%- when 'shipping' -%}
+        {%- assign mini_icon_viewbox = '0 0 31 19' -%}
+      {%- when 'newproduct' -%}
+        {%- assign mini_icon_viewbox = '0 0 32 32' -%}
+      {%- when 'discount' -%}
+        {%- assign mini_icon_viewbox = '0 0 31 32' -%}
+      {%- when 'review' -%}
+        {%- assign mini_icon_viewbox = '0 0 32 32' -%}
+      {%- when 'europe' -%}
+        {%- assign mini_icon_viewbox = '0 0 32 32' -%}
+    {%- endcase -%}
+    <div class="mini-card shrink-0 flex flex-col items-center text-center gap-y-b-sm w-auto md:w-full" {{ block.shopify_attributes }}>
+      {%- if mini_icon != blank -%}
+        {%- render 'a--icon', icon: mini_icon, class: 'mini-card-icon w-6 h-6 text-current', viewBox: mini_icon_viewbox -%}
+      {%- elsif mini_icon_image != blank -%}
+        <img
+          src="{{ mini_icon_image | image_url: width: 48 }}"
+          width="24"
+          height="24"
+          alt="{{ mini_text | strip_html | escape }}"
+          class="mini-card-icon w-6 h-6 object-contain"
+          loading="lazy"
+        >
+      {%- endif -%}
+      {%- if mini_text != blank -%}
+        <div class="text-ui-base leading-[1.2] [&>p]:m-0 [&>h1]:m-0 [&>h2]:m-0 [&>h3]:m-0 [&>h4]:m-0 [&>h5]:m-0 [&>h6]:m-0">{{ mini_text }}</div>
+      {%- endif -%}
+    </div>
+  {%- endfor -%}
+{%- endcapture -%}
+
+{%- if mini_cards != blank -%}
+  <section class="mini-cards mini-cards--below w-full px-s-outer">
+    <div class="px-s-inner w-full text-primary">
+      <div class="flex w-full gap-x-s-sm items-center overflow-x-auto hide-scroll-bar flex-nowrap justify-between md:grid md:grid-cols-7 md:gap-x-s-base md:overflow-visible">
+        {{- mini_cards -}}
+      </div>
+    </div>
+  </section>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Icon cards",
+  "tag": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "blocks": [
+    {
+      "type": "mini_card",
+      "name": "Mini card",
+      "limit": 7,
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon (design)",
+          "options": [
+            { "value": "", "label": "None" },
+            { "value": "europe", "label": "Europe" },
+            { "value": "delivery", "label": "Delivery" },
+            { "value": "secure_2", "label": "Secure" },
+            { "value": "shipping", "label": "Shipping" },
+            { "value": "newproduct", "label": "New product" },
+            { "value": "discount", "label": "Discount" },
+            { "value": "review", "label": "Review" }
+          ]
+        },
+        {
+          "type": "image_picker",
+          "id": "icon_image",
+          "label": "Icon"
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Text",
+          "default": "<p>Direct from<br>Factory</p>"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Icon cards",
+      "blocks": [
+        {
+          "type": "mini_card",
+          "settings": {
+            "icon": "europe",
+            "text": "<p>Direct from<br>Factory</p>"
+          }
+        },
+        {
+          "type": "mini_card",
+          "settings": {
+            "icon": "delivery",
+            "text": "<p>Fast delivery</p>"
+          }
+        },
+        {
+          "type": "mini_card",
+          "settings": {
+            "icon": "secure_2",
+            "text": "<p>Secure checkout</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

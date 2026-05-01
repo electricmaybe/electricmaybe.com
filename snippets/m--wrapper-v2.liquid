@@ -1,0 +1,272 @@
+{%- doc -%}
+  Unified wrapper component with 9-point positioning system for flexible layouts.
+
+  This wrapper handles overlay, content, and horizontal layouts with responsive positioning using a 9-point grid system. It provides a consistent interface for section layout, spacing, and styling across different layout types.
+
+  @param {string} content - The main content to display (text, buttons, etc.) (required)
+  @param {string} [bottom_content] - Content to display at the bottom of the section
+  @param {string} [layout_type] - Type of layout to render
+  @param {string} [id] - Unique id suffix for wrapper-specific CSS variables
+  @param {boolean} [no_max_width] - Disable the prose max-width cap on overlay content
+  @param {object} [section] - Optional parent section context for fallback settings
+  @param {object} [block] - Optional parent block context for fallback settings
+
+  - 'overlay': Content overlaid on media (hero banners, image with text overlay) - 'horizontal': Side-by-side media and
+  content (image with text beside) - 'content': Standard content layout (default)
+
+  @param {string} [media_content] - Media element HTML (required for 'overlay' and 'horizontal' layouts)
+  @param {string} [container_class] - Container class (wrapper, w-full)
+
+  SECTION SETTINGS (from section.settings or block.settings):
+
+  @param {string} [position_mobile] - Mobile positioning classes
+
+  - 'items-start justify-start text-left': Top Left - 'items-start justify-center text-center': Top Center -
+  'items-start justify-end text-right': Top Right - 'items-center justify-start text-left': Middle Left - 'items-center
+  justify-center text-center': Middle Center - 'items-center justify-end text-right': Middle Right - 'items-end
+  justify-start text-left': Bottom Left - 'items-end justify-center text-center': Bottom Center - 'items-end justify-end
+  text-right': Bottom Right
+
+  @param {string} [position_tablet] - Tablet positioning (md: prefixed)
+  @param {string} [position_desktop] - Desktop positioning (lg: prefixed)
+  @param {boolean} [show_sm] - Show on mobile
+  @param {boolean} [show_md] - Show on tablet
+  @param {boolean} [show_lg] - Show on desktop
+  @param {string} [section_width] - Container width constraint
+
+  - 'limited': Max-width wrapper - 'section-full': Full width, no constraints
+
+  OVERLAY SPECIFIC (layout_type: 'overlay'):
+
+  @param {string} [overlay_color] - Color of overlay (hex)
+  @param {number} [overlay_opacity] - Opacity percentage (0-100)
+  @param {number} [overlay_blur] - Blur amount in pixels (0-10)
+  @param {string} [overlay_url] - Optional clickable link for entire overlay
+
+  HORIZONTAL SPECIFIC (layout_type: 'horizontal'):
+
+  @param {string} [media_position] - Media placement on desktop
+
+  - 'lg:order-first': Media on left - 'lg:order-last': Media on right
+
+  @param {string} [media_width] - Media container width
+
+  - 'lg:w-1/2': Half width - 'lg:w-1/3': One third width - 'lg:w-2/3': Two thirds width
+
+  @param {string} [content_width] - Content container width
+  @param {string} [gap_mobile] - Gap between elements on mobile (gap-4, gap-8, gap-12)
+  @param {string} [gap_tablet] - Gap on tablet (md:gap-8, md:gap-12, md:gap-16)
+  @param {string} [gap_desktop] - Gap on desktop (lg:gap-12, lg:gap-16, lg:gap-20)
+
+  STYLING (content and horizontal layouts):
+
+  @param {string} [section_style] - Visual style treatment
+
+  - 'none': No special styling - 'separator': Top border separator - 'color_scheme': Background color from theme
+
+  @param {string} [color_scheme] - Theme color scheme name
+
+  SPACING (All layouts):
+  @param {boolean} [override_vertical_padding=false] - Enable custom padding
+
+  @param {number} [vertical_padding] - Mobile padding in px
+  @param {number} [vertical_padding_md] - Tablet padding in px
+  @param {number} [vertical_padding_lg] - Desktop padding in px
+
+  @param {boolean} [override_margin_top=false] - Enable custom top margin
+
+  @param {number} [margin_top] - Mobile top margin in px
+  @param {number} [margin_top_md] - Tablet top margin in px
+  @param {number} [margin_top_lg] - Desktop top margin in px
+
+  @example
+  {% capture media %}
+    {% render 'a--image-responsive', image: section.settings.image %}
+  {% endcapture %}
+  {% capture content %}
+    {% render 'm--text-and-buttons' %}
+  {% endcapture %}
+  {% render 'm--wrapper-v2',
+    layout_type: 'overlay',
+    media_content: media,
+    content: content
+  %}
+  @example
+  {% render 'm--wrapper-v2',
+    layout_type: 'horizontal',
+    media_content: media_html,
+    content: text_html
+  %}
+  @example
+  {% render 'm--wrapper-v2',
+    content: section_content
+  %}
+{%- enddoc -%}
+{% # theme-check-disable UndefinedObject %}
+{%- liquid
+  assign id = id | default: 'wrapper-v2'
+  assign no_max_width = no_max_width | default: false
+  assign s = section.settings
+  if block
+    assign s = block.settings
+  endif
+  assign overlay_url = overlay_url | default: s.overlay_url
+
+  # Layout type: 'overlay', 'content', or 'horizontal'
+  assign layout_type = layout_type | default: 'content'
+
+  # Get position classes directly from settings (Tailwind classes as values)
+  assign position_mobile = position_mobile | default: s.position_mobile | default: 'items-center justify-center text-center'
+  assign position_tablet = position_tablet | default: s.position_tablet | default: 'md:items-center md:justify-center md:text-center'
+  assign position_desktop = position_desktop | default: s.position_desktop | default: 'lg:items-start lg:justify-start lg:text-start'
+
+  # Section visibility
+  assign show_sm = show_sm | default: s.show_sm, allow_false: true | default: true, allow_false: true
+  assign show_md = show_md | default: s.show_md, allow_false: true | default: true, allow_false: true
+  assign show_lg = show_lg | default: s.show_lg, allow_false: true | default: true, allow_false: true
+
+  # Section width
+  assign section_width = section_width | default: s.section_width | default: 'section-full'
+  if section_width == 'limited'
+    assign container_class = container_class | default: 'wrapper'
+  elsif section_width == 'section-full'
+    assign container_class = container_class | default: 'w-full'
+  endif
+
+  # Overlay specific settings
+  if layout_type == 'overlay'
+    assign overlay_color = overlay_color | default: s.overlay_color | default: overlay_color | default: '#000000'
+    assign overlay_opacity = overlay_opacity | default: s.overlay_opacity | default: 30 | divided_by: 100.0
+    assign overlay_blur = overlay_blur | default: s.overlay_blur | default: 0
+  endif
+
+  # Horizontal layout specific settings
+  if layout_type == 'horizontal'
+    assign media_position = media_position | default: s.media_position | default: 'lg:order-first'
+    assign media_width = media_width | default: s.media_width | default: 'lg:w-1/2'
+    assign content_width = content_width | default: s.content_width | default: 'lg:w-1/2'
+    assign gap_mobile = gap_mobile | default: s.gap_mobile | default: 'gap-8'
+    assign gap_tablet = gap_tablet | default: s.gap_tablet | default: 'md:gap-12'
+    assign gap_desktop = gap_desktop | default: s.gap_desktop | default: 'lg:gap-16'
+  endif
+
+  # Section styling (for content and horizontal layouts)
+  unless layout_type == 'overlay'
+    assign section_style = section_style | default: s.section_style | default: 'none'
+    assign color_scheme = color_scheme | default: s.color_scheme | default: 'default'
+
+    if section_style == 'color_scheme'
+      assign color_class = 'color-w-bg-' | append: color_scheme
+      assign container_class = container_class | append: ' py-vertical-padding'
+    elsif section_style == 'separator'
+      assign container_class = container_class | append: ' border-t border-outline/20 pt-vertical-padding'
+    else
+      assign color_class = 'color-' | append: color_scheme
+    endif
+  endunless
+
+  # Vertical padding and margin (all layouts)
+  assign override_vertical_padding = override_vertical_padding | default: s.override_vertical_padding | default: false
+  assign vertical_padding = vertical_padding | default: s.vertical_padding | default: 64
+  assign vertical_padding_md = vertical_padding_md | default: s.vertical_padding_md | default: 64
+  assign vertical_padding_lg = vertical_padding_lg | default: s.vertical_padding_lg | default: 64
+
+  assign override_margin_top = override_margin_top | default: s.override_margin_top | default: false
+  assign margin_top = margin_top | default: s.margin_top | default: 96
+  assign margin_top_md = margin_top_md | default: s.margin_top_md | default: 96
+  assign margin_top_lg = margin_top_lg | default: s.margin_top_lg | default: 96
+-%}
+
+<style>
+  #shopify-section-{{ section.id }}-{{ id }} {
+    --mobile-visibility: {% if show_sm %}block{% else %}none{% endif %};
+    --tablet-visibility: {% if show_md %}block{% else %}none{% endif %};
+    --desktop-visibility: {% if show_lg %}block{% else %}none{% endif %};
+    {% if layout_type == 'overlay' %}
+      --overlay-color: {{ overlay_color }};
+      --overlay-opacity: {{ overlay_opacity }};
+    {% endif %}
+    {% if override_vertical_padding %}
+      --vertical-padding: {{ vertical_padding | divided_by: 16.0 }}rem;
+      --vertical-padding-md: {{ vertical_padding_md | divided_by: 16.0 }}rem;
+      --vertical-padding-lg: {{ vertical_padding_lg | divided_by: 16.0 }}rem;
+    {% endif %}
+    {% if override_margin_top %}
+      --margin-top: {{ margin_top | divided_by: 16.0 }}rem;
+      --margin-top-md: {{ margin_top_md | divided_by: 16.0 }}rem;
+      --margin-top-lg: {{ margin_top_lg | divided_by: 16.0 }}rem;
+    {% endif %}
+  }
+</style>
+
+<div
+  id="shopify-section-{{ section.id }}-{{ id }}"
+  class="section__outer-wrapper block-visibility {{ color_class }}"
+>
+  {%- case layout_type -%}
+    {%- when 'overlay' -%}
+      <div class="relative {{ container_class }}">
+        <div class="relative w-full">
+          {%- comment -%} Background media {%- endcomment -%}
+          {{ media_content }}
+
+          {%- comment -%} Overlay layer {%- endcomment -%}
+          {%- if overlay_opacity > 0 -%}
+            <div
+              class="absolute inset-0 pointer-events-none"
+              style="background-color: var(--overlay-color); opacity: var(--overlay-opacity);"
+            ></div>
+          {%- endif -%}
+
+          {%- comment -%} Blur layer {%- endcomment -%}
+          {%- if overlay_blur > 0 -%}
+            <div
+              class="absolute inset-0 pointer-events-none"
+              style="backdrop-filter: blur({{ overlay_blur }}px); -webkit-backdrop-filter: blur({{ overlay_blur }}px);"
+            ></div>
+          {%- endif -%}
+
+          {%- comment -%} Content layer {%- endcomment -%}
+          <div class="absolute inset-0 flex flex-col">
+            <div class="w-full h-full flex py-s-sm px-b-base {{ position_mobile }} {{ position_tablet }} {{ position_desktop }}">
+              <div class="w-180 max-w-[90vw] {% unless no_max_width %}max-w-prose{% endunless %}">
+                {{ content }}
+              </div>
+            </div>
+
+            <div class="w-full shrink-0">
+              {{ bottom_content }}
+            </div>
+          </div>
+
+          {%- if overlay_url != blank -%}
+            <a
+              href="{{ overlay_url }}"
+              class="absolute inset-0 z-10"
+              aria-label="{% if s.heading != blank %}{{ s.heading | strip_html | escape }}{% else %}View more{% endif %}"
+            ></a>
+          {%- endif -%}
+        </div>
+      </div>
+
+    {%- when 'horizontal' -%}
+      <div class="flex flex-col lg:flex-row {{ gap_mobile }} {{ gap_tablet }} {{ gap_desktop }} {{ container_class }}">
+        {%- comment -%} Media side {%- endcomment -%}
+        <div class="w-full {{ media_width }} {{ media_position }}">
+          {{ media_content }}
+        </div>
+
+        {%- comment -%} Content side {%- endcomment -%}
+        <div class="flex flex-col {{ position_mobile }} {{ position_tablet }} {{ position_desktop }} w-full {{ content_width }}">
+          {{ content }}
+        </div>
+      </div>
+
+    {%- else -%}
+      {%- comment -%} Default content layout {%- endcomment -%}
+      <div class="flex flex-col {{ position_mobile }} {{ position_tablet }} {{ position_desktop }} {{ container_class }}">
+        {{ content }}
+      </div>
+  {%- endcase -%}
+</div>
+{% # theme-check-enable UndefinedObject %}

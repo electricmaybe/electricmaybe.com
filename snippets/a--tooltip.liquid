@@ -1,0 +1,117 @@
+{%- doc -%}
+Tooltip component for displaying contextual information on hover (desktop) and click (mobile).
+
+This component provides a flexible tooltip system that automatically handles both desktop hover interactions and mobile click interactions. The tooltip positions itself relative to its trigger element and includes proper accessibility attributes. Desktop version uses CSS hover states while mobile version integrates with existing popover functionality.
+
+@param {string} [id] - Unique identifier for the mobile popover (auto-generated if not provided)
+@param {string} content - The tooltip content text to display (required)
+@param {string} [position] - Tooltip position relative to trigger: 'top', 'bottom', 'left', 'right' (defaults to 'top')
+@param {string} [position_mobile] - Tooltip position relative to trigger on mobile: 'top', 'bottom', 'left', 'right' (defaults to OG position)
+@param {string} [width] - Tailwind width class for tooltip: 'w-64', 'w-80', 'max-w-xs' (defaults to 'w-64')
+@param {string} [text_align] - Text alignment for tooltip: 'text-center', 'text-left', 'text-right' (defaults to 'text-center')
+@param {string} [button_class] - Additional classes for the trigger button
+@param {string} [icon] - Icon name to display (defaults to 'info-line')
+@param {string} [icon_size] - Icon size in pixels (defaults to '1.25rem')
+
+@example
+{% render 'a--tooltip', content: 'Help text for this field' %}
+
+@example
+{% render 'a--tooltip',
+  id: 'field-help',
+  content: 'Additional information about this product feature',
+  position: 'right',
+  width: 'w-80'
+%}
+{%- enddoc -%}
+
+{% liquid
+  assign tooltip_id = id | default: 'tooltip-' | append: 'now' | date: '%s%N'
+  assign position = position | default: 'top'
+  assign width = width | default: 'w-64'
+  assign text_align = text_align | default: 'text-center'
+  assign content = content | default: 'Tooltip content'
+  assign icon = icon | default: 'info-line'
+  assign icon_size = icon_size | default: '1.25rem'
+  assign position_mobile = position_mobile | default: position
+%}
+
+<button
+  type="button"
+  class="cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary focus:ring-offset-0 p-1 {{ button_class }}"
+  data-popover-trigger="{{ tooltip_id }}"
+  aria-label="Learn more about comparison model"
+>
+{% render 'a--icon', icon: icon, width: icon_size %}
+</button>
+{% comment %} Desktop tooltip (hover) {% endcomment %}
+<div 
+  class="absolute {{ width }} {{ text_align }} pointer-events-none z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 lg:block hidden
+    {% case position %}
+      {% when 'top' %}
+        bottom-full left-1/2 transform -translate-x-1/2 mb-2
+      {% when 'bottom' %}
+        top-full left-1/2 transform -translate-x-1/2 mt-2
+      {% when 'left' %}
+        right-full top-1/2 transform -translate-y-1/2 mr-2
+      {% when 'right' %}
+        left-full top-1/2 transform -translate-y-1/2 ml-2
+    {% endcase %}"
+  role="tooltip"
+  aria-hidden="true"
+>
+  <div class="px-3 py-2 bg-black text-white text-sm shadow-lg rounded">
+    {{ content }}
+    
+    {% comment %} Tooltip arrow {% endcomment %}
+    <div class="absolute w-0 h-0
+      {% case position %}
+        {% when 'top' %}
+          top-full left-1/2 transform -translate-x-1/2 border-l-4 border-r-4 border-t-4 border-transparent border-t-black
+        {% when 'bottom' %}
+          bottom-full left-1/2 transform -translate-x-1/2 border-l-4 border-r-4 border-b-4 border-transparent border-b-black
+        {% when 'left' %}
+          left-full top-1/2 transform -translate-y-1/2 border-t-4 border-b-4 border-l-4 border-transparent border-l-black
+        {% when 'right' %}
+          right-full top-1/2 transform -translate-y-1/2 border-t-4 border-b-4 border-r-4 border-transparent border-r-black
+      {% endcase %}">
+    </div>
+  </div>
+</div>
+
+{% comment %} Mobile popover (click) {% endcomment %}
+<div
+  id="{{ tooltip_id }}"
+  class="absolute {{ width }} {{ text_align }} pointer-events-none z-10 opacity-0 lg:hidden transition-all duration-200
+    {% case position_mobile %}
+      {% when 'top' %}
+        bottom-full left-1/2 transform -translate-x-1/2 mb-2
+      {% when 'bottom' %}
+        top-full left-1/2 transform -translate-x-1/2 mt-2
+      {% when 'left' %}
+        right-full top-1/2 transform -translate-y-1/2 mr-2
+      {% when 'right' %}
+        left-full top-1/2 transform -translate-y-1/2 ml-2
+    {% endcase %}"
+  data-popover
+  role="tooltip"
+  aria-hidden="true"
+>
+  <div class="px-3 py-2 bg-black text-white text-sm shadow-lg rounded">
+    {{ content }}
+    
+    {% comment %} Popover arrow {% endcomment %}
+    <div class="absolute w-0 h-0
+      {% case position %}
+        {% when 'top' %}
+          top-full left-1/2 transform -translate-x-1/2 border-l-4 border-r-4 border-t-4 border-transparent border-t-black
+        {% when 'bottom' %}
+          bottom-full left-1/2 transform -translate-x-1/2 border-l-4 border-r-4 border-b-4 border-transparent border-b-black
+        {% when 'left' %}
+          left-full top-1/2 transform -translate-y-1/2 border-t-4 border-b-4 border-l-4 border-transparent border-l-black
+        {% when 'right' %}
+          right-full top-1/2 transform -translate-y-1/2 border-t-4 border-b-4 border-r-4 border-transparent border-r-black
+      {% endcase %}">
+    </div>
+  </div>
+</div>

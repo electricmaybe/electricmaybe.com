@@ -1,0 +1,73 @@
+{% schema %}
+{
+  "name": "t:global.404",
+  "class": "full-spaced-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "t:global.heading",
+      "default": "404 Page Not Found"
+    },
+    {
+      "type": "textarea",
+      "id": "message",
+      "label": "t:global.message",
+      "default": "Oops! Looks like you got lost in the supermarket aisles."
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "t:global.image"
+    },
+    {
+      "type": "text",
+      "id": "button_url",
+      "label": "t:global.button_url",
+      "default": "/"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "t:global.button_label",
+      "default": "Return to Home"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:global.404"
+    }
+  ],
+  "enabled_on": {
+    "templates": [
+      "404"
+    ]
+  }
+}
+{% endschema %}
+
+<div class="container flex flex-col items-center justify-center h-[50v] mx-auto">
+  {% if section.settings.image != blank %}
+    <div class="mb-8 max-w-2xl">
+    {%- render 'a--image',
+      image_mobile: section.settings.image,
+      sm_cols: 4,
+      md_cols: 6,
+      lg_cols: 6
+    -%}
+    </div>
+  {% endif %}
+
+  {% if section.settings.heading != blank %}
+    <h1 class="font-bold text-3xl/solid">{{ section.settings.heading }}</h1>
+  {% endif %}
+
+  {% if section.settings.message != blank %}
+    <p class="mt-2 mb-8 max-w-md text-center text-lg/copy">{{ section.settings.message }}</p>
+  {% endif %}
+
+
+  {% if section.settings.button_url != blank and section.settings.button_text != blank %}
+    {% render 'a--button', label: section.settings.button_text, url: section.settings.button_url %}
+  {% endif %}
+</div>

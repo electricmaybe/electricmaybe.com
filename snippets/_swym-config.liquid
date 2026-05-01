@@ -1,0 +1,72 @@
+{% comment %}
+  Swym Configuration Snippet
+  
+  Add this snippet to your theme layout to configure Swym manually.
+  Replace the placeholder values with your actual Swym store ID and API key.
+  
+  Usage:
+  {% render '_swym-config' %}
+{% endcomment %}
+
+{% comment %}
+  Get Swym configuration from theme settings
+  Configure these in Theme Customizer > Swym Wishlist section
+{% endcomment %}
+
+{%- assign swym_store_id = settings.swym_store_id -%}
+{%- assign swym_api_key = settings.swym_api_key -%}
+{%- assign swym_enabled = settings.swym_enabled -%}
+
+{%- if swym_enabled and swym_store_id != blank and swym_api_key != blank -%}
+  <!-- Swym Configuration -->
+  <meta name="swym-store-id" content="{{ swym_store_id }}">
+  <meta name="swym-api-key" content="{{ swym_api_key }}">
+  
+  <!-- Swym Core Script -->
+  <script>
+    // Swym configuration object
+    window.SwymConfig = {
+      storeId: '{{ swym_store_id }}',
+      apiKey: '{{ swym_api_key }}',
+      shopDomain: '{{ shop.permanent_domain }}',
+      currency: '{{ cart.currency.iso_code }}',
+      locale: '{{ request.locale.iso_code }}'
+    };
+    
+    // Initialize Swym callbacks array if it doesn't exist
+    if (!window.SwymCallbacks) {
+      window.SwymCallbacks = [];
+    }
+    
+    // Add a callback to initialize Swym when it loads
+    window.SwymCallbacks.push(function(swat) {
+      console.log('Swym loaded and ready');
+      
+      // Configure Swym with your settings
+      if (typeof swat.setup === 'function') {
+        swat.setup({
+          storeId: window.SwymConfig.storeId,
+          apiKey: window.SwymConfig.apiKey,
+          shopDomain: window.SwymConfig.shopDomain,
+          currency: window.SwymConfig.currency,
+          locale: window.SwymConfig.locale
+        });
+      }
+      
+      // Initialize action buttons for existing elements
+      if (typeof swat.initializeActionButtons === 'function') {
+        swat.initializeActionButtons();
+      }
+      
+      // Dispatch custom event when Swym is ready
+      document.dispatchEvent(new CustomEvent('swym:ready', {
+        detail: { swat: swat }
+      }));
+    });
+  </script>
+{%- else -%}
+  <!-- Swym Configuration Missing -->
+  <script>
+    console.warn('Swym configuration missing. Please update _swym-config.liquid with your store ID and API key.');
+  </script>
+{%- endif -%}

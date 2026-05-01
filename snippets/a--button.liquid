@@ -1,0 +1,147 @@
+{%- doc -%}
+  Button component: link or button element with configurable size, style, content (text, icon, or both), and optional loading/success/error states.
+
+Uses `a--button-classes` for all styling. Renders as `<a>` or `<button>` with correct role, href, and ARIA. Content mode is inferred when omitted: icon-only when only an icon is passed, icon-with-text when both icon and label exist, otherwise text-only. Optional state slots (loading, success, error) are shown/hidden via CSS using data-state (see a--button.css).
+
+  @param {string} [tag] - Element: 'a' or 'button' (default: 'a')
+  @param {string} [label] - Visible button text (default: 'button')
+  @param {string} [translation] - Translation key for label; when set, label is output as {{ translation | t }}
+  @param {string} [url] - Destination URL (for links). Use href as alias
+  @param {string} [size] - Size variant: 'sm', 'base', 'lg' (default: 'base')
+  @param {string} [style] - Visual style: 'primary', 'secondary' (default: 'primary')
+  @param {string} [content] - Content mode: 'text-only', 'icon-with-text', 'icon-only'. Auto-derived from label/icon if omitted
+  @param {string} [layout] - Icon+text layout: 'left', 'right', 'justified' (default: 'left')
+  @param {string} [icon] - Icon name for a--icon
+  @param {string} [icon_class] - Extra classes for the icon (default: ' w-auto')
+  @param {string} [position] - Position utility, e.g. 'relative' (default: 'relative')
+  @param {string} [class] - Additional CSS classes for the root element
+  @param {string} [id] - id attribute
+  @param {string} [name] - name attribute (e.g. for form submit)
+  @param {string} [type] - type attribute (e.g. 'submit', 'button')
+  @param {string} [aria_label] - Accessible name; defaults to label (downcased). Required for icon-only
+  @param {string} [properties] - Passthrough attributes (e.g. data-*, disabled)
+  @param {boolean} [states] - When true, output loading/success/error slots for data-state toggling
+  @param {string} [loading_label] - Text (or 'spinner') shown in loading state; hidden for icon-only when 'spinner'
+  @param {string} [success_label] - Text shown in success state; hidden for icon-only
+  @param {string} [error_label] - Text shown in error state; hidden for icon-only
+
+  @example
+  {% render 'a--button', label: 'Go to cart', url: routes.cart_url %}
+  @example
+  {% render 'a--button',
+  tag: 'button',
+  label: 'Submit',
+  type: 'submit',
+  name: 'add',
+  style: 'primary',
+  size: 'lg'
+%}
+  @example
+  {% render 'a--button',
+  label: 'Continue',
+  icon: 'arrow-r',
+  layout: 'right',
+  url: '/checkout',
+  states: true,
+  loading_label: 'spinner',
+  success_label: 'Added'
+%}
+  @example
+  {% render 'a--button',
+  icon: 'cart',
+  aria_label: 'View cart',
+  url: '/cart',
+  content: 'icon-only',
+  size: 'sm'
+%}
+{%- enddoc -%}
+{%- liquid
+  assign tag = tag | default: 'button'
+  assign role = 'button'
+  if url
+    assign tag = 'a'
+    assign role = 'link'
+  endif
+  if translation
+    assign label = translation | t
+  endif
+  assign aria_label = aria_label | default: name | default: label | downcase
+  assign icon_class = icon_class | default: '' | append: ' w-auto'
+  assign size = size | default: 'base'
+  assign style = style | default: 'primary'
+  assign layout = layout | default: 'left'
+  assign content_token = content | default: ''
+  if content_token == ''
+    if icon != blank and label == blank
+      assign content_token = 'icon-only'
+    elsif icon != '' and label != ''
+      assign content_token = 'icon-with-text'
+    else
+      assign content_token = 'text-only'
+    endif
+  endif
+
+  assign icon_stroke = 'stroke-base'
+  assign icon_size = size
+  if content_token == 'icon-with-text' and size == 'sm'
+    assign icon_stroke = 'stroke-sm'
+  endif
+-%}
+
+{% capture content %}
+  <div class="relative pointer-events-none flex items-center gap-x-b-base transition-opacity duration-500 delay-150 opacity-100 default-context whitespace-nowrap">
+    {%- liquid
+      if content_token == 'icon-with-text' 
+        render 'a--icon', icon: icon, class: icon_class, size: icon_size, stroke: icon_stroke 
+      echo '<div>'
+        echo label 
+        echo '</div>'
+      elsif content_token == 'icon-only' 
+        render 'a--icon', icon: icon, class: icon_class, size: icon_size, stroke: icon_stroke 
+      else 
+        echo label 
+      endif 
+    -%}
+  </div>
+
+  {%- if states -%}
+    {% assign state_wrapper_classes = 'absolute -mx-6 flex items-center opacity-0 transition-opacity gap-8' %}
+    <span aria-hidden="true" class="{{ state_wrapper_classes }} loading-context">
+      {%- liquid
+        if loading_label == 'spinner' 
+          render 'a--icon', icon: 'spinner', animate: true, class: 'w-5 h-5' 
+        else 
+          unless content_token == 'icon-only' 
+            echo loading_label 
+          endunless 
+        endif 
+      -%}
+    </span>
+    <span aria-hidden="true" class="{{ state_wrapper_classes }} success-context">
+      {%- liquid
+          unless content_token == 'icon-only' 
+            echo success_label 
+          endunless 
+      -%}
+    </span>
+    <span aria-hidden="true" class="{{ state_wrapper_classes }} error-context">
+      {%- liquid
+        unless content_token == 'icon-only' 
+          echo error_label 
+        endunless 
+      -%}
+    </span>
+  {%- endif -%}
+{%- endcapture -%}
+<{{ tag }}
+  class="{% render 'a--button-classes', size: size, style: style, content: content_token, layout: layout %} {{ class }}"
+  {% if url %}href="{{ url }}"{% endif %}
+  {% if id %}id="{{ id }}"{% endif %}
+  {% if type %}type="{{ type }}"{% endif %}
+  {% if name %}name="{{ name }}"{% endif %}
+  {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}
+  {{ properties }}
+  role="{{ role }}"
+>
+  {{- content -}}
+</{{ tag }}> 

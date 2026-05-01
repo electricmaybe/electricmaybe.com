@@ -1,0 +1,54 @@
+{%- doc -%}
+Collection card component for displaying collection information in grid layouts with customizable styling and animations.
+
+This component renders a clickable collection card with featured image, title, and hover effects. It supports custom styling, aspect ratios, and responsive image handling. Includes built-in animation classes and accessibility features for interactive elements.
+
+@param {string} [url] - Custom URL for the collection link (defaults to card_collection.url)
+@param {object} [card_collection] - Collection object from Shopify (required if url not provided)
+@param {string} [class] - Additional CSS classes to apply to the card container
+@param {string} [style] - Custom inline styles to apply to the card
+@param {number} [forloop_index] - Index for animation and styling purposes
+@param {string} [aspect_ratio] - CSS aspect ratio class for the image container (defaults to 'aspect-[0.8]')
+@param {string} [picture_class] - Additional CSS classes for the picture element
+@param {object} [image] - Custom image object to display (defaults to card_collection.featured_image)
+@param {string} [title] - Custom title text to display (defaults to card_collection.title)
+@param {string} [title_class] - Additional CSS classes for the title element
+@param {number} [cols] - Number of columns for the image (defaults to 2)
+
+@example
+{% render 'm--collection-card', card_collection: collection %}
+
+@example
+{% render 'm--collection-card',
+  card_collection: collection,
+  class: 'hover:shadow-lg',
+  aspect_ratio: 'aspect-square',
+  title_class: 'text-lg font-bold',
+  forloop_index: forloop.index
+%}
+{%- enddoc -%}
+
+<a
+  href="{{ url | default:card_collection.url }}"
+  class="text-body group hover:brightness-95 transition-all relative overflow-hidden {% if forloop_index %}slide-up-sm{% endif %} {{ class }}"
+  {% if style %}
+    style="{{ style }}"
+  {% endif %}
+  style="--nth-child: {{ forloop_index }};"
+>
+  <div class="bg-emphasis">
+    {%- liquid
+      assign aspect_ratio = aspect_ratio | default: 'aspect-[0.8]'
+      assign aspect_integer = aspect_ratio | split: '[' | last | replace: ']','' | times: 1
+      assign picture_class = picture_class | append: ' bg-emphasis h-full w-full object-contain flex items-center ' | append: aspect_ratio
+      assign image = image | default: card_collection.featured_image
+      assign cols = cols | default: 2
+      assign object_fit = object_fit | default: 'object-contain'
+
+      render 'a--image', image: image, picture_class: picture_class, image_class: '-mix-blend-darken h-full', object_fit: object_fit, cols: cols
+    -%}
+  </div>
+  <div class="mt-2 text-left {{ title_class }}">
+    {{ title | default: card_collection.title }}
+  </div>
+</a>

@@ -1,0 +1,175 @@
+# climaybe — Release PR Check (Single-store)
+# Runs when a PR is opened from staging → main (status check).
+# Finds latest tag on main (e.g. v3.1.12), generates changelog from that tag to PR head,
+# creates a pre-release patch tag (e.g. v3.1.13) on main to lock "last v3.1.x" before merge.
+# No version in code or PR title; after merge, post-merge-tag does minor bump (v3.1.13 → v3.2.0).
+
+name: Release PR Check
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+# Prevent concurrent runs for the same PR
+concurrency:
+  group: release-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  # Gate: only run for PRs from staging
+  check-source:
+    runs-on: ubuntu-latest
+    outputs:
+      is_staging: ${{ steps.check.outputs.is_staging }}
+    steps:
+      - id: check
+        run: |
+          if [[ "${{ github.head_ref }}" == "staging" ]]; then
+            echo "is_staging=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_staging=false" >> $GITHUB_OUTPUT
+          fi
+
+  # Lock the current state with a pre-release patch tag
+  pre-release-tag:
+    needs: check-source
+    if: needs.check-source.outputs.is_staging == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      last_tag: ${{ steps.tag.outputs.last_tag }}
+      new_tag: ${{ steps.tag.outputs.new_tag }}
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create pre-release patch tag
+        id: tag
+        run: |
+          LATEST_TAG=$(git tag --merged HEAD | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
+          if [ -z "$LATEST_TAG" ]; then
+            LATEST_TAG=$(git tag --merged HEAD | grep -E '^v[0-9]+\.[0-9]+$' | sort -V | tail -1)
+          fi
+          if [ -z "$LATEST_TAG" ]; then
+            # No tags: use theme_version from config/settings_schema.json and push as initial tag
+            SCHEMA="config/settings_schema.json"
+            if [ -f "$SCHEMA" ]; then
+              LATEST_TAG=$(node -e "
+                const fs = require('fs');
+                const arr = JSON.parse(fs.readFileSync('$SCHEMA', 'utf-8'));
+                const info = arr.find(x => x.name === 'theme_info');
+                const v = (info && info.theme_version) ? String(info.theme_version).trim() : '';
+                if (!v) process.exit(1);
+                let parts = v.replace(/^v/i, '').split('.');
+                if (parts.length === 2) parts.push('0');
+                if (parts.length < 3) parts = parts.concat(Array(3 - parts.length).fill('0')).slice(0, 3);
+                console.log('v' + parts.slice(0, 3).join('.'));
+              " 2>/dev/null || true)
+            fi
+            if [ -z "$LATEST_TAG" ]; then
+              LATEST_TAG="v0.0.0"
+            fi
+            if ! git rev-parse -q --verify "refs/tags/$LATEST_TAG" >/dev/null; then
+              git tag -a "$LATEST_TAG" -m "Initial version from settings_schema.json"
+              git push origin "$LATEST_TAG"
+              echo "Created initial tag $LATEST_TAG from settings_schema.json"
+            fi
+          fi
+          echo "last_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+
+          # Check if there are commits since the last tag
+          COMMITS_SINCE=$(git rev-list ${LATEST_TAG}..HEAD --count 2>/dev/null || echo "0")
+
+          if [ "$COMMITS_SINCE" -gt "0" ]; then
+            # Bump patch to lock current state
+            VERSION="${LATEST_TAG#v}"
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+            PATCH=$((PATCH + 1))
+            NEW_TAG="v${MAJOR}.${MINOR}.${PATCH}"
+
+            # Avoid duplicate push attempts when a tag already exists.
+            if git rev-parse -q --verify "refs/tags/$NEW_TAG" >/dev/null; then
+              echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+              echo "Tag $NEW_TAG already exists, reusing it."
+            else
+              git tag -a "$NEW_TAG" -m "Pre-release lock before staging merge"
+              git push origin "$NEW_TAG"
+              echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+              echo "Created pre-release tag: $NEW_TAG"
+            fi
+          else
+            echo "new_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+            echo "No new commits since $LATEST_TAG, skipping tag."
+          fi
+
+  # Generate changelog via AI
+  changelog:
+    needs: [check-source, pre-release-tag]
+    if: needs.check-source.outputs.is_staging == 'true'
+    uses: ./.github/workflows/ai-changelog.yml
+    with:
+      base_ref: ${{ needs.pre-release-tag.outputs.last_tag }}
+      head_ref: ${{ github.event.pull_request.head.sha }}
+    secrets:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+  # Post changelog as PR comment
+  comment:
+    needs: [check-source, changelog, pre-release-tag]
+    if: needs.check-source.outputs.is_staging == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Post changelog comment
+        uses: actions/github-script@v7
+        env:
+          PRE_RELEASE_TAG: ${{ needs.pre-release-tag.outputs.new_tag }}
+          CHANGELOG_TEXT: ${{ needs.changelog.outputs.changelog }}
+        with:
+          script: |
+            const tag = process.env.PRE_RELEASE_TAG || '';
+            const rawChangelog = process.env.CHANGELOG_TEXT || '';
+            const changelog = rawChangelog.trim() ? rawChangelog : 'No changes detected.';
+
+            const body = `## Release Changelog\n\n` +
+              `**Pre-release tag:** \`${tag}\`\n\n` +
+              `---\n\n${changelog}\n\n` +
+              `---\n*Generated by climaybe*`;
+
+            // Find existing bot comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('Generated by climaybe')
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }

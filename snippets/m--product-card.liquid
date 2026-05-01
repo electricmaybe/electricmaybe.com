@@ -1,0 +1,287 @@
+{%- assign type_str = type | default: '' -%}
+{%- assign layout_variant = type_str | default: 'default' -%}
+{%- liquid
+  if layout_variant == 'lite' and base_font != true
+    assign class = class | append: ' text-ui-small'
+  else
+    assign class = class | append: ' text-ui-base'
+  endif
+
+  # Collection grid: first 2 items render as landscape hero cards.
+  assign is_landscape_media = false
+  if identifier == 'collection-grid' and forloop_index != blank and forloop_index <= 1
+    assign is_landscape_media = true
+  endif
+
+  if forloop_index
+    assign style = style | append: '; --nth-child: ' | append: forloop_index
+    assign class = class | append: ' slide-up-md'
+  endif
+
+  # Metafield-driven product card badges
+  # - `custom.image_badge`: top-left badge on image (single line text)
+  # - `custom.product_badges`: list of metaobjects, each with `badge_name` (text) and optional `icon` (image)
+  assign image_badge_text = card_product.metafields.custom.image_badge.value | default: card_product.metafields.custom.image_badge | default: ''
+  assign product_badges = card_product.metafields.custom.product_badges.value
+  assign is_per_request = card_product.metafields.custom.is_per_request.value
+
+  # Base for unique DOM ids (avoid section dependency; used in AJAX templates too)
+  assign id_base = identifier | default: request.page_type | default: 'product-card'
+
+  # Shared labels
+  assign add_to_cart_label = 'products.product.add_to_cart' | t: product: card_product.title | escape
+
+  # Card rating visibility guard (Liquid-level)
+  assign card_rating_count = card_product.metafields.reviews.rating_count | default: 0 | plus: 0
+  assign card_rating_value = card_product.metafields.reviews.rating.value.rating | default: 0 | plus: 0
+  assign card_has_reviews = false
+  if card_rating_count > 0 or card_rating_value > 0
+    assign card_has_reviews = true
+  endif
+-%}
+<product-card
+  class="{{ class }} product-card text-left"
+  data-product-id="{{ card_product.id }}"
+  data-product-name="{{ card_product.title | split: ',' | first }}"
+  data-price="{{ card_product.price }}"
+  data-product-handle="{{ card_product.handle }}"
+  style="{{ style }}"
+>
+  {% # IMAGE %}
+  <a href="{{ card_product.url }}">
+    <div class="relative block w-auto overflow-hidden transition-opacity group">
+    {%- if card_product.gift_card? -%}
+        # GIFT CARD DISPLAY
+        <div class="bg-subtle w-full flex items-center justify-center py-s-sm h-full">
+          <div class="w-full max-w-xl aspect-[1.5] bg-white rounded-lg p-6 flex flex-col items-center justify-center bg-cover" style="background-image: url({{ 'card-bg.png' | asset_img_url: 'original' }})">
+            <div class="flex justify-center mb-2">
+              {{ 'logo.png' | asset_img_url: 'original' | image_tag: alt: shop.name, class: 'h-3.5 lg:h-4 invert' | link_to: routes.root_url, class: 'flex items-center', aria_label: shop.name }}
+            </div>
+            <div class="text-center">
+              <div class="h5 text-on-accent font-light">
+                ${{ card_product.selected_or_first_available_variant.price | money_without_currency }} E-Gift Card
+              </div>
+            </div>
+          </div>
+        </div>
+      {% else %}
+        {%- assign image = image | default: card_product.featured_media -%}
+        {%- assign base_picture_class = picture_class | append: ' h-full w-full block flex items-center ' -%}
+        {%- if is_landscape_media -%}
+          {%- assign base_picture_class = base_picture_class | append: 'aspect-[16/9]' -%}
+        {%- else -%}
+          {%- assign base_picture_class = base_picture_class | append: 'aspect-[372/437]' -%}
+        {%- endif -%}
+        {%- assign picture_class = base_picture_class | append: ' object-contain transition-all bg-subtle group-hover:brightness-95' -%}
+
+        {%- if is_landscape_media -%}
+          {%- render 'a--image', image: image, picture_class: picture_class, image_class: '-mix-blend-darken', cols: lg_cols | default: 3, object_fit: 'object-contain', aspect_ratio: 1.7778, alt: card_product.title -%}
+        {%- else -%}
+          {%- render 'a--image', image: image, picture_class: picture_class, image_class: '-mix-blend-darken', cols: lg_cols | default: 3, object_fit: 'object-contain', aspect_ratio: 0.851, alt: card_product.title -%}
+        {%- endif -%}
+      {% endif %}
+
+      {%- liquid
+        # Top-left image badge from metafield (default layout only)
+        if layout_variant == 'default' and image_badge_text != blank
+          echo '<div class="absolute left-0 top-[18px] bg-surface p-2">'
+            echo '<span class="text-ui-small text-primary">'
+              echo image_badge_text | escape
+            echo '</span>'
+          echo '</div>'
+        endif
+
+        # WISHLIST BUTTON
+        if layout_variant != 'default' and layout_variant != 'tiny'
+          render 'm--wishlist-button', product: card_product, class: 'absolute top-2.5 right-3'
+        endif
+
+        # Quick view / quick atc is no longer used on product cards.
+    -%}
+    </div>
+
+  {% # TITLE & PRICE %}
+  {% capture title_and_price %}
+    {% if layout_variant == 'default' %}
+      <div class="flex flex-col gap-y-[12px] py-b-sm">
+        <div class="flex flex-col gap-1 leading-[1.2] w-full">
+          {%- if card_has_reviews -%}
+            {%- render 'product--rating', product: card_product, wrapper_class: 'flex gap-1.5 items-center', compact: true -%}
+          {%- endif -%}
+
+          <div class="flex flex-col gap-1 lg:flex-row lg:items-start lg:justify-between lg:gap-x-b-base w-full">
+            <div data-product-title class="text-ui-base font-medium text-primary whitespace-normal min-w-0 lg:flex-1">
+              {{ title | default: card_product.metafields.custom.product_group.value.display_name | default: card_product.title }}
+            </div>
+
+          {%- liquid
+            assign display_price_varies = card_product.price_varies
+            assign min_price_available = null
+            assign price_display_class = 'shrink-0 text-ui-base leading-[1.2] text-primary'
+
+            if is_per_request
+              assign price_cents = 0
+              assign price_text = 'products.product.price_on_request' | t
+              assign price_display_class = 'w-full shrink-0 text-left lg:text-right text-ui-small text-primary lg:w-auto'
+            elsif display_price_varies
+              for v in card_product.variants
+                if v.available and v.price > 0
+                  if min_price_available == null or v.price < min_price_available
+                    assign min_price_available = v.price
+                  endif
+                endif
+              endfor
+              assign price_cents = min_price_available | default: card_product.price_min
+              assign price_plain = price_cents | money | strip_html | strip
+              assign price_text = 'products.product.price.from' | t | append: ' ' | append: price_plain
+            else
+              assign price_cents = card_product.selected_or_first_available_variant.price
+              assign price_text = price_cents | money | strip_html | strip
+            endif
+          -%}
+
+          <div
+            class="{{ price_display_class }}"
+            data-price="{{ price_cents }}"
+            data-price-text="{{ price_text | strip | escape }}"
+          >
+            {{- price_text -}}
+          </div>
+          </div>
+        </div>
+
+        {%- if product_badges != blank -%}
+          <div class="flex flex-wrap items-start gap-x-b-base gap-y-b-base">
+            {%- for badge_obj in product_badges limit: 6 -%}
+              {%- liquid
+                assign badge_label = badge_obj.badge_name.value | default: badge_obj.badge_name | default: ''
+                assign badge_icon_image = badge_obj.icon.value | default: badge_obj.icon
+              -%}
+              {%- if badge_label != blank -%}
+                <span class="inline-flex items-center gap-1 rounded-full border-sm border-secondary px-1.5 py-1 text-ui-small text-primary">
+                  {%- if badge_icon_image != blank -%}
+                    <img
+                      src="{{ badge_icon_image | image_url: width: 28 }}"
+                      width="14"
+                      height="14"
+                      alt=""
+                      loading="lazy"
+                      class="opacity-90 w-3.5 h-3.5"
+                    >
+                  {%- endif -%}
+                  <span>{{ badge_label | escape }}</span>
+                </span>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+      </div>
+    {% else %}
+      <div class="mt-2 flex items-start gap-1 {% if type == 'atc' %}flex-col{% endif %}">
+        {% unless layout_variant == 'tiny' %}
+        <div class="flex flex-col w-full whitespace-normal min-w-0">
+            {%- if card_has_reviews -%}
+              {%- render 'product--rating', product: card_product, wrapper_class: 'flex gap-1.5 items-center', compact: true -%}
+            {%- endif -%}
+            <div data-product-title class="whitespace-normal">
+              {{ title | default: card_product.metafields.custom.product_group.value.display_name | default: card_product.title }}
+            </div>
+        </div>
+      {% endunless %}
+        {%- liquid
+          if type contains 'lite' or type == 'tiny' or type == 'atc'
+            assign hide_compare_price = true
+          endif
+          render 'a--price-group', product: card_product, direction: 'vertical-reverse', hide_compare_price: hide_compare_price
+        -%}
+      </div>
+    {% endif %}
+  {% endcapture %}
+
+  {% if type == 'atc' %}
+    {% if is_per_request %}
+      {{ title_and_price }}
+    {% else %}
+      <product-card-atc class="flex justify-between items-center">
+        {{ title_and_price }}
+        {% render 'a--button',
+          tag: 'button',
+          style: 'secondary',
+          size: 'sm',
+          content: 'icon-only',
+          icon: 'add-to-bag',
+          icon_class: 'w-5 h-5',
+          states: true,
+          loading_label: 'spinner',
+          success_label: 'Added!',
+          error_label: 'Error',
+          aria_label: 'products.product.add_to_cart' | t: product: card_product.title | escape,
+          class: 'relative',
+          properties: 'data-add-to-cart-trigger data-product-id="' | append: card_product.id | append: '" data-variant-id="' | append: card_product.selected_or_first_available_variant.id | append: '"'
+        %}
+
+        {%- assign form_id = 'product-form-' | append: id_base | append: '-' | append: card_product.id | append: '-atc' -%}
+        {%- form 'product',
+          card_product,
+          id: form_id,
+          class: 'hidden',
+          novalidate: 'novalidate',
+          data-type: 'add-to-cart-form'
+        -%}
+          <input
+            type="hidden"
+            name="id"
+            value="{{ card_product.selected_or_first_available_variant.id }}"
+          >
+          <input
+            type="hidden"
+            name="quantity"
+            value="1"
+          >
+        {%- endform -%}
+      </product-card-atc>
+    {% endif %}
+  {% elsif type == 'wishlist' %}
+    {{ title_and_price }}
+    {% unless is_per_request %}
+      <product-card-atc class="mt-3">
+        {%- assign properties = 'data-add-to-cart-trigger data-product-id="' | append: card_product.id | append: '" data-variant-id="' | append: card_product.selected_or_first_available_variant.id | append: '"' -%}
+        {% render 'a--button',
+          tag: 'button',
+          style: 'secondary',
+          label: 'ADD TO CART',
+          states: true,
+          loading_label: 'spinner',
+          success_label: 'Added!',
+          error_label: 'Error',
+          aria_label: add_to_cart_label,
+          class: 'w-full relative mt-2 mb-4',
+          properties: properties
+        %}
+
+        {%- assign form_id = 'product-form-' | append: id_base | append: '-' | append: card_product.id | append: '-wishlist' -%}
+        {%- form 'product',
+          card_product,
+          id: form_id,
+          class: 'hidden',
+          novalidate: 'novalidate',
+          data-type: 'add-to-cart-form'
+        -%}
+          <input
+            type="hidden"
+            name="id"
+            value="{{ card_product.selected_or_first_available_variant.id }}"
+          >
+          <input
+            type="hidden"
+            name="quantity"
+            value="1"
+          >
+        {%- endform -%}
+      </product-card-atc>
+    {% endunless %}
+  {% else %}
+    {{ title_and_price }}
+  {% endif %}
+</a>
+</product-card>

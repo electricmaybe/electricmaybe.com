@@ -1,0 +1,116 @@
+{%- doc -%}
+Electric thumbnails navigation component for slider control with accessible keyboard navigation.
+
+This component provides thumbnail-based navigation for electric-slider components. It includes full keyboard support, ARIA attributes, and automatic active state management. Thumbnails automatically sync with the slider's current position.
+
+@param {string} slider_target - ID of the target slider (required)
+@param {object} items - Collection of items to create thumbnails for (required)
+@param {string} [thumbnail_class] - Additional CSS classes for thumbnail buttons
+@param {string} [wrapper_class] - Additional CSS classes for the thumbnails container
+@param {string} [image_width] - Width for thumbnail images (defaults to '80')
+@param {string} [thumbnail_content] - Custom content for each thumbnail (optional)
+@param {boolean} [show_indicators] - Show media type indicators for videos/models (defaults to true)
+
+@example
+{% render 'm--electric-thumbnails',
+  slider_target: 'product-slider',
+  items: product.media,
+  wrapper_class: 'absolute bottom-3 right-3'
+%}
+
+@example
+{% render 'm--electric-thumbnails',
+  slider_target: 'custom-slider',
+  items: collection.products,
+  thumbnail_class: 'w-20 h-20',
+  wrapper_class: 'flex gap-2',
+  image_width: '120'
+%}
+{%- enddoc -%}
+
+{%- liquid
+  assign slider_target = slider_target | default: ''
+  assign items = items | default: empty
+  assign thumbnail_class = thumbnail_class | default: ''
+  assign wrapper_class = wrapper_class | default: ''
+  assign image_width = image_width | default: '80'
+  assign show_indicators = show_indicators | default: true, allow_false: true
+
+  unless slider_target != blank and items != empty
+    comment
+      Early return if required parameters are missing
+    endcomment
+    break
+  endunless
+-%}
+
+<electric-thumbnails
+  class="electric-slider__thumbnails flex items-center gap-x-1 {{ wrapper_class }}"
+  data-slider-target="{{ slider_target }}"
+  role="navigation"
+  aria-label="Thumbnail navigation"
+>
+  {%- for item in items -%}
+    <button
+      type="button"
+      data-index="{{ forloop.index0 }}"
+      {% if item.id %}data-item-id="{{ item.id }}"{% endif %}
+      class="rounded-full shrink-0 overflow-hidden border border-secondary transition-all duration-200 ease-out cursor-pointer data-[active='true']:border-primary data-[active='true']:ring-2 data-[active='true']:ring-primary/20 hover:border-primary/60 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 {{ thumbnail_class }}"
+      {% if forloop.first %}data-active="true"{% else %}data-active="false"{% endif %}
+      aria-label="Go to slide {{ forloop.index }}"
+    >
+      {%- if thumbnail_content -%}
+        {%- comment -%}Custom thumbnail content{%- endcomment -%}
+        {{ thumbnail_content }}
+      {%- elsif item.featured_image or item.preview_image -%}
+        {%- comment -%}Handle product or media items{%- endcomment -%}
+        {%- liquid
+          if item.preview_image
+            assign thumbnail_image = item.preview_image
+          else
+            assign thumbnail_image = item.featured_image
+          endif
+          assign alt = item.alt | default: item.title
+        -%}
+        <div class="relative w-10 h-10">
+          {{
+            thumbnail_image
+            | image_url: width: image_width
+            | image_tag:
+              sizes: '80px',
+              widths: '80, 120',
+              alt: alt,
+              class: 'object-cover w-full h-full',
+              loading: 'lazy'
+          }}
+          
+          {%- if show_indicators -%}
+            {%- if item.media_type == 'model' -%}
+              <span
+                class="absolute top-0 right-0 p-0.5 bg-background/80 backdrop-blur-sm rounded-bl"
+                aria-hidden="true"
+              >
+                <span class="sr-only">3D Model</span>
+                {%- render 'a--icon', icon: '3d-model', size: 'h-3' -%}
+              </span>
+            {%- elsif item.media_type == 'video' or item.media_type == 'external_video' -%}
+              <span
+                class="absolute top-0 right-0 p-0.5 bg-background/80 backdrop-blur-sm rounded-bl"
+                aria-hidden="true"
+              >
+                <span class="sr-only">Video</span>
+                {%- render 'a--icon', icon: 'play', size: 'h-3' -%}
+              </span>
+            {%- endif -%}
+          {%- endif -%}
+        </div>
+      {%- else -%}
+        {%- comment -%}Fallback for items without images{%- endcomment -%}
+        <div class="w-10 h-10 bg-dune-100 flex items-center justify-center text-ui-small">
+          {{ forloop.index }}
+        </div>
+      {%- endif -%}
+    </button>
+  {%- endfor -%}
+</electric-thumbnails>
+

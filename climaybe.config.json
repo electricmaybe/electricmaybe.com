@@ -1,0 +1,17 @@
+{
+  "project_type": "theme",
+  "port": 9295,
+  "default_store": "voldt-norway.myshopify.com",
+  "preview_workflows": true,
+  "build_workflows": true,
+  "dev_kit": true,
+  "vscode_tasks": true,
+  "commitlint": true,
+  "cursor_skills": true,
+  "stores": {
+    "euro": "voldt-staging.myshopify.com",
+    "norway": "voldt-norway.myshopify.com"
+  },
+  "build_entrypoints_ready": true,
+  "active_store_alias": "norway"
+}

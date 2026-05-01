@@ -1,0 +1,76 @@
+{%- doc -%}
+Slider navigation: prev/next buttons and optional progress bar for electric-slider.
+
+Renders previous/next buttons that control a slider via data-slider-target, and optionally a progress bar filled via CSS var --slider-bar-progress. When type is 'on-sides', buttons are absolutely positioned left/right; otherwise they sit in a row with the bar. Hidden below lg breakpoint (max-lg:hidden).
+
+@param {string} type - Layout: 'none' (output nothing), 'on-sides' (floating left/right buttons), or default (bar + buttons in a row)
+@param {string} target - Slider element id for data-slider-target (required when type != 'none')
+@param {boolean} [bar] - Show progress bar (default: true). Set to false to hide.
+@param {string} [class_wrapper] - Extra CSS classes for the wrapper element(s)
+@param {boolean} [small] - Use smaller icon size for buttons (default: false)
+
+@example
+{% render 'm--slider-navigation', target: slider_id, type: 'on-sides', bar: true %}
+
+@example
+{% render 'm--slider-navigation',
+  target: id,
+  type: type,
+  bar: bar,
+  class_wrapper: 'my-4'
+%}
+{%- enddoc -%}
+{%- unless type == 'none' -%}
+  {%- liquid
+    assign icon_size = 'base'
+    if small
+      assign icon_size = 'sm'
+    endif
+
+    assign bar = bar | default: true, allow_false: true
+
+    if type == 'on-sides'
+      assign style_button = 'primary'
+      assign class_button_left = 'absolute left-2 top-1/2 -translate-y-1/2 pointer-events-auto max-lg:hidden'
+      assign class_button_right = 'absolute right-2 top-1/2 -translate-y-1/2 pointer-events-auto max-lg:hidden'
+    else
+      assign style_button = 'secondary'
+    endif
+
+    capture properties
+      echo ' data-slider-target="' | append: target | append: '"'
+    endcapture
+
+    capture buttons_html
+      render 'a--button', icon: 'chevron-l', style: style_button, size: icon_size, class: class_button_left, properties: properties, name: 'previous'
+      render 'a--button', icon: 'chevron-r', style: style_button, size: icon_size, class: class_button_right, properties: properties, name: 'next'
+    endcapture
+  -%}
+  {%- capture bar_html -%}
+    {%- if bar -%}
+    <div class="overflow-hidden relative w-full h-0.25 bg-subtle">
+      <div
+        class="h-0.25 electric-slider__bar bg-accent origin-left transition-transform duration-200 ease-out"
+        style="transform: scaleX(var(--slider-bar-progress, 0.1))"
+        data-slider-target="{{ target }}"
+      ></div>
+    </div>
+    {%- endif -%}
+  {%- endcapture -%}
+
+  {%- if type == 'on-sides' -%}
+    {{- buttons_html -}}
+    {%- if bar -%}
+      <div class="max-lg:hidden w-full {{ class_wrapper }}">
+        {{- bar_html -}}
+      </div>
+    {%- endif -%}
+  {%- else -%}
+    <div class="max-lg:hidden w-full grid grid-cols-[1fr_auto] items-center gap-x-b-xl {{ class_wrapper }}">
+      {{- bar_html -}}
+      <div class="flex gap-x-b-base col-start-2">
+        {{- buttons_html -}}
+      </div>
+    </div>
+  {%- endif -%}
+{%- endunless -%}

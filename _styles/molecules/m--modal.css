@@ -1,0 +1,210 @@
+/* Electric Modal Component Styles */
+
+/* Legacy modal-dialog support (to be deprecated) */
+modal-dialog {
+  @apply hidden pointer-events-none;
+
+  ._modalBackdrop {
+    @apply opacity-0 transition-opacity duration-200 ease-in;
+  }
+  ._modalBox {
+    @apply opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95;
+  }
+
+  &[opening] {
+    @apply block pointer-events-auto;
+
+    ._modalBackdrop {
+      @apply opacity-0 transition-opacity duration-200 ease-in;
+    }
+    ._modalBox {
+      @apply opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95;
+    }
+  }
+
+  &[open] {
+    @apply block pointer-events-auto;
+
+    ._modalBackdrop {
+      @apply opacity-100 duration-300 ease-out;
+    }
+    ._modalBox {
+      @apply opacity-100 translate-y-0 sm:scale-100;
+    }
+  }
+}
+
+/* New Electric Modal Styles */
+electric-modal {
+  /* Content slot styling for light DOM content */
+  [slot="content"] {
+    @apply bg-subtle text-primary rounded-lg overflow-hidden;
+    
+    /* Ensure proper text contrast */
+    h1, h2, h3, h4, h5, h6 {
+      @apply text-primary;
+    }
+    
+    /* Modal header styles */
+    [data-modal-title] {
+      @apply text-lg font-medium;
+    }
+    
+    /* Modal description styles */
+    [data-modal-description] {
+      @apply text-sm opacity-80;
+    }
+  }
+  
+  /* Size variations for content */
+  &[data-size="small"] [slot="content"] {
+    @apply max-w-sm;
+  }
+  
+  &[data-size="medium"] [slot="content"] {
+    @apply max-w-lg;
+  }
+  
+  &[data-size="large"] [slot="content"] {
+    @apply max-w-2xl;
+  }
+  
+  &[data-size="full"] [slot="content"] {
+    @apply max-w-full mx-4;
+  }
+  
+  /* Quick add to cart specific styles */
+  &.quick-add-modal {
+    [slot="content"] {
+      @apply p-0;
+      
+      .product-quick-add {
+        @apply grid md:grid-cols-2 gap-6 p-6;
+        
+        .product-image {
+          @apply relative aspect-square bg-subtle rounded-lg overflow-hidden;
+          
+          img {
+            @apply w-full h-full object-cover;
+          }
+          
+          .product-badges {
+            @apply absolute top-3 left-3;
+          }
+        }
+        
+        .product-info {
+          @apply flex flex-col;
+          
+          .product-title {
+            @apply text-xl font-medium mb-2;
+          }
+          
+          .product-price {
+            @apply text-lg mb-4;
+            
+            .compare-price {
+              @apply text-sm line-through opacity-60 mr-2;
+            }
+          }
+          
+          .product-options {
+            @apply space-y-4 mb-6;
+            
+            .option-group {
+              label {
+                @apply block text-sm font-medium mb-2;
+              }
+              
+              .option-values {
+                @apply flex flex-wrap gap-2;
+                
+                .option-value {
+                  @apply px-4 py-2 border border-secondary rounded-md cursor-pointer transition-all;
+                  
+                  &:hover {
+                    @apply border-primary;
+                  }
+                  
+                  &.selected {
+                    @apply bg-subtle text-primary border-primary;
+                  }
+                  
+                  &.unavailable {
+                    @apply opacity-50 cursor-not-allowed;
+                  }
+                }
+              }
+            }
+          }
+          
+          .product-quantity {
+            @apply flex items-center gap-4 mb-6;
+            
+            label {
+              @apply text-sm font-medium;
+            }
+          }
+          
+          .product-actions {
+            @apply space-y-3;
+            
+            .add-to-cart {
+              @apply w-full;
+            }
+            
+            .quick-links {
+              @apply flex justify-center gap-4 text-sm;
+              
+              a {
+                @apply underline hover:no-underline;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  /* Loading state */
+  &.loading [slot="content"] {
+    @apply min-h-[200px] flex items-center justify-center;
+    
+    .spinner {
+      @apply w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin;
+    }
+  }
+  
+  /* Error state */
+  &.error [slot="content"] {
+    @apply p-6 text-center;
+    
+    .error-icon {
+      @apply w-12 h-12 mx-auto mb-4 text-red;
+    }
+    
+    .error-message {
+      @apply text-sm opacity-80;
+    }
+  }
+}
+
+/* Utility classes for modal content */
+.modal-header {
+  @apply px-6 py-4 border-b border-secondary flex items-center justify-between;
+}
+
+.modal-body {
+  @apply p-6;
+}
+
+.modal-footer {
+  @apply px-6 py-4 border-t border-secondary flex gap-3 justify-end;
+}
+
+/* Focus trap indicator (development only) */
+.debug-focus-trap {
+  electric-modal[open] [slot="content"] {
+    @apply ring-2 ring-black ring-offset-2;
+  }
+}

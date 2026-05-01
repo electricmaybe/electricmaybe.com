@@ -1,0 +1,317 @@
+{%- liquid
+  assign s = section.settings
+  assign desired_brands_raw = 'Abarth||Aiways||Alfa Romeo||Alpine||Audi||BMW||BYD||Bentley||Cadillac||Chery||Chevrolet||Citroën||Cupra||DS||Dacia||Dongfeng||Ferrari||Fiat||Fisker||Ford||GWM||Genesis||Honda||Hongqi||Hyundai||JAC||Jaecoo||Jaguar||Jeep||KGM||Kia||LEVC||Lancia||Land Rover||Landrover / Range Rover||Leapmotor||Lexus||Lightyear||Lotus||Lucid||Lynk&Co||MG||Maserati||Mazda||Mercedes||Mini||Mitsubishi||NIO||Nissan||Opel||Peugeot||Polestar||Porsche||Range Rover||Renault||Rolls Royce||SEAT||SSANGYONG||Seres||Skoda||Smart||Sono||SsangYong||Subaru||Suzuki||Tesla||Toyota||Vauxhall||VinFast||Volkswagen||Volvo||Voyah||XPENG||Zeekr'
+  assign desired_brands = desired_brands_raw | split: '||'
+  assign collection_title_downcase = collection.title | default: '' | downcase
+
+  assign brand_label = ''
+  for brand in desired_brands
+    assign brand_downcase = brand | downcase
+    if brand_label == '' and collection_title_downcase contains brand_downcase
+      assign brand_label = brand
+    endif
+  endfor
+  if brand_label == ''
+    assign brand_label = desired_brands[0]
+  endif
+  assign brand_label_downcase = brand_label | downcase
+
+  assign list_a = collection.metafields.custom.collection_list.value | default: collection.metafields.custom.collection_list
+  assign list_b = collection.metafields.custom.collection_list_1.value | default: collection.metafields.custom.collection_list_1
+
+  assign series_raw = ''
+  for list_index in (1..2)
+    if list_index == 1
+      assign source_list = list_a
+    else
+      assign source_list = list_b
+    endif
+    for car_collection in source_list
+      if car_collection == blank
+        continue
+      endif
+      assign series_value = car_collection.metafields.custom.car_model_series.value | default: car_collection.metafields.custom.car_model_series | default: '' | strip
+      assign car_brand_value = car_collection.metafields.custom.auto.value | default: car_collection.metafields.custom.auto | default: '' | strip
+      assign car_brand_downcase = car_brand_value | downcase
+      if series_value != blank and car_brand_downcase contains brand_label_downcase
+        if series_raw != ''
+          assign series_raw = series_raw | append: '||'
+        endif
+        assign series_raw = series_raw | append: series_value
+      endif
+    endfor
+  endfor
+  assign series_list = series_raw | split: '||' | uniq
+
+  assign first_item = true
+  capture search_items_json
+    echo '['
+    for list_index in (1..2)
+      if list_index == 1
+        assign source_list = list_a
+      else
+        assign source_list = list_b
+      endif
+      for car_collection in source_list
+        if car_collection == blank
+          continue
+        endif
+        assign car_brand_value = car_collection.metafields.custom.auto.value | default: car_collection.metafields.custom.auto | default: '' | strip
+        assign car_brand_downcase = car_brand_value | downcase
+        unless car_brand_downcase contains brand_label_downcase
+          continue
+        endunless
+        if first_item == false
+          echo ','
+        endif
+        echo '{"title":'
+        echo car_collection.title | json
+        echo ',"url":'
+        echo car_collection.url | json
+        echo '}'
+        assign first_item = false
+      endfor
+    endfor
+    echo ']'
+  endcapture
+-%}
+
+<section class="px-s-outer py-s-sm" data-search-items="{{ search_items_json | strip | escape }}">
+  <div class="px-s-inner flex flex-col items-center gap-y-s-base">
+    <div class="w-full max-w-[698px] flex flex-col">
+      <p class="text-ui-small font-medium text-primary">
+        {{ s.search_label_prefix | default: 'Search your' | escape }} {{ brand_label | escape }}
+      </p>
+      <div class="relative" data-search-wrapper>
+        <div class="flex items-center justify-between gap-x-b-sm border-b border-secondary pb-b-xxs">
+          <div class="flex items-center gap-x-b-sm flex-1 h5 text-primary py-b-sm">
+            <span class="h5 text-primary/30">{{ brand_label | escape }}</span>
+            <input
+              type="search"
+              class="bg-transparent w-full focus:outline-none font-normal"
+              data-search-input
+              aria-expanded="false"
+              autocomplete="off"
+            >
+          </div>
+          <button type="button" class="w-6 h-6 text-primary" aria-label="{{ s.search_button_label | default: 'Search' | escape }}" data-search-button disabled>
+            {%- render 'a--icon', icon: 'arrow-right-l', class: 'w-full h-full' -%}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="w-full flex flex-col gap-y-s-base">
+      {%- for series in series_list -%}
+        {%- if series == blank -%}
+          {%- continue -%}
+        {%- endif -%}
+        {%- assign series_handles_raw = '' -%}
+        {%- assign series_search_raw = series | downcase -%}
+        {%- capture series_cards -%}
+          {%- for list_index in (1..2) -%}
+            {%- if list_index == 1 -%}
+              {%- assign source_list = list_a -%}
+            {%- else -%}
+              {%- assign source_list = list_b -%}
+            {%- endif -%}
+            {%- for car_collection in source_list -%}
+              {%- if car_collection == blank -%}{%- continue -%}{%- endif -%}
+              {%- assign series_value = car_collection.metafields.custom.car_model_series.value | default: car_collection.metafields.custom.car_model_series | default: '' | strip -%}
+              {%- assign car_brand_value = car_collection.metafields.custom.auto.value | default: car_collection.metafields.custom.auto | default: '' | strip -%}
+              {%- assign car_brand_downcase = car_brand_value | downcase -%}
+              {%- if series_value == series and car_brand_downcase contains brand_label_downcase -%}
+                {%- assign collection_handle = car_collection.handle | default: '' -%}
+                {%- capture collection_handle_token -%}||{{ collection_handle }}||{%- endcapture -%}
+                {%- unless series_handles_raw contains collection_handle_token -%}
+                  {%- assign series_handles_raw = series_handles_raw | append: collection_handle_token -%}
+                  {%- assign series_search_raw = series_search_raw | append: '||' | append: car_collection.title | downcase | append: '||' | append: car_brand_downcase -%}
+                  <div
+                    class="w-full"
+                    data-series-item
+                    data-series-item-search="{{ car_collection.title | downcase | escape }}"
+                  >
+                    {%- render 'm--car-model-card', card_collection: car_collection -%}
+                  </div>
+                {%- endunless -%}
+              {%- endif -%}
+            {%- endfor -%}
+          {%- endfor -%}
+        {%- endcapture -%}
+        {%- if series_cards != blank -%}
+          <div
+            class="flex flex-col gap-y-b-sm"
+            data-series-group
+            data-series-title="{{ series | downcase | escape }}"
+            data-series-search="{{ series_search_raw | escape }}"
+          >
+            <p class="h4 text-primary">
+              {{ series | escape }}
+            </p>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-b-base gap-y-b-base">
+              {{- series_cards -}}
+            </div>
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+
+      {%- assign ungrouped_handles_raw = '' -%}
+      {%- assign ungrouped_search_raw = brand_label_downcase -%}
+      {%- capture ungrouped_cards -%}
+        {%- for list_index in (1..2) -%}
+          {%- if list_index == 1 -%}
+            {%- assign source_list = list_a -%}
+          {%- else -%}
+            {%- assign source_list = list_b -%}
+          {%- endif -%}
+          {%- for car_collection in source_list -%}
+            {%- if car_collection == blank -%}{%- continue -%}{%- endif -%}
+            {%- assign series_value = car_collection.metafields.custom.car_model_series.value | default: car_collection.metafields.custom.car_model_series | default: '' | strip -%}
+            {%- assign car_brand_value = car_collection.metafields.custom.auto.value | default: car_collection.metafields.custom.auto | default: '' | strip -%}
+            {%- assign car_brand_downcase = car_brand_value | downcase -%}
+            {%- unless car_brand_downcase contains brand_label_downcase -%}
+              {%- continue -%}
+            {%- endunless -%}
+            {%- unless series_value == blank -%}
+              {%- continue -%}
+            {%- endunless -%}
+            {%- assign collection_handle = car_collection.handle | default: '' -%}
+            {%- capture collection_handle_token -%}||{{ collection_handle }}||{%- endcapture -%}
+            {%- unless ungrouped_handles_raw contains collection_handle_token -%}
+              {%- assign ungrouped_handles_raw = ungrouped_handles_raw | append: collection_handle_token -%}
+              {%- assign ungrouped_search_raw = ungrouped_search_raw | append: '||' | append: car_collection.title | downcase | append: '||' | append: car_brand_downcase -%}
+              <div
+                class="w-full"
+                data-series-item
+                data-series-item-search="{{ car_collection.title | downcase | escape }}"
+              >
+                {%- render 'm--car-model-card', card_collection: car_collection -%}
+              </div>
+            {%- endunless -%}
+          {%- endfor -%}
+        {%- endfor -%}
+      {%- endcapture -%}
+      {%- if ungrouped_cards != blank -%}
+        {%- assign no_series_title = s.no_series_title | default: 'Other models' -%}
+        <div
+          class="flex flex-col gap-y-b-sm"
+          data-series-group
+          data-series-title="{{ no_series_title | downcase | escape }}"
+          data-series-search="{{ ungrouped_search_raw | escape }}"
+        >
+          <p class="h4 text-primary">
+            {{ no_series_title | escape }}
+          </p>
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-b-base gap-y-b-base">
+            {{- ungrouped_cards -}}
+          </div>
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% javascript %}
+  const brandSearchInputs = document.querySelectorAll('[data-search-input]');
+
+  brandSearchInputs.forEach((input) => {
+    const wrapper = input.closest('section');
+    const button = wrapper?.querySelector('[data-search-button]');
+    const seriesGroups = wrapper?.querySelectorAll('[data-series-group]');
+    if (!wrapper || !button || !seriesGroups) return;
+
+    const applyFilter = (value) => {
+      const normalized = value.trim().toLowerCase();
+      let anyVisible = false;
+      seriesGroups.forEach((group) => {
+        const seriesTitle = group.dataset.seriesTitle || '';
+        const seriesSearch = group.dataset.seriesSearch || '';
+        const items = group.querySelectorAll('[data-series-item]');
+        let hasVisibleItems = false;
+
+        if (normalized === '') {
+          items.forEach((item) => item.classList.remove('hidden'));
+          hasVisibleItems = items.length > 0;
+        } else if (seriesTitle.includes(normalized)) {
+          items.forEach((item) => item.classList.remove('hidden'));
+          hasVisibleItems = items.length > 0;
+        } else if (seriesSearch.includes(normalized)) {
+          items.forEach((item) => {
+            const itemSearch = item.dataset.seriesItemSearch || '';
+            const matches = itemSearch.includes(normalized);
+            item.classList.toggle('hidden', !matches);
+            if (matches) hasVisibleItems = true;
+          });
+        } else {
+          items.forEach((item) => item.classList.add('hidden'));
+          hasVisibleItems = false;
+        }
+
+        group.classList.toggle('hidden', !hasVisibleItems);
+        if (hasVisibleItems) anyVisible = true;
+      });
+      button.disabled = !anyVisible;
+    };
+
+    input.addEventListener('input', () => {
+      applyFilter(input.value);
+    });
+    input.addEventListener('change', () => {
+      applyFilter(input.value);
+    });
+    input.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter') return;
+      applyFilter(input.value);
+    });
+    button.addEventListener('click', () => {
+      applyFilter(input.value);
+    });
+
+    applyFilter('');
+  });
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Car brand search",
+  "tag": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "How it works: This section is designed for car brand collection pages (e.g. BMW). It reads car model collections from the CURRENT collection metafields custom.collection_list and custom.collection_list_1. Each referenced car model collection should have metafield custom.auto (brand name) and custom.car_model_series (used as the group heading). The input filters the rendered groups/cards on-page (no Shopify search request)."
+    },
+    {
+      "type": "text",
+      "id": "search_label_prefix",
+      "label": "Label prefix",
+      "default": "Search your"
+    },
+    {
+      "type": "text",
+      "id": "search_placeholder",
+      "label": "Search placeholder",
+      "default": "i.e 330 edrive"
+    },
+    {
+      "type": "text",
+      "id": "search_button_label",
+      "label": "Button label",
+      "default": "Search"
+    },
+    {
+      "type": "text",
+      "id": "no_series_title",
+      "label": "No series group title",
+      "default": "Other models"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Car brand search"
+    }
+  ]
+}
+{% endschema %}

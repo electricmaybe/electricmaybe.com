@@ -1,0 +1,492 @@
+{%- comment -%}
+  Clickable quick-filter heading with optional info drawer.
+  Source: shop.metafields.custom.quick_filters (metaobject list)
+
+  Inputs:
+  - label: visible heading text (optional; fallback when no matching metaobject is found)
+  - lookup_key: stable key like type/power/cable/portable (optional)
+  - lookup_param: filter param_name for collection filters (optional)
+  - context_id: unique suffix to avoid duplicate drawer ids (optional)
+  - trigger_class: classes for clickable heading wrapper (optional)
+  - label_class: classes for fallback plain label (optional)
+{%- endcomment -%}
+
+{%- liquid
+  assign label = label | default: ''
+  assign lookup_key = lookup_key | default: ''
+  assign lookup_param = lookup_param | default: ''
+  assign context_id = context_id | default: ''
+  assign trigger_class = trigger_class | default: 'inline-flex items-center gap-x-b-sm cursor-pointer'
+  assign label_class = label_class | default: ''
+  assign provided_entry = entry | default: blank
+  assign provided_info_description = info_description | default: ''
+  assign provided_info_faqs = info_faqs | default: blank
+
+  if label == blank and lookup_key != blank
+    assign label = lookup_key | replace: '-', ' ' | replace: '_', ' ' | strip | capitalize
+  endif
+
+  assign quick_filter_entries = blank
+  if search and shop.metafields.custom.search_quick_filters.value != blank
+    assign quick_filter_entries = shop.metafields.custom.search_quick_filters.value
+  elsif search and shop.metafields.custom.search_quick_filters != blank
+    assign quick_filter_entries = shop.metafields.custom.search_quick_filters
+  elsif collection and collection.metafields.custom.quick_filters.value != blank
+    assign quick_filter_entries = collection.metafields.custom.quick_filters.value
+  elsif collection and collection.metafields.custom.quick_filters != blank
+    assign quick_filter_entries = collection.metafields.custom.quick_filters
+  elsif shop.metafields.custom.quick_filters.value != blank
+    assign quick_filter_entries = shop.metafields.custom.quick_filters.value
+  elsif shop.metafields.custom.quick_filters != blank
+    assign quick_filter_entries = shop.metafields.custom.quick_filters
+  endif
+
+  assign lookup_key_handle = lookup_key | handleize
+  assign lookup_param_handle = lookup_param | handleize
+  assign label_key = label | handleize
+  if label_key == blank
+    assign label_key = lookup_key_handle | default: lookup_param_handle
+  endif
+  assign lookup_param_compact = lookup_param_handle | replace: 'filter-p-m-custom-', '' | replace: 'filter-v-option-', '' | replace: 'filter-v-', '' | replace: '-', ''
+
+  # Fallback matching without param_name: use Filter Name aliases (+ localized label).
+  assign lookup_name_aliases = ',' | append: lookup_key_handle | append: ','
+  case lookup_key_handle
+    when 'portable'
+      assign lookup_name_aliases = lookup_name_aliases | append: 'portable,charging-time,chargingtime,'
+      assign localized_alias = 'general.search.car_filters.charging_time' | t | handleize
+    when 'type'
+      assign lookup_name_aliases = lookup_name_aliases | append: 'type,plug,connector,'
+      assign localized_alias = 'general.search.car_filters.type' | t | handleize
+    when 'power'
+      assign lookup_name_aliases = lookup_name_aliases | append: 'power,charging-capacity,capacity,kw,'
+      assign localized_alias = 'general.search.car_filters.power' | t | handleize
+    when 'cable'
+      assign lookup_name_aliases = lookup_name_aliases | append: 'cable,electric-range,range,'
+      assign localized_alias = 'general.search.car_filters.cable' | t | handleize
+  endcase
+  if localized_alias != blank
+    unless localized_alias contains 'translation-missing'
+      unless localized_alias contains 'general-search-car-filters'
+        assign lookup_name_aliases = lookup_name_aliases | append: localized_alias | append: ','
+      endunless
+    endunless
+  endif
+
+  assign matched_entry = provided_entry
+  if matched_entry == blank and quick_filter_entries != blank
+    for info_entry in quick_filter_entries
+      assign entry_name = info_entry.filter_name.value | default: info_entry.filter_name | default: info_entry.title.value | default: info_entry.title | default: ''
+      if entry_name == blank
+        assign entry_name = info_entry.name.value | default: info_entry.name
+      endif
+      if entry_name == blank
+        assign entry_name = info_entry.key.value | default: info_entry.key
+      endif
+      assign entry_key = entry_name | handleize
+
+      assign entry_param = info_entry.param_name.value | default: info_entry.param_name | default: info_entry.filter_param.value | default: info_entry.filter_param | default: info_entry.param.value | default: info_entry.param | default: ''
+      assign entry_param_handle = entry_param | handleize
+      assign entry_param_compact = entry_param_handle | replace: 'filter-p-m-custom-', '' | replace: 'filter-v-option-', '' | replace: 'filter-v-', '' | replace: '-', ''
+
+      assign entry_key_compact = entry_key | replace: '-', ''
+      if entry_key == blank and entry_param_handle == blank
+        continue
+      endif
+
+      assign is_match = false
+      # Primary matching: filter param_name (stable across locale changes)
+      if lookup_param_handle != blank and entry_param_handle == lookup_param_handle
+        assign is_match = true
+      endif
+
+      # Support configs that store param_name in generic key/name fields
+      if is_match == false and lookup_param_handle != blank and entry_key != blank
+        if entry_key == lookup_param_handle
+          assign is_match = true
+        endif
+      endif
+
+      # Compact fallback for `filter.p.m.custom.mode234` vs `mode234` style values
+      if is_match == false and lookup_param_compact != blank
+        if entry_param_compact == lookup_param_compact
+          assign is_match = true
+        endif
+        if is_match == false and entry_key_compact == lookup_param_compact
+          assign is_match = true
+        endif
+        if is_match == false and entry_param_compact != blank
+          if lookup_param_compact contains entry_param_compact or entry_param_compact contains lookup_param_compact
+            assign is_match = true
+          endif
+        endif
+        if is_match == false and entry_key_compact != blank
+          if lookup_param_compact contains entry_key_compact or entry_key_compact contains lookup_param_compact
+            assign is_match = true
+          endif
+        endif
+      endif
+
+      # Backward compatibility fallback: previous label/key matching
+      if is_match == false
+        if entry_key == label_key or entry_key == lookup_key_handle
+          assign is_match = true
+        endif
+      endif
+
+      # Metaobject Filter Name matching (works when only Filter Name/Description/FAQ fields exist).
+      if is_match == false and entry_key != blank
+        assign entry_token = ',' | append: entry_key | append: ','
+        if lookup_name_aliases contains entry_token
+          assign is_match = true
+        endif
+      endif
+
+      if is_match == false and label_key != blank and entry_key != blank
+        if label_key contains entry_key or entry_key contains label_key
+          assign is_match = true
+        endif
+      endif
+
+      if is_match
+        assign matched_entry = info_entry
+        break
+      endif
+    endfor
+  endif
+-%}
+
+{%- liquid
+  assign display_label = label
+  assign info_description = provided_info_description
+  assign info_faqs = provided_info_faqs
+
+  if matched_entry != blank
+    assign display_label = matched_entry.name.value | default: matched_entry.name | default: matched_entry.filter_name.value | default: matched_entry.filter_name | default: matched_entry.title.value | default: matched_entry.title | default: label
+    assign display_label = display_label | strip
+    # Safety guard: if metaobject stores a translation key string, do not render raw key.
+    if display_label contains 'general.' or display_label contains 'collections.' or display_label contains 'products.'
+      assign display_label = lookup_key | replace: '-', ' ' | replace: '_', ' ' | strip | capitalize
+    endif
+    if display_label == blank
+      assign display_label = lookup_key | replace: '-', ' ' | replace: '_', ' ' | strip | capitalize
+    endif
+
+    assign info_description = matched_entry.description | metafield_tag
+    if info_description == blank
+      assign info_description = matched_entry.description | metafield_text
+    endif
+    if info_description == blank
+      assign info_description = matched_entry.detail | metafield_text
+    endif
+    if info_description == blank
+      assign info_description = matched_entry.details | metafield_text
+    endif
+    if info_description == blank
+      assign info_description = matched_entry.content | metafield_text
+    endif
+
+    assign info_faqs = matched_entry.faqs.value | default: matched_entry.faqs
+    if info_faqs == blank
+      assign info_faqs = matched_entry.faq.value | default: matched_entry.faq
+    endif
+    if info_faqs == blank
+      assign info_faqs = matched_entry.faq_list.value | default: matched_entry.faq_list
+    endif
+  endif
+
+  assign drawer_id = 'quick-filter-info-' | append: label_key
+  if context_id != blank
+    assign drawer_id = drawer_id | append: '-' | append: context_id | handleize
+  endif
+
+  assign info_description_plain = info_description | strip_html | strip
+  assign has_info_description = false
+  if info_description_plain != blank
+    assign has_info_description = true
+  endif
+
+  assign has_info_faqs = false
+  if info_faqs != blank
+    assign has_info_faqs = true
+  elsif matched_entry != blank
+    assign fallback_faq_1 = matched_entry.faq_1.value | default: matched_entry.faq_1 | default: matched_entry.faq1.value | default: matched_entry.faq1
+    assign fallback_faq_2 = matched_entry.faq_2.value | default: matched_entry.faq_2 | default: matched_entry.faq2.value | default: matched_entry.faq2
+    assign fallback_faq_3 = matched_entry.faq_3.value | default: matched_entry.faq_3 | default: matched_entry.faq3.value | default: matched_entry.faq3
+    assign fallback_faq_4 = matched_entry.faq_4.value | default: matched_entry.faq_4 | default: matched_entry.faq4.value | default: matched_entry.faq4
+    assign fallback_faq_5 = matched_entry.faq_5.value | default: matched_entry.faq_5 | default: matched_entry.faq5.value | default: matched_entry.faq5
+    assign fallback_faq_6 = matched_entry.faq_6.value | default: matched_entry.faq_6 | default: matched_entry.faq6.value | default: matched_entry.faq6
+
+    if fallback_faq_1 != blank or fallback_faq_2 != blank or fallback_faq_3 != blank or fallback_faq_4 != blank or fallback_faq_5 != blank or fallback_faq_6 != blank
+      assign has_info_faqs = true
+    endif
+  endif
+
+  assign show_info_drawer = false
+  if has_info_description or has_info_faqs
+    assign show_info_drawer = true
+  endif
+-%}
+
+{%- if show_info_drawer -%}
+  {%- liquid
+    if display_label == blank
+      assign display_label = lookup_key | replace: '-', ' ' | replace: '_', ' ' | strip | capitalize
+    endif
+  -%}
+
+  <drawer-trigger data-target="{{ drawer_id }}" class="{{ trigger_class }}">
+    <span class="{{ label_class }}">{{ display_label }}</span>
+    {%- render 'a--icon', icon: 'info-fill', width: '1rem' -%}
+  </drawer-trigger>
+
+  {%- capture quick_filter_drawer_content -%}
+    <div class="flex flex-col h-full bg-surface text-base">
+      <div class="px-s-outer py-s-xs flex items-center gap-x-s-xs">
+        <drawer-trigger
+          data-target="{{ drawer_id }}"
+          class="inline-flex items-center justify-center rounded-full bg-accent text-on-accent w-12 h-12 md:w-14 md:h-14 hover:opacity-85 transition-opacity"
+          aria-label="Close filters"
+        >
+          {% render 'a--icon', icon: 'arrow-left-l', width: '1.25rem' %}
+        </drawer-trigger>
+        <h3 class="h3 text-primary">
+          {{ display_label }}
+        </h3>
+      </div>
+
+      <div class="flex-1 px-s-outer pb-s-xs flex flex-col gap-y-b-base">
+        {%- if info_description != blank -%}
+            {{ info_description }}
+        {%- endif -%}
+
+      {%- capture faq_items -%}
+        {%- liquid
+          assign seen = '||'
+          assign faq_index = 0
+
+          if info_faqs != blank
+            for faq_obj in info_faqs
+              if faq_obj == blank
+                continue
+              endif
+
+              assign faq_key = faq_obj.system.handle | default: faq_obj.system.id | default: faq_obj.question | default: '' | append: ''
+              assign faq_key = '||' | append: faq_key | append: '||'
+              if seen contains faq_key
+                continue
+              endif
+              assign seen = seen | append: faq_key
+
+              assign faq_index = faq_index | plus: 1
+              assign faq_q = faq_obj.question | default: faq_obj.question.value | default: faq_obj.question_text | default: ''
+              assign faq_a = faq_obj.answer | metafield_tag
+              if faq_obj.system.url != blank
+                capture faq_a
+                  echo faq_a
+                  echo ' <a href="'
+                  echo faq_obj.system.url
+                  echo '" class="w-full inline-flex justify-end items-center gap-x-b-xs align-baseline">'
+                  render 'a--icon', icon: 'arrow-right-l'
+                  echo '</a>'
+                endcapture
+              endif
+              if faq_q != blank or faq_a != blank
+                render 'm--accordion', block: faq_obj, heading: faq_q, body: faq_a, title_size: 'text-base', index: faq_index, title_height: 'py-b-base', class: 'border-t-0 border-b!'
+              endif
+            endfor
+          else
+            assign faq_obj = matched_entry.faq_1.value | default: matched_entry.faq_1
+            if faq_obj == blank
+              assign faq_obj = matched_entry.faq1.value | default: matched_entry.faq1
+            endif
+            if faq_obj != blank
+              assign faq_key = faq_obj.system.handle | default: faq_obj.system.id | default: faq_obj.question | default: '' | append: ''
+              assign faq_key = '||' | append: faq_key | append: '||'
+              unless seen contains faq_key
+                assign seen = seen | append: faq_key
+                assign faq_index = faq_index | plus: 1
+                assign faq_q = faq_obj.question | default: faq_obj.question.value | default: faq_obj.question_text | default: ''
+                assign faq_a = faq_obj.answer | metafield_tag
+                if faq_obj.system.url != blank
+                  capture faq_a
+                    echo faq_a
+                    echo ' <a href="'
+                    echo faq_obj.system.url
+                    echo '" class="w-full inline-flex justify-end items-center gap-x-b-xs align-baseline">'
+                    render 'a--icon', icon: 'arrow-right-l'
+                    echo '</a>'
+                  endcapture
+                endif
+                if faq_q != blank or faq_a != blank
+                  render 'm--accordion', block: faq_obj, heading: faq_q, body: faq_a, title_size: 'text-base', index: faq_index, title_height: 'py-b-base', class: 'border-t-0 border-b!'
+                endif
+              endunless
+            endif
+
+            assign faq_obj = matched_entry.faq_2.value | default: matched_entry.faq_2
+            if faq_obj == blank
+              assign faq_obj = matched_entry.faq2.value | default: matched_entry.faq2
+            endif
+            if faq_obj != blank
+              assign faq_key = faq_obj.system.handle | default: faq_obj.system.id | default: faq_obj.question | default: '' | append: ''
+              assign faq_key = '||' | append: faq_key | append: '||'
+              unless seen contains faq_key
+                assign seen = seen | append: faq_key
+                assign faq_index = faq_index | plus: 1
+                assign faq_q = faq_obj.question | default: faq_obj.question.value | default: faq_obj.question_text | default: ''
+                assign faq_a = faq_obj.answer | metafield_tag
+                if faq_obj.system.url != blank
+                  capture faq_a
+                    echo faq_a
+                    echo ' <a href="'
+                    echo faq_obj.system.url
+                    echo '" class="w-full inline-flex justify-end items-center gap-x-b-xs align-baseline">'
+                    render 'a--icon', icon: 'arrow-right-l'
+                    echo '</a>'
+                  endcapture
+                endif
+                if faq_q != blank or faq_a != blank
+                  render 'm--accordion', block: faq_obj, heading: faq_q, body: faq_a, title_size: 'text-base', index: faq_index, title_height: 'py-b-base', class: 'border-t-0 border-b!'
+                endif
+              endunless
+            endif
+
+            assign faq_obj = matched_entry.faq_3.value | default: matched_entry.faq_3
+            if faq_obj == blank
+              assign faq_obj = matched_entry.faq3.value | default: matched_entry.faq3
+            endif
+            if faq_obj != blank
+              assign faq_key = faq_obj.system.handle | default: faq_obj.system.id | default: faq_obj.question | default: '' | append: ''
+              assign faq_key = '||' | append: faq_key | append: '||'
+              unless seen contains faq_key
+                assign seen = seen | append: faq_key
+                assign faq_index = faq_index | plus: 1
+                assign faq_q = faq_obj.question | default: faq_obj.question.value | default: faq_obj.question_text | default: ''
+                assign faq_a = faq_obj.answer | metafield_tag
+                if faq_obj.system.url != blank
+                  capture faq_a
+                    echo faq_a
+                    echo ' <a href="'
+                    echo faq_obj.system.url
+                    echo '" class="w-full inline-flex justify-end items-center gap-x-b-xs align-baseline">'
+                    render 'a--icon', icon: 'arrow-right-l'
+                    echo '</a>'
+                  endcapture
+                endif
+                if faq_q != blank or faq_a != blank
+                  render 'm--accordion', block: faq_obj, heading: faq_q, body: faq_a, title_size: 'text-base', index: faq_index, title_height: 'py-b-base', class: 'border-t-0 border-b!'
+                endif
+              endunless
+            endif
+
+            assign faq_obj = matched_entry.faq_4.value | default: matched_entry.faq_4
+            if faq_obj == blank
+              assign faq_obj = matched_entry.faq4.value | default: matched_entry.faq4
+            endif
+            if faq_obj != blank
+              assign faq_key = faq_obj.system.handle | default: faq_obj.system.id | default: faq_obj.question | default: '' | append: ''
+              assign faq_key = '||' | append: faq_key | append: '||'
+              unless seen contains faq_key
+                assign seen = seen | append: faq_key
+                assign faq_index = faq_index | plus: 1
+                assign faq_q = faq_obj.question | default: faq_obj.question.value | default: faq_obj.question_text | default: ''
+                assign faq_a = faq_obj.answer | metafield_tag
+                if faq_obj.system.url != blank
+                  capture faq_a
+                    echo faq_a
+                    echo ' <a href="'
+                    echo faq_obj.system.url
+                    echo '" class="w-full inline-flex justify-end items-center gap-x-b-xs align-baseline">'
+                    render 'a--icon', icon: 'arrow-right-l'
+                    echo '</a>'
+                  endcapture
+                endif
+                if faq_q != blank or faq_a != blank
+                  render 'm--accordion', block: faq_obj, heading: faq_q, body: faq_a, title_size: 'text-base', index: faq_index, title_height: 'py-b-base', class: 'border-t-0 border-b!'
+                endif
+              endunless
+            endif
+
+            assign faq_obj = matched_entry.faq_5.value | default: matched_entry.faq_5
+            if faq_obj == blank
+              assign faq_obj = matched_entry.faq5.value | default: matched_entry.faq5
+            endif
+            if faq_obj != blank
+              assign faq_key = faq_obj.system.handle | default: faq_obj.system.id | default: faq_obj.question | default: '' | append: ''
+              assign faq_key = '||' | append: faq_key | append: '||'
+              unless seen contains faq_key
+                assign seen = seen | append: faq_key
+                assign faq_index = faq_index | plus: 1
+                assign faq_q = faq_obj.question | default: faq_obj.question.value | default: faq_obj.question_text | default: ''
+                assign faq_a = faq_obj.answer | metafield_tag
+                if faq_obj.system.url != blank
+                  capture faq_a
+                    echo faq_a
+                    echo ' <a href="'
+                    echo faq_obj.system.url
+                    echo '" class="w-full inline-flex justify-end items-center gap-x-b-xs align-baseline">'
+                    render 'a--icon', icon: 'arrow-right-l'
+                    echo '</a>'
+                  endcapture
+                endif
+                if faq_q != blank or faq_a != blank
+                  render 'm--accordion', block: faq_obj, heading: faq_q, body: faq_a, title_size: 'text-base', index: faq_index, title_height: 'py-b-base', class: 'border-t-0 border-b!'
+                endif
+              endunless
+            endif
+
+            assign faq_obj = matched_entry.faq_6.value | default: matched_entry.faq_6
+            if faq_obj == blank
+              assign faq_obj = matched_entry.faq6.value | default: matched_entry.faq6
+            endif
+            if faq_obj != blank
+              assign faq_key = faq_obj.system.handle | default: faq_obj.system.id | default: faq_obj.question | default: '' | append: ''
+              assign faq_key = '||' | append: faq_key | append: '||'
+              unless seen contains faq_key
+                assign seen = seen | append: faq_key
+                assign faq_index = faq_index | plus: 1
+                assign faq_q = faq_obj.question | default: faq_obj.question.value | default: faq_obj.question_text | default: ''
+                assign faq_a = faq_obj.answer | metafield_tag
+                if faq_obj.system.url != blank
+                  capture faq_a
+                    echo faq_a
+                    echo ' <a href="'
+                    echo faq_obj.system.url
+                    echo '" class="w-full inline-flex justify-end items-center gap-x-b-xs align-baseline">'
+                    render 'a--icon', icon: 'arrow-right-l'
+                    echo '</a>'
+                  endcapture
+                endif
+                if faq_q != blank or faq_a != blank
+                  render 'm--accordion', block: faq_obj, heading: faq_q, body: faq_a, title_size: 'text-base', index: faq_index, title_height: 'py-b-base', class: 'border-t-0 border-b!'
+                endif
+              endunless
+            endif
+          endif
+        -%}
+      {%- endcapture -%}
+
+        {%- if faq_items != blank -%}
+          <div>
+            <h4 class="text-ui-base font-semibold">FAQ</h4>
+            <div class="mt-2">
+              {{ faq_items }}
+            </div>
+          </div>
+        {%- endif -%}
+      </div>
+
+    </div>
+  {%- endcapture -%}
+
+  {%- render 'm--drawer',
+    id: drawer_id,
+    content: quick_filter_drawer_content,
+    positionMobile: 'right',
+    positionDesktop: 'right'
+  -%}
+{%- else -%}
+  <span class="{{ label_class }}">{{ label }}</span>
+{%- endif -%}
+

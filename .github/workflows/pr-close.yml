@@ -1,0 +1,123 @@
+# climaybe — PR Close (Optional Preview Package)
+# Cleans preview themes for the PR number and comments cleanup details.
+
+name: PR Close
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main, staging, develop, 'staging-*', 'live-*']
+
+jobs:
+  extract-pr-number:
+    uses: ./.github/workflows/reusable-extract-pr-number.yml
+
+  resolve-store:
+    runs-on: ubuntu-latest
+    outputs:
+      store_alias_secret: ${{ steps.resolve.outputs.alias_secret }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Resolve store alias from base branch
+        id: resolve
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          if [[ -n "$BASE_REF" && ("$BASE_REF" == staging-* || "$BASE_REF" == live-*) ]]; then
+            ALIAS="${BASE_REF#staging-}"
+            ALIAS="${ALIAS#live-}"
+          else
+            ALIAS=$(node -e "
+              const fs = require('fs');
+              const cfg = JSON.parse(fs.readFileSync('./climaybe.config.json', 'utf8'));
+              const stores = cfg?.stores || {};
+              const defaultStoreRaw = cfg?.default_store;
+              const normalize = (v) => String(v || '')
+                .toLowerCase()
+                .replace(/^https?:\\/\\//, '')
+                .replace(/\\/.*$/, '');
+              const defaultStore = normalize(defaultStoreRaw);
+              let alias = '';
+              if (defaultStore) {
+                for (const [k, d] of Object.entries(stores)) {
+                  if (normalize(d) === defaultStore) {
+                    alias = k;
+                    break;
+                  }
+                }
+              }
+              if (!alias) {
+                alias = Object.keys(stores)[0] || '';
+              }
+              if (!alias && defaultStore) {
+                const subdomain = defaultStore.split('.')[0] || 'default';
+                alias = subdomain.replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-') || 'default';
+              }
+              if (!alias) {
+                alias = 'default';
+              }
+              process.stdout.write(alias);
+            ")
+          fi
+
+          if [ -z "$ALIAS" ]; then
+            echo "Could not resolve store alias from climaybe.config.json config or base branch."
+            exit 1
+          fi
+
+          ALIAS_SECRET=$(echo "$ALIAS" | tr '[:lower:]-' '[:upper:]_')
+          echo "alias=$ALIAS" >> $GITHUB_OUTPUT
+          echo "alias_secret=$ALIAS_SECRET" >> $GITHUB_OUTPUT
+
+  cleanup-theme:
+    needs: [extract-pr-number, resolve-store]
+    uses: ./.github/workflows/reusable-cleanup-themes.yml
+    with:
+      pr_number: ${{ needs.extract-pr-number.outputs.pr_number }}
+      store_alias_secret: ${{ needs.resolve-store.outputs.store_alias_secret }}
+    secrets: inherit
+
+  comment-on-pr:
+    needs: cleanup-theme
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comment on PR about cleanup
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const deletedCount = parseInt('${{ needs.cleanup-theme.outputs.deleted_count }}') || 0;
+            const deletedThemesRaw = `${{ needs.cleanup-theme.outputs.deleted_themes }}`.trim();
+
+            const lines = [
+              '## 🧹 Theme Cleanup Complete',
+              '',
+              'The preview theme cleanup has finished.',
+              '',
+              `**Branch:** ${context.payload.pull_request.head.ref}`,
+              `**PR Status:** ${context.payload.pull_request.state}`,
+              `**Deleted Themes:** ${deletedCount}`
+            ];
+
+            if (deletedCount > 0 && deletedThemesRaw) {
+              const deletedThemeLines = deletedThemesRaw
+                .split('\n')
+                .map(name => name.trim())
+                .filter(Boolean)
+                .map(name => `- ${name}`);
+
+              if (deletedThemeLines.length > 0) {
+                lines.push('', '### Deleted Theme Names', ...deletedThemeLines);
+              }
+            }
+
+            lines.push('', '---', '*Theme cleanup runs automatically when a PR is closed.*');
+
+            await github.rest.issues.createComment({
+              issue_number: prNumber,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: lines.join('\n')
+            });

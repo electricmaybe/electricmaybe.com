@@ -1,0 +1,41 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin language editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "general": {
+    "cart": {
+      "title": "Twój koszyk"
+    }
+  },
+  "sections": {
+    "cart": {
+      "cart": "Koszyk",
+      "title": "Twój koszyk",
+      "caption": "Produkty",
+      "remove_title": "Usuń {{ title }}",
+      "subtotal": "Suma częściowa",
+      "new_subtotal": "Nowa suma",
+      "total": "Suma",
+      "shipping_text": "Obliczane przy płatności",
+      "shipping": "Dostawa",
+      "note": "Uwagi do zamówienia",
+      "checkout": "Przejdź do kasy",
+      "empty": "Koszyk jest pusty",
+      "add_items": "Dodaj produkty, aby kontynuować",
+      "cart_error": "Błąd aktualizacji koszyka. Spróbuj ponownie.",
+      "cart_quantity_error_html": "Możesz dodać maks. {{ quantity }} szt.",
+      "savings": "Oszczędność",
+      "store_credit": "Kredyt sklepu (jeśli dotyczy)",
+      "store_credit_text_html": "Masz <span class=\"text-green\">{{ amount }}</span> kredytu",
+      "add_a_gift_message": "Dodaj wiadomość prezentową",
+      "add_a_gift_message_tooltip": "Odbiorca otrzyma e-mail z wiadomością przy wysyłce. Info o zwrotach w mailu. Karty podarunkowe w 2h.",
+      "checkout_button_usp_text": "100 dni na zwrot & 3 lata gwarancji"
+    }
+  }
+}

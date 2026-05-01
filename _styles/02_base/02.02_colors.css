@@ -1,0 +1,202 @@
+@theme {
+  --background-color-surface: var(--color-dune-50);
+  --background-color-subtle: var(--color-dune-100);
+  --background-color-emphasis: var(--color-dune-200);
+  --background-color-accent: var(--color-dune-950);
+
+  --text-color-primary: var(--color-dune-950);
+  --text-color-secondary: var(--color-dune-900);
+  --text-color-on-accent: var(--color-dune-50);
+  --text-color-on-accent-sec: var(--color-dune-100);
+
+  --border-color-on-accent-sec: var(--color-dune-700);
+
+  --border-color-primary: var(--text-color-primary);
+  --border-color-secondary: var(--background-color-emphasis);
+  --border-color-on-accent: var(--text-color-on-accent);
+
+  /* ----------------------------------------
+     GRADIENTS (semantic: surface → subtle → emphasis → contrast)
+     ---------------------------------------- */
+  --background-image-gradient-surface: linear-gradient(
+    var(--tw-gradient-position, to bottom in oklch),
+    hsl(from var(--background-color-surface) h s l / 0),
+    var(--background-color-surface)
+  );
+  --background-image-gradient-subtle: linear-gradient(
+    var(--tw-gradient-position, to bottom in oklch),
+    hsl(from var(--background-color-subtle) h s l / 0),
+    var(--background-color-subtle)
+  );
+  --background-image-gradient-emphasis: linear-gradient(
+    var(--tw-gradient-position, to bottom in oklch),
+    hsl(from var(--background-color-emphasis) h s l / 0),
+    var(--background-color-emphasis)
+  );
+  --background-image-gradient-contrast: linear-gradient(
+    var(--tw-gradient-position, to bottom in oklch),
+    hsl(from var(--background-color-accent) h s l / 0),
+    var(--background-color-accent)
+  );
+}
+@utility color-schema-primary {
+  color: var(--text-color-primary);
+  --background-color-surface: var(--color-dune-50);
+  --background-color-subtle: var(--color-dune-100);
+  --background-color-emphasis: var(--color-dune-200);
+  --background-color-accent: var(--color-dune-950);
+
+  --text-color-primary: var(--color-dune-950);
+  --text-color-secondary: var(--color-dune-900);
+  --text-color-on-accent: var(--color-dune-50);
+  --text-color-on-accent-sec: var(--color-dune-100);
+
+  --border-color-on-accent-sec: var(--color-dune-700);
+  --border-color-primary: var(--text-color-primary);
+  --border-color-secondary: var(--background-color-emphasis);
+  --border-color-on-accent: var(--text-color-on-accent);
+
+  --background-image-gradient-surface: linear-gradient(var(--tw-gradient-position, to bottom in oklch), hsl(from var(--background-color-surface) h s l / 0), var(--background-color-surface));
+  --background-image-gradient-subtle: linear-gradient(var(--tw-gradient-position, to bottom in oklch), hsl(from var(--background-color-subtle) h s l / 0), var(--background-color-subtle));
+  --background-image-gradient-emphasis: linear-gradient(var(--tw-gradient-position, to bottom in oklch), hsl(from var(--background-color-emphasis) h s l / 0), var(--background-color-emphasis));
+  --background-image-gradient-contrast: linear-gradient(var(--tw-gradient-position, to bottom in oklch), hsl(from var(--background-color-accent) h s l / 0), var(--background-color-accent));
+}
+@utility color-schema-secondary {
+  color: var(--text-color-primary);
+  --background-color-surface: var(--color-dune-100);
+  --background-color-subtle: var(--color-dune-200);
+  --background-color-emphasis: var(--color-dune-300);
+  --background-color-accent: var(--color-dune-950);
+
+  --text-color-primary: var(--color-dune-950);
+  --text-color-secondary: var(--color-dune-900);
+  --text-color-on-accent: var(--color-dune-50);
+  --text-color-on-accent-sec: var(--color-dune-100);
+
+  --border-color-on-accent-sec: var(--color-dune-700);
+  --border-color-primary: var(--text-color-primary);
+  --border-color-secondary: var(--background-color-emphasis);
+  --border-color-on-accent: var(--text-color-on-accent);
+
+  --background-image-gradient-surface: linear-gradient(var(--tw-gradient-position, to bottom in oklch), hsl(from var(--background-color-surface) h s l / 0), var(--background-color-surface));
+  --background-image-gradient-subtle: linear-gradient(var(--tw-gradient-position, to bottom in oklch), hsl(from var(--background-color-subtle) h s l / 0), var(--background-color-subtle));
+  --background-image-gradient-emphasis: linear-gradient(var(--tw-gradient-position, to bottom in oklch), hsl(from var(--background-color-emphasis) h s l / 0), var(--background-color-emphasis));
+  --background-image-gradient-contrast: linear-gradient(var(--tw-gradient-position, to bottom in oklch), hsl(from var(--background-color-accent) h s l / 0), var(--background-color-accent));
+}
+@utility color-schema-muted {
+  color: var(--text-color-primary);
+  --background-color-surface: var(--color-abbey-100);
+  --background-color-subtle: var(--color-abbey-200);
+  --background-color-emphasis: var(--color-abbey-300);
+  --background-color-accent: var(--color-abbey-400);
+
+  --text-color-primary: var(--color-abbey-600);
+  --text-color-secondary: var(--color-abbey-500);
+  --text-color-on-accent: var(--color-abbey-100);
+  --text-color-on-accent-sec: var(--color-abbey-200);
+
+  --border-color-on-accent-sec: var(--color-abbey-200);
+  --border-color-primary: var(--text-color-primary);
+  --border-color-on-accent: var(--text-color-on-accent);
+  --border-color-secondary: var(--background-color-emphasis);
+
+  --background-image-gradient-surface: linear-gradient(var(--tw-gradient-position, to bottom in oklch), hsl(from var(--background-color-surface) h s l / 0), var(--background-color-surface));
+  --background-image-gradient-subtle: linear-gradient(var(--tw-gradient-position, to bottom in oklch), hsl(from var(--background-color-subtle) h s l / 0), var(--background-color-subtle));
+  --background-image-gradient-emphasis: linear-gradient(var(--tw-gradient-position, to bottom in oklch), hsl(from var(--background-color-emphasis) h s l / 0), var(--background-color-emphasis));
+  --background-image-gradient-contrast: linear-gradient(var(--tw-gradient-position, to bottom in oklch), hsl(from var(--background-color-accent) h s l / 0), var(--background-color-accent));
+}
+@utility color-schema-accent-1 {
+  color: var(--text-color-primary);
+  --background-color-surface: var(--color-abbey-300);
+  --background-color-subtle: var(--color-abbey-200);
+  --background-color-emphasis: var(--color-abbey-500);
+  --background-color-accent: var(--color-abbey-950);
+
+  --text-color-primary: var(--color-abbey-950);
+  --text-color-secondary: var(--color-abbey-900);
+  --text-color-on-accent: var(--color-abbey-50);
+  --text-color-on-accent-sec: var(--color-abbey-100);
+
+  --border-color-secondary: var(--color-abbey-200);
+  --border-color-on-accent-sec: var(--color-abbey-700);
+  --border-color-primary: var(--text-color-primary);
+  --border-color-on-accent: var(--text-color-on-accent);
+
+  --background-image-gradient-surface: linear-gradient(var(--tw-gradient-position, to bottom in oklch), hsl(from var(--background-color-surface) h s l / 0), var(--background-color-surface));
+  --background-image-gradient-subtle: linear-gradient(var(--tw-gradient-position, to bottom in oklch), hsl(from var(--background-color-subtle) h s l / 0), var(--background-color-subtle));
+  --background-image-gradient-emphasis: linear-gradient(var(--tw-gradient-position, to bottom in oklch), hsl(from var(--background-color-emphasis) h s l / 0), var(--background-color-emphasis));
+  --background-image-gradient-contrast: linear-gradient(var(--tw-gradient-position, to bottom in oklch), hsl(from var(--background-color-accent) h s l / 0), var(--background-color-accent));
+}
+@utility color-schema-accent-2 {
+  color: var(--text-color-primary);
+  --background-color-surface: var(--color-abbey-700);
+  --background-color-subtle: var(--color-abbey-600);
+  --background-color-emphasis: var(--color-abbey-500);
+  --background-color-accent: var(--color-abbey-50);
+
+  --text-color-primary: var(--color-abbey-50);
+  --text-color-secondary: var(--color-abbey-100);
+  --text-color-on-accent: var(--color-abbey-950);
+  --text-color-on-accent-sec: var(--color-abbey-900);
+
+  --border-color-on-accent-sec: var(--color-abbey-200);
+
+  --border-color-primary: var(--text-color-primary);
+  --border-color-secondary: var(--background-color-emphasis);
+  --border-color-on-accent: var(--text-color-on-accent);
+
+  --background-image-gradient-surface: linear-gradient(var(--tw-gradient-position, to bottom in oklch), hsl(from var(--background-color-surface) h s l / 0), var(--background-color-surface));
+  --background-image-gradient-subtle: linear-gradient(var(--tw-gradient-position, to bottom in oklch), hsl(from var(--background-color-subtle) h s l / 0), var(--background-color-subtle));
+  --background-image-gradient-emphasis: linear-gradient(var(--tw-gradient-position, to bottom in oklch), hsl(from var(--background-color-emphasis) h s l / 0), var(--background-color-emphasis));
+  --background-image-gradient-contrast: linear-gradient(var(--tw-gradient-position, to bottom in oklch), hsl(from var(--background-color-accent) h s l / 0), var(--background-color-accent));
+}
+@utility color-schema-accent-3 {
+  color: var(--text-color-primary);
+  --background-color-surface: var(--color-dune-800);
+  --background-color-subtle: var(--color-dune-700);
+  --background-color-emphasis: var(--color-dune-600);
+  --background-color-accent: var(--color-dune-50);
+
+  --text-color-primary: var(--color-dune-50);
+  --text-color-secondary: var(--color-dune-100);
+  --text-color-on-accent: var(--color-dune-950);
+  --text-color-on-accent-sec: var(--color-dune-900);
+
+  --border-color-on-accent-sec: var(--color-dune-200);
+
+  --border-color-primary: var(--text-color-primary);
+  --border-color-secondary: var(--background-color-emphasis);
+  --border-color-on-accent: var(--text-color-on-accent);
+
+  --background-image-gradient-surface: linear-gradient(var(--tw-gradient-position, to bottom in oklch), hsl(from var(--background-color-surface) h s l / 0), var(--background-color-surface));
+  --background-image-gradient-subtle: linear-gradient(var(--tw-gradient-position, to bottom in oklch), hsl(from var(--background-color-subtle) h s l / 0), var(--background-color-subtle));
+  --background-image-gradient-emphasis: linear-gradient(var(--tw-gradient-position, to bottom in oklch), hsl(from var(--background-color-emphasis) h s l / 0), var(--background-color-emphasis));
+  --background-image-gradient-contrast: linear-gradient(var(--tw-gradient-position, to bottom in oklch), hsl(from var(--background-color-accent) h s l / 0), var(--background-color-accent));
+}
+@utility color-schema-contrast {
+  color: var(--text-color-primary);
+  --background-color-surface: var(--color-abbey-950);
+  --background-color-subtle: var(--color-abbey-900);
+  --background-color-emphasis: var(--color-abbey-800);
+  --background-color-accent: var(--color-abbey-50);
+
+  --text-color-primary: var(--color-abbey-50);
+  --text-color-secondary: var(--color-abbey-100);
+  --text-color-on-accent: var(--color-abbey-950);
+  --text-color-on-accent-sec: var(--color-abbey-900);
+
+  --border-color-on-accent-sec: var(--color-abbey-200);
+
+  --border-color-primary: var(--text-color-primary);
+  --border-color-secondary: var(--background-color-emphasis);
+  --border-color-on-accent: var(--text-color-on-accent);
+
+  --background-image-gradient-surface: linear-gradient(var(--tw-gradient-position, to bottom in oklch), hsl(from var(--background-color-surface) h s l / 0), var(--background-color-surface));
+  --background-image-gradient-subtle: linear-gradient(var(--tw-gradient-position, to bottom in oklch), hsl(from var(--background-color-subtle) h s l / 0), var(--background-color-subtle));
+  --background-image-gradient-emphasis: linear-gradient(var(--tw-gradient-position, to bottom in oklch), hsl(from var(--background-color-emphasis) h s l / 0), var(--background-color-emphasis));
+  --background-image-gradient-contrast: linear-gradient(var(--tw-gradient-position, to bottom in oklch), hsl(from var(--background-color-accent) h s l / 0), var(--background-color-accent));
+}
+
+@utility border-on-accent {
+  border-color: var(--border-color-on-accent);
+}

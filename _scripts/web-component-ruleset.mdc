@@ -1,0 +1,595 @@
+# Web Component Development Ruleset for Electric Maybe Shopify Theme
+
+## 🎯 Project Overview
+This is a Shopify theme project for Electric Maybe agency. All web components should follow professional standards with modern JavaScript practices, performance optimizations, and accessibility considerations.
+
+## 🏗️ Core Principles
+
+### 1. **Professional Architecture**
+- Use ES6+ class syntax with proper inheritance
+- Implement complete lifecycle management
+- Follow single responsibility principle
+- Maintain clean separation of concerns
+
+### 2. **Performance First**
+- Use passive event listeners where possible
+- Implement proper cleanup in disconnectedCallback
+- Avoid memory leaks with proper event listener management
+- Optimize for garbage collection
+- Target performance: Component initialization < 16ms, Event processing < 8ms
+
+### 3. **Accessibility & Standards**
+- Follow WCAG 2.1 AA guidelines
+- Use semantic HTML and ARIA attributes
+- Ensure keyboard navigation support
+- Maintain proper focus management
+
+## 📋 Required Structure for All Web Components
+
+### Class Definition
+```javascript
+/**
+ * ComponentName - Brief description
+ * Detailed description of functionality and purpose
+ * 
+ * @example
+ * <component-name data-attribute="value">
+ *   Content here
+ * </component-name>
+ */
+class ComponentName extends HTMLElement {
+  // Private fields MUST be declared at class level with # syntax
+  #isConnected = false;
+  #config = {};
+  #state = {};
+
+  constructor() {
+    super();
+    
+    // Bind methods to preserve context
+    this.handleEvent = this.handleEvent.bind(this);
+    
+    // Initialize private properties
+    this.#initializeState();
+  }
+}
+```
+
+### Lifecycle Methods
+```javascript
+/**
+ * Lifecycle method called when element is connected to DOM
+ */
+connectedCallback() {
+  if (this.#isConnected) return;
+  
+  try {
+    this.#attachEventListeners();
+    this.#initializeComponent();
+    this.#isConnected = true;
+  } catch (error) {
+    console.error('ComponentName: Failed to initialize', error);
+  }
+}
+
+/**
+ * Lifecycle method called when element is disconnected from DOM
+ */
+disconnectedCallback() {
+  if (!this.#isConnected) return;
+  
+  try {
+    this.#removeEventListeners();
+    this.#cleanup();
+    this.#isConnected = false;
+  } catch (error) {
+    console.error('ComponentName: Failed to cleanup', error);
+  }
+}
+```
+
+## 🔒 Privacy & Encapsulation
+
+### Private Fields (Use `#` syntax - REQUIRED)
+```javascript
+// ✅ Correct - True privacy (MANDATORY)
+#isConnected = false;
+#config = {};
+#state = {};
+
+// ❌ FORBIDDEN - Convention only
+_isConnected = false;
+_config = {};
+```
+
+### Private Methods (Use `#` syntax - REQUIRED)
+```javascript
+// ✅ Correct - True privacy (MANDATORY)
+#initializeComponent() { /* ... */ }
+#attachEventListeners() { /* ... */ }
+#cleanup() { /* ... */ }
+
+// ❌ FORBIDDEN - Convention only
+_initializeComponent() { /* ... */ }
+```
+
+## 📡 Component Communication (Pub/Sub Pattern)
+
+### **Use Custom Events for Component Communication**
+Instead of direct method calls between components, use the pub/sub pattern with custom events:
+
+```javascript
+// ✅ Publisher Component (dispatching events)
+class PromoBanner extends HTMLElement {
+  #handleClose() {
+    try {
+      // Dispatch custom event for other components to listen to
+      this.dispatchEvent(new CustomEvent('promo-banner:closed', {
+        detail: { 
+          bannerHeight: this.offsetHeight,
+          timestamp: Date.now()
+        },
+        bubbles: true
+      }));
+      this.remove();
+    } catch (error) {
+      console.error('PromoBanner: Error closing banner:', error);
+    }
+  }
+}
+
+// ✅ Subscriber Component (listening for events)
+class HeaderElement extends HTMLElement {
+  connectedCallback() {
+    // Listen for events from other components
+    document.addEventListener('promo-banner:closed', this.handlePromoBannerClosed.bind(this));
+  }
+
+  disconnectedCallback() {
+    // Always clean up event listeners
+    document.removeEventListener('promo-banner:closed', this.handlePromoBannerClosed.bind(this));
+  }
+
+  handlePromoBannerClosed(event) {
+    // Handle the event and update component state
+    this.updateOffsets();
+  }
+}
+```
+
+### **Benefits of Pub/Sub Pattern**
+- **Decoupled**: Components don't need to know about each other's implementation
+- **Flexible**: Easy to add/remove subscribers without changing publishers
+- **Maintainable**: Method names can change without breaking communication
+- **Extensible**: Multiple components can listen to the same events
+- **Testable**: Events can be easily mocked and tested
+
+### **Event Naming Convention**
+- Use descriptive names: `component:action` (e.g., `promo-banner:closed`, `cart:item-added`)
+- Include relevant data in `event.detail`
+- Set `bubbles: true` for cross-component communication
+- Use `composed: true` if you need to cross shadow DOM boundaries
+
+### **When to Use Pub/Sub**
+- ✅ **Component-to-component communication**
+- ✅ **Cross-component state updates**
+- ✅ **User action notifications**
+- ✅ **Lifecycle event broadcasting**
+
+### **When NOT to Use Pub/Sub**
+- ❌ **Internal component state management**
+- ❌ **Direct parent-child communication (use props/attributes)**
+- ❌ **Simple data passing (use method parameters)**
+
+## 📝 Documentation Standards
+
+### JSDoc Comments (REQUIRED)
+```javascript
+/**
+ * Brief description of the method
+ * @param {Type} paramName - Description of parameter
+ * @param {Object} options - Configuration options
+ * @param {string} options.key - Description of option
+ * @returns {Type} Description of return value
+ * @throws {Error} Description of when error is thrown
+ * @private
+ */
+#methodName(paramName, options = {}) {
+  // Implementation
+}
+```
+
+### Class Documentation (REQUIRED)
+```javascript
+/**
+ * ComponentName - Brief description
+ * 
+ * Detailed description including:
+ * - Purpose and functionality
+ * - Usage examples
+ * - Dependencies
+ * - Browser support requirements
+ * 
+ * @example
+ * <component-name data-attribute="value">
+ *   Content here
+ * </component-name>
+ */
+```
+
+## 🎛️ Event Handling
+
+### Event Listener Configuration
+```javascript
+#eventOptions = {
+  passive: true,    // For scroll/touch events
+  capture: false,   // Default to bubbling
+  once: false       // Default to persistent
+};
+
+#attachEventListeners() {
+  this.addEventListener('click', this.handleClick, this.#eventOptions);
+  this.addEventListener('keydown', this.handleKeydown, this.#eventOptions);
+}
+```
+
+### Event Handler Methods
+```javascript
+/**
+ * Handle click events
+ * @param {MouseEvent} event - The click event
+ */
+handleClick(event) {
+  this.#processEvent(event, 'click');
+}
+
+/**
+ * Handle keyboard events
+ * @param {KeyboardEvent} event - The keyboard event
+ */
+handleKeydown(event) {
+  if (event.key === 'Enter' || event.key === ' ') {
+    this.#processEvent(event, 'keydown');
+  }
+}
+```
+
+## 🛡️ Error Handling
+
+### Try-Catch Patterns (REQUIRED)
+```javascript
+#processEvent(event, eventType) {
+  try {
+    // Event processing logic
+    this.#validateEvent(event);
+    this.#dispatchCustomEvent(eventType, data);
+  } catch (error) {
+    console.error(`ComponentName: Error processing ${eventType}`, error);
+    this.#handleError(error);
+  }
+}
+
+#handleError(error) {
+  // Graceful error handling
+  // Dispatch error event for parent components
+  this.dispatchEvent(new CustomEvent('component-error', {
+    detail: { error, component: this.tagName },
+    bubbles: true
+  }));
+}
+```
+
+## 🔧 Static Methods & Utilities
+
+### Validation Methods
+```javascript
+/**
+ * Validate component configuration
+ * @param {Object} config - Configuration object
+ * @returns {boolean} - Whether configuration is valid
+ */
+static isValidConfig(config) {
+  return config && typeof config === 'object';
+}
+
+/**
+ * Get all instances of this component
+ * @returns {NodeList} - Collection of component instances
+ */
+static getAllInstances() {
+  return document.querySelectorAll(this.tagName.toLowerCase());
+}
+```
+
+### Utility Methods
+```javascript
+/**
+ * Debounce function calls
+ * @param {Function} func - Function to debounce
+ * @param {number} wait - Wait time in milliseconds
+ * @returns {Function} - Debounced function
+ */
+static debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+```
+
+## 🧪 Testing Considerations
+
+### Testable Structure
+```javascript
+// Expose methods for testing (only in development)
+if (process.env.NODE_ENV === 'development') {
+  ComponentName.prototype._testOnly = {
+    getState: () => this.#state,
+    getConfig: () => this.#config,
+    triggerEvent: (eventType) => this.#processEvent({}, eventType)
+  };
+}
+```
+
+### Event Testing
+```javascript
+// Dispatch events that can be tested
+#dispatchCustomEvent(eventType, detail) {
+  const event = new CustomEvent(eventType, {
+    detail,
+    bubbles: true,
+    cancelable: true
+  });
+  
+  this.dispatchEvent(event);
+  return event; // Return for testing
+}
+```
+
+## 📦 Registration & Export
+
+### Custom Element Registration
+```javascript
+// Register the custom element with safety check
+if (!customElements.get('component-name')) {
+  customElements.define('component-name', ComponentName);
+}
+```
+
+### Module Export
+```javascript
+// Export for module usage
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = ComponentName;
+}
+
+// Export for ES modules
+if (typeof exports !== 'undefined') {
+  exports.ComponentName = ComponentName;
+}
+```
+
+## 🎨 CSS & Styling
+
+### Shadow DOM Usage
+```javascript
+constructor() {
+  super();
+  
+  // Use shadow DOM for encapsulation
+  this.attachShadow({ mode: 'open' });
+  this.#render();
+}
+
+#render() {
+  this.shadowRoot.innerHTML = `
+    <style>
+      :host {
+        display: block;
+        /* Component styles */
+      }
+    </style>
+    <div class="component">
+      <!-- Component template -->
+    </div>
+  `;
+}
+```
+
+## 🔄 State Management
+
+### State Updates
+```javascript
+#updateState(newState) {
+  const oldState = { ...this.#state };
+  this.#state = { ...this.#state, ...newState };
+  
+  // Trigger re-render if needed
+  if (this.#shouldRerender(oldState, this.#state)) {
+    this.#render();
+  }
+  
+  // Dispatch state change event
+  this.dispatchEvent(new CustomEvent('state-change', {
+    detail: { oldState, newState: this.#state },
+    bubbles: true
+  }));
+}
+```
+
+## 📊 Performance Monitoring
+
+### Performance Hooks
+```javascript
+#measurePerformance(operation, callback) {
+  const start = performance.now();
+  const result = callback();
+  const duration = performance.now() - start;
+  
+  // Log slow operations
+  if (duration > 16) { // Longer than one frame
+    console.warn(`ComponentName: Slow ${operation} took ${duration.toFixed(2)}ms`);
+  }
+  
+  return result;
+}
+```
+
+## 🚀 Usage Examples
+
+### Basic Implementation
+```javascript
+/**
+ * ExampleComponent - Demonstrates component usage
+ * Handles user interactions and dispatches events
+ */
+class ExampleComponent extends HTMLElement {
+  #isConnected = false;
+  #state = { count: 0 };
+  #eventOptions = { passive: true, capture: false };
+
+  constructor() {
+    super();
+    this.handleClick = this.handleClick.bind(this);
+  }
+
+  connectedCallback() {
+    if (this.#isConnected) return;
+    
+    try {
+      this.#attachEventListeners();
+      this.#render();
+      this.#isConnected = true;
+    } catch (error) {
+      console.error('ExampleComponent: Failed to initialize', error);
+    }
+  }
+
+  disconnectedCallback() {
+    if (!this.#isConnected) return;
+    
+    try {
+      this.#removeEventListeners();
+      this.#isConnected = false;
+    } catch (error) {
+      console.error('ExampleComponent: Failed to cleanup', error);
+    }
+  }
+
+  #attachEventListeners() {
+    this.addEventListener('click', this.handleClick, this.#eventOptions);
+  }
+
+  #removeEventListeners() {
+    this.removeEventListener('click', this.handleClick, this.#eventOptions);
+  }
+
+  handleClick(event) {
+    this.#processEvent(event, 'click');
+  }
+
+  #processEvent(event, eventType) {
+    try {
+      this.#updateState({ count: this.#state.count + 1 });
+      this.#dispatchCustomEvent(eventType, { count: this.#state.count });
+    } catch (error) {
+      console.error(`ExampleComponent: Error processing ${eventType}`, error);
+    }
+  }
+
+  #updateState(newState) {
+    this.#state = { ...this.#state, ...newState };
+    this.#render();
+  }
+
+  #render() {
+    this.innerHTML = `<button>Count: ${this.#state.count}</button>`;
+  }
+
+  #dispatchCustomEvent(eventType, detail) {
+    const event = new CustomEvent(eventType, {
+      detail,
+      bubbles: true,
+      cancelable: true
+    });
+    this.dispatchEvent(event);
+  }
+
+  static getCount() {
+    return document.querySelectorAll('example-component').length;
+  }
+}
+
+if (!customElements.get('example-component')) {
+  customElements.define('example-component', ExampleComponent);
+}
+```
+
+## 🎯 File-Specific Rules
+
+### For `_scripts/*.js` files:
+- Must follow web component patterns from ruleset
+- Use true private fields/methods with `#` syntax
+- Include proper lifecycle management
+- Implement error handling and logging
+- Add comprehensive JSDoc documentation
+- Include static utility methods
+- Use performance optimizations
+
+### For `sections/*.liquid` files:
+- Follow Shopify Liquid best practices
+- Use semantic HTML structure
+- Include proper ARIA attributes
+- Optimize for performance and accessibility
+
+### For `snippets/*.liquid` files:
+- Maintain reusability and modularity
+- Use consistent naming conventions
+- Include proper documentation comments
+- Follow DRY principles
+
+## 🌐 Browser Support
+Target modern browsers (Chrome 74+, Firefox 90+, Safari 15+) for private class fields and methods. Use fallbacks for older browsers when necessary.
+
+## 📈 Performance Targets
+- Component initialization: < 16ms
+- Event processing: < 8ms
+- Memory usage: No leaks, proper cleanup
+- Accessibility: WCAG 2.1 AA compliance
+
+## ✅ Checklist for New Components
+
+- [ ] Class extends HTMLElement properly
+- [ ] Private fields declared at class level with `#`
+- [ ] Private methods use `#` syntax
+- [ ] Constructor binds event handlers
+- [ ] connectedCallback with connection state check
+- [ ] disconnectedCallback with proper cleanup
+- [ ] Event listeners use passive option where appropriate
+- [ ] Try-catch blocks around critical operations
+- [ ] Comprehensive JSDoc comments
+- [ ] Static utility methods for validation/querying
+- [ ] Custom element registration with safety check
+- [ ] Module export support
+- [ ] Error handling and logging
+- [ ] Performance considerations
+- [ ] Accessibility features
+- [ ] Testing hooks (development only)
+- [ ] **Component communication uses pub/sub pattern (custom events)**
+- [ ] **Cross-component events follow naming convention: `component:action`**
+
+## 📚 Examples to Follow
+Reference the refactored `_scripts/electric-pub.js` as the standard pattern for all web components in this project.
+
+---
+
+**Remember**: This ruleset ensures consistent, maintainable, and professional web components that follow modern JavaScript standards and best practices. All components must adhere to these standards for the Electric Maybe Shopify theme project.
+description:
+globs:
+alwaysApply: false
+---

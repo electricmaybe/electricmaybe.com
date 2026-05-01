@@ -1,0 +1,225 @@
+<script>
+  {%- liquid
+		comment Made up inventory
+		endcomment
+		assign min = 8
+		assign max = 13
+		assign diff = max | minus: min
+		assign stock_quantity = current_variant.inventory_quantity
+		assign inventory_quantity = "now" | date: "%d" | plus: current_variant.inventory_quantity | modulo: diff | plus: min
+    if product and product.tags contain 'bundle'
+			assign value = inventory_quantity | modulo: 2
+			if value == 1
+				assign inventory_quantity = inventory_quantity | plus: 1
+			endif
+    endif
+    if product
+    for tag in product.tags
+      if tag contains 'factory_'
+        assign factory = tag | downcase
+      endif
+    endfor
+    endif
+	-%}
+    window.leadingWeeks = '{{ shop.metafields.factory[factory] }}'
+    window.theme = {
+    {% if request.page_type == 'product' %}
+      productSKU: {{ product.selected_or_first_available_variant.sku | default: "" | json }},
+      productID: '{{ product.id }}',
+      productHandle: '{{ product.handle | default: "" }}',
+      inv: '{{ inventory_quantity | default: 0 }}',
+      quantity: '{{ stock_quantity | default: 0 }}',
+      type: '{{ product.type | downcase | default: "" }}',
+    {% endif %}
+    moneyFormat: {{ shop.money_format | json }},
+    templateName: {{ template.name | json }},
+    templateSuffix: {{ template.suffix | json }},
+    currency: {{ cart.currency.symbol | json }},
+    locale:  {{ request.locale.iso_code | json }},
+      rebuy_key: '5d57d878e3bbf271b5d8edf3da18ac4eb8a781f8'
+		}
+  window.cart = {
+    mtoItems: {{ cart.attributes.mtoItems | default: null | json }},
+  }
+
+  window.animation = {
+    duration: 500,
+    durationShort: 300,
+    cubicBezier: "cubic-bezier(.165,.84,.44,1)"
+  }
+
+  window.shop = {
+    hours: {{ "now" | date: "%Y-%m-%d %H:%M:%S" | json }}
+  }
+
+  window.icons = {
+    trash: `{% render 'a--icon', icon: 'trash' %}`,
+    plus: `{% render 'a--icon', icon: 'plus', size: 'h-2' %}`,
+    circle_arrow_r: `{% render 'a--icon', icon: 'circle-arrow-r', stroke: 'stroke-base', width: '3rem' %}`,
+    circle_arrow_l: `{% render 'a--icon', icon: 'circle-arrow-l', stroke: 'stroke-base', width: '3rem' %}`,
+    plusMinusAnimated: `{% render 'a--icon', icon: 'plus-minus-animated', size: 'h-2', class: 'rotate-90 transition-transform' %}`,
+    chevronRight: `{% render 'a--icon', icon: 'chevron-right', size: 'h-2' %}`,
+    chevronDown: `{% render 'a--icon', icon: 'chevron-down', size: 'h-2' %}`,
+    spinner: `          <div role="status" class="spinner absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-100">
+            <svg
+              aria-hidden="true"
+              class="w-6 h-6 animate-spin text-body/30 dark:text-body fill-body"
+              viewBox="0 0 100 101"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+            </svg>
+            <span class="sr-only">{{ 'accessibility.loading' | t }}</span>
+          </div>
+`
+  }
+
+  window.routes = {
+    root_url: '{{ routes.root_url }}',
+    cart_url: '{{ routes.cart_url }}',
+    cart_add_url: '{{ routes.cart_add_url }}',
+    cart_change_url: '{{ routes.cart_change_url }}',
+    cart_update_url: '{{ routes.cart_update_url }}',
+    account_addresses_url: '{{ routes.account_addresses_url }}',
+    search_url: '{{ routes.search_url }}',
+    predictive_search_url: '{{ routes.predictive_search_url }}'
+  };
+
+  window.cartStrings = {
+    error: `{{ 'sections.cart.cart_error' | t }}`,
+    quantityError: `{{ 'sections.cart.cart_quantity_error_html' | t: quantity: '[quantity]' }}`,
+  }
+
+  window.variantStrings = {
+    addToCart: `{{ 'products.product.add_to_cart' | t }}`,
+    soldOut: `{{ 'products.product.sold_out' | t }}`,
+    outOfStock: `{{ 'products.product.inventory_out_of_stock' | t }}`,
+    unavailable: `{{ 'products.product.unavailable' | t }}`,
+  }
+
+  window.accessibilityStrings = {
+    imageAvailable: `{{ 'products.product.media.image_available' | t: index: '[index]' }}`,
+    shareSuccess: `{{ 'general.share.success_message' | t }}`,
+    pauseSlideshow: `{{ 'sections.slideshow.pause_slideshow' | t }}`,
+    playSlideshow: `{{ 'sections.slideshow.play_slideshow' | t }}`,
+  }
+
+  window.theme_settings = {
+    default_day: '{{ settings.default_day | strip }}',
+    default_copy: '{{ settings.default_copy }}',
+    default_percentage: '{{ settings.default_percentage }}',
+    instock_shipping_days: {{ settings.instock_shipping_days }},
+    instock_shipping_text_cart: '{{ settings.in_stock_shipping_text_cart }}',
+    leadtime_string: '{{ settings.leadtime_string }}',
+    leadtime_nDays: {{ settings.leadtime_nDays }},
+    force_native_search: {{ settings.force_native_search | json }}
+  }
+
+  window.countdown = {
+    percentageArray: {{ shop.metafields.countdown.percentage | default: null | json }},
+    copyArray: {{ shop.metafields.countdown.copy | default: null | json }},
+    copyMobileArray: {{ shop.metafields.countdown.copy_mobile | default: null | json }},
+    endDateArray: {{ shop.metafields.countdown.enddate | default: null | json }},
+    startDateArray: {{ shop.metafields.countdown.startdate | default: null | json }}
+  }
+
+  {% if customer %}
+  window.customer = {
+    id: "{{ customer.id }}"
+  }
+  {% endif %}
+
+{% if request.page_type == 'product' and product %}
+  document.addEventListener('DOMContentLoaded', function() {
+    try {
+      const storageKey = 'theme:recently-viewed';
+      const productId = {{ product.id | default: 0 }};
+      const maxProducts = 12; // Optional: limit number of stored products
+      
+      // Get parent collection if available (set by breadcrumbs)
+      const parentCollection = window.theme?.productParentCollection || null;
+      
+      // Get product group/family info for sibling detection
+      const productGroup = {{ product.metafields.custom.product_group.value.display_name | default: null | json }} || null;
+      const productHandle = {{ product.handle | default: "" | json }};
+      
+      // For products with color options, use the base handle (without color suffix)
+      // This helps identify sibling products from the same family
+      let baseHandle = productHandle;
+      {% if product.options_with_values.size > 0 and product.options_with_values.first.name == 'Color' and product.options_with_values.first.selected_value %}
+        // Extract base handle by removing color suffix (e.g., "shirt-red" -> "shirt")
+        const colorValue = {{ product.options_with_values.first.selected_value.name | downcase | handleize | default: "" | json }};
+        if (colorValue && productHandle.endsWith('-' + colorValue)) {
+          baseHandle = productHandle.substring(0, productHandle.length - colorValue.length - 1);
+        }
+      {% endif %}
+      
+      // Get existing data and check format
+      let existingData = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      
+      // Convert old format (array of IDs) to new format (array of objects)
+      if (existingData.length > 0 && typeof existingData[0] === 'number') {
+        existingData = existingData.map(id => ({ 
+          id: id, 
+          collection: null, 
+          productGroup: null,
+          baseHandle: null,
+          timestamp: Date.now() 
+        }));
+      }
+      
+      // Remove current product if it exists
+      existingData = existingData.filter(item => item.id !== productId);
+      
+      // Add current product with metadata and product data
+      existingData.unshift({
+        name: {{ product.title | default: "" | json }},
+        id: productId,
+        shopify_product_id: productId,
+        handle: {{ product.handle | default: "" | json }},
+        title: {{ product.title | default: "" | json }},
+        vendor: {{ product.vendor | default: "" | json }},
+        product_type: {{ product.type | default: "" | json }},
+        image: {
+          src: {% if product.featured_image %}{{ product.featured_image | image_url: width: 400 | json }}{% else %}""{% endif %},
+          alt: {{ product.featured_image.alt | default: "" | json }},
+          width: 400,
+          height: 400
+        },
+        variants: [
+          {% for variant in product.variants limit: 1 %}
+          {
+            id: {{ variant.id | default: 0 }},
+            price: {{ variant.price | default: 0 | json }},
+            compare_at_price: {{ variant.compare_at_price | default: null | json }},
+            available: {{ variant.available | default: false | json }},
+            title: {{ variant.title | default: "" | json }}
+          }
+          {% endfor %}
+        ],
+        tags: {{ product.tags | join: ',' | default: "" | json }},
+        description: {{ product.description | strip_html | truncate: 200 | default: "" | json }},
+        created_at: {{ product.created_at | default: "" | json }},
+        updated_at: {{ product.updated_at | default: "" | json }},
+        collection_ids: [{{ parentCollection | json }}],
+        link: {{ product.url | default: "" | json }},
+        // Metadata for filtering and sibling detection
+        collection: parentCollection,
+        productGroup: productGroup,
+        baseHandle: baseHandle,
+        timestamp: Date.now()
+      });
+      
+      // Limit size of stored products
+      if (maxProducts) {
+        existingData = existingData.slice(0, maxProducts);
+      }
+      
+      localStorage.setItem(storageKey, JSON.stringify(existingData));
+    } catch (e) {
+      // Safari in private mode does not allow setting item, we silently fail
+    }
+  });
+{% endif %}
+</script>

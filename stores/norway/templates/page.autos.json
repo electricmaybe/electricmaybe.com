@@ -1,0 +1,120 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "hero_vol37_autos": {
+      "type": "autos--hero",
+      "name": "Autos hero",
+      "settings": {
+        "overlay_header": true,
+        "heading": "{{ page.title }}",
+        "body": "",
+        "brand_label": "{{ metaobjects.standard_title[\"any-make\"].title.value }}",
+        "model_label": "{{ metaobjects.standard_title[\"any-model\"].title.value }}",
+        "search_button_label": "{{ metaobjects.standard_title.search.title.value }}",
+        "height": "h-128",
+        "height_md": "md:h-128",
+        "height_lg": "lg:h-[40vw]",
+        "image_mobile": "shopify://shop_images/s--hero-banner_3.png",
+        "position_mobile": "items-center justify-center text-center",
+        "position_tablet": "md:items-center md:justify-center md:text-center",
+        "position_desktop": "lg:items-center lg:justify-center lg:text-center",
+        "overlay_color": "#000000",
+        "overlay_opacity": 40,
+        "overlay_blur": 0
+      }
+    },
+    "s_browse_by_brand_H4NaRV": {
+      "type": "s--browse-by-brand",
+      "blocks": {
+        "featured_brand_TaqjKV": {
+          "type": "featured_brand",
+          "settings": {
+            "collection": "tesla"
+          }
+        },
+        "featured_brand_igQk8k": {
+          "type": "featured_brand",
+          "settings": {
+            "collection": "bmw"
+          }
+        },
+        "featured_brand_Diix4U": {
+          "type": "featured_brand",
+          "settings": {
+            "collection": "mercedes"
+          }
+        },
+        "featured_brand_mKAXYD": {
+          "type": "featured_brand",
+          "settings": {
+            "collection": "ford"
+          }
+        }
+      },
+      "block_order": [
+        "featured_brand_TaqjKV",
+        "featured_brand_igQk8k",
+        "featured_brand_Diix4U",
+        "featured_brand_mKAXYD"
+      ],
+      "name": "Browse by brand",
+      "settings": {
+        "heading": ""
+      }
+    },
+    "s_featured_collection_list_tNcgQU": {
+      "type": "s--featured-collection-list",
+      "name": "Featured collection list",
+      "settings": {
+        "collection": "",
+        "title": "{{ metaobjects.standard_title[\"popular-cars\"].title.value }}"
+      }
+    },
+    "main": {
+      "type": "page--default",
+      "disabled": true,
+      "settings": {}
+    },
+    "s_contact_form_cb7cE4": {
+      "type": "s--contact-form",
+      "blocks": {
+        "formful_app_block_form_bwACr8": {
+          "type": "shopify://apps/formful/blocks/app-block-form/be9de36b-78a1-4ce9-8de3-f1044fb2ee2e",
+          "settings": {
+            "form_id": "form_ndacwVOXPV",
+            "max_width": 75,
+            "column_gap": 2,
+            "row_gap": 1,
+            "padding_top": 36,
+            "padding_bottom": 36,
+            "color_scheme": ""
+          }
+        }
+      },
+      "block_order": [
+        "formful_app_block_form_bwACr8"
+      ],
+      "name": "Contact form",
+      "settings": {
+        "heading": "{{ metaobjects.standard_title[\"contact-us-for-more-information\"].title.value }}",
+        "image": "shopify://shop_images/voldt-standard-cable-charging-pole-image-2.jpg",
+        "body": "<p>{{ metaobjects.standard_title[\"for-questions-or-general-inquiries-please-leave-your-contact-information-below-and-we-will-get-back-to-you-as-soon-as-possible\"].title.value }}</p>"
+      }
+    }
+  },
+  "order": [
+    "hero_vol37_autos",
+    "s_browse_by_brand_H4NaRV",
+    "s_featured_collection_list_tNcgQU",
+    "main",
+    "s_contact_form_cb7cE4"
+  ]
+}

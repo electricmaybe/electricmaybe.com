@@ -1,0 +1,1263 @@
+{% liquid
+  # M--WRAPPER: Universal section wrapper with responsive positioning
+  # Supports mobile (sm), tablet (md), and desktop (lg) breakpoints
+  # 
+  # Available parameters:
+  # - content_alignment: Mobile text alignment (items-start, items-center, items-end)
+  # - content_alignment_md: Tablet text alignment  
+  # - content_alignment_lg: Desktop text alignment
+  # - content_vertical_position_md: Tablet vertical positioning
+  # - content_vertical_position_lg: Desktop vertical positioning
+  # - horizontal: Enable horizontal layout
+  # - horizontal_mobile: Enable horizontal layout on mobile
+  # - compact: Compact mode with reduced padding
+  # - overlay_vertical_position: Overlay positioning for media backgrounds
+
+  assign s = section.settings
+  if block
+    assign s = block.settings
+  endif
+
+  if header_group
+    assign section_style = 'color_scheme'
+    assign section_width = 'bg-full'
+  endif
+  if compact
+    assign content_alignment = 'items-start'
+    assign content_vertical_position_lg = 'lg:items-center'
+    assign override_vertical_padding = true
+    assign vertical_padding = 4
+    assign vertical_padding_md = 4
+    assign vertical_padding_lg = 4
+    assign override_margin_top = true
+    assign margin_top = 0
+    assign margin_top_md = 0
+    assign margin_top_lg = 0
+    assign class_inner_wrapper = class_inner_wrapper | append: ' py-vertical-padding'
+  endif
+
+  # Content alignment settings for all breakpoints
+  assign content_alignment = content_alignment | default: s.content_alignment
+  assign content_alignment_md = content_alignment_md | default: s.content_alignment_md
+  assign content_alignment_lg = content_alignment_lg | default: s.content_alignment_lg
+  
+  # Vertical positioning for tablet and desktop
+  assign content_vertical_position_md = content_vertical_position_md | default: s.content_vertical_position_md
+  assign content_vertical_position_lg = content_vertical_position_lg | default: s.content_vertical_position_lg
+  
+  # Horizontal positioning for tablet and desktop
+  assign content_horizontal_position_md = content_horizontal_position_md | default: s.content_horizontal_position_md
+  assign content_horizontal_position_lg = content_horizontal_position_lg | default: s.content_horizontal_position_lg
+  
+  # Section configuration
+  assign section_style = 'none'
+  assign section_width = 'section-full'
+  assign override_vertical_padding = override_vertical_padding | default: s.override_vertical_padding, allow_false: true
+  assign vertical_padding = vertical_padding | default: s.vertical_padding
+  assign vertical_padding_md = vertical_padding_md | default: s.vertical_padding_md
+  assign vertical_padding_lg = vertical_padding_lg | default: s.vertical_padding_lg
+  assign override_margin_top = override_margin_top | default: s.override_margin_top, allow_false: true
+  assign margin_top = margin_top | default: s.margin_top
+  assign margin_top_md = margin_top_md | default: s.margin_top_md
+  assign margin_top_lg = margin_top_lg | default: s.margin_top_lg
+  assign overlay_vertical_position = overlay_vertical_position | default: s.overlay_vertical_position
+
+  assign class_inner_wrapper = class_inner_wrapper | append: ' flex'
+  if content_vertical_position_md
+    assign class_inner_wrapper = class_inner_wrapper | append: ' ' | append: content_vertical_position_md
+  endif
+  if content_vertical_position_lg
+    assign class_inner_wrapper = class_inner_wrapper | append: ' ' | append: content_vertical_position_lg
+  endif
+
+  if url != blank
+    assign class_inner_wrapper = class_inner_wrapper | append: ' relative'
+  endif
+
+  if overlay_vertical_position contains 'overlay'
+    assign class_inner_wrapper = class_inner_wrapper | append: ' relative'
+    if section_width == 'limited'
+      assign class_inner_wrapper = class_inner_wrapper | append: ' lg:rounded-sm overflow-hidden'
+    endif
+  endif
+  unless horizontal_mobile
+    assign class_inner_wrapper = class_inner_wrapper | append: ' flex-col '
+  endunless
+  if s.section_direction contains 'lg:flex-col'
+    assign class_inner_wrapper = class_inner_wrapper | append: ' lg:flex-col lg:text-center lg:items-center'
+  elsif s.section_direction contains 'lg:flex-row'
+    assign class_inner_wrapper = class_inner_wrapper | append: ' lg:flex-row lg:text-left lg:items-start lg:justify-between'
+  endif
+
+  # Section layout for tablet breakpoint
+  case s.section_layout_md
+    when 'spread'
+      assign class_inner_wrapper = class_inner_wrapper | append: ' md:justify-between md:text-left md:flex-row'
+    when 'evenly'
+      assign class_inner_wrapper = class_inner_wrapper | append: ' md:justify-evenly md:text-center md:flex-row'
+    when 'centered'
+      assign class_inner_wrapper = class_inner_wrapper | append: ' md:justify-center md:text-center md:flex-row md:gap-4'
+    when 'stacked'
+      assign class_inner_wrapper = class_inner_wrapper | append: ' md:items-center! md:flex-col md:text-center'
+  endcase
+  
+  # Section layout for desktop breakpoint
+  case s.section_layout_lg
+    when 'spread'
+      assign class_inner_wrapper = class_inner_wrapper | append: ' lg:justify-between lg:text-left lg:flex-row'
+    when 'evenly'
+      assign class_inner_wrapper = class_inner_wrapper | append: ' lg:justify-evenly lg:text-center lg:flex-row'
+    when 'centered'
+      assign class_inner_wrapper = class_inner_wrapper | append: ' lg:justify-center lg:text-center lg:flex-row lg:gap-4'
+    when 'stacked'
+      assign class_inner_wrapper = class_inner_wrapper | append: ' lg:items-center! lg:flex-col lg:text-center'
+  endcase
+
+  unless horizontal
+    # Apply responsive alignment classes when not in horizontal mode
+    if content_alignment
+      assign class_inner_wrapper = class_inner_wrapper | append: ' ' | append: content_alignment
+    endif
+    if content_alignment_md
+      assign class_inner_wrapper = class_inner_wrapper | append: ' ' | append: content_alignment_md
+    endif
+    if content_alignment_lg
+      assign class_inner_wrapper = class_inner_wrapper | append: ' ' | append: content_alignment_lg
+    endif
+    
+    # Apply horizontal positioning for tablet and desktop
+    if content_horizontal_position_md
+      assign class_inner_wrapper = class_inner_wrapper | append: ' ' | append: content_horizontal_position_md
+    endif
+    if content_horizontal_position_lg
+      assign class_inner_wrapper = class_inner_wrapper | append: ' ' | append: content_horizontal_position_lg
+    endif
+  endunless
+
+  unless 'header, footer, custom.overlay' contains section.location
+    assign color_scheme = ' color-' | append: s.color_scheme
+  endunless
+
+  if horizontal
+    assign class_inner_wrapper = class_inner_wrapper | append: ' lg:flex-row'
+  endif
+
+  if section_style == 'color_scheme'
+    assign color_scheme = ' color-w-bg-' | append: s.color_scheme
+    assign class_inner_wrapper = class_inner_wrapper | append: ' py-vertical-padding'
+    if section_width == 'limited'
+      assign class_inner_wrapper = class_inner_wrapper | append: ' lg:rounded-sm wrapper'
+      comment
+      assign reset_mobile_margin = true
+      endcomment
+    endif
+  endif
+
+  if section.location == 'header'
+    assign class_outer_wrapper = class_outer_wrapper | append: ' flex'
+  endif
+
+  if block
+    assign class_outer_wrapper = class_outer_wrapper | append: ' block-visibility'
+  endif
+
+  if section_width == 'limited'
+    if section_style == 'color_scheme' or overlay_vertical_position != null
+      assign class_outer_wrapper = class_outer_wrapper | append: ' lg:wrapper'
+    else
+      assign class_outer_wrapper = class_outer_wrapper | append: ' wrapper'
+    endif
+    assign class_inner_wrapper = class_inner_wrapper | append: color_scheme
+    if s.hide_text_and_buttons != true and section_style == 'separator'
+      assign class_inner_wrapper = class_inner_wrapper | append: ' border-t border-outline/20 pt-vertical-padding'
+    endif
+  else
+    assign class_outer_wrapper = class_outer_wrapper | append: color_scheme
+    if s.hide_text_and_buttons != true and section_style == 'separator'
+      assign class_outer_wrapper = class_outer_wrapper | append: ' border-t border-outline pt-vertical-padding'
+    endif
+    unless section_style == 'none' and overlay_vertical_position contains 'overlay'
+      assign class_inner_wrapper = class_inner_wrapper | append: ' wrapper'
+    endunless
+  endif
+
+  assign class_inner_wrapper = class_inner_wrapper | append: ' ' | append: s.media_position | append: ' ' | append: s.media_position_lg | append: ' ' | append: s.desktop_media_width
+-%}
+<style>
+  {% if block %}
+    #block-{{ block.id }} {
+  {% else %}
+    #shopify-section-{{ section.id }} {
+  {% endif %}
+      --mobile-visibility: {% if s.show_sm != false %}block{% else %}none{% endif %};
+      --tablet-visibility: {% if s.show_md != false %}block{% else %}none{% endif %};
+      --desktop-visibility: {% if s.show_lg != false %}block{% else %}none{% endif %};
+      {% if reset_mobile_margin %}
+        --margin-top: 0;
+        --margin-top-md: 0;
+      {% endif %}
+      {% if override_margin_top %}
+        {% unless reset_mobile_margin %}
+          --margin-top: {{ margin_top | divided_by: 16.0 }}rem;
+          --margin-top-md: {{ margin_top_md | divided_by: 16.0 }}rem;
+        {% endunless %}
+        --margin-top-lg: {{ margin_top_lg | divided_by: 16.0 }}rem;
+      {% endif %}
+      {% if override_vertical_padding %}
+        --vertical-padding: {{ vertical_padding | divided_by: 16.0 }}rem;
+        --vertical-padding-md: {{ vertical_padding_md | divided_by: 16.0 }}rem;
+        --vertical-padding-lg: {{ vertical_padding_lg | divided_by: 16.0 }}rem;
+      {% endif %}
+      {% if section_width == 'section-full' %}
+        --container-width: none;
+      {% endif %}
+      {{ css_variables }}
+    }
+</style>
+  <div
+    class="section__outer-wrapper {{ class_outer_wrapper }} {% if block %}full-spaced-section{% endif %}"
+    {% if block %}
+      id="block-{{ block.id }}" {{ block.shopify_attributes -}}
+    {% endif %}
+  >
+    <div class="section__inner-wrapper {{ class_inner_wrapper }}">
+      {% if overlay_vertical_position contains 'overlay' %}
+        <div class="relative w-full section__overlay-wrapper">
+          {{ content }}
+        </div>
+      {% else %}
+        {{ content }}
+      {% endif %}
+    {% if url != blank %}
+      <a href="{{ url }}" class="absolute inset-0 z-0" aria-label="{% if s.heading != blank %}{{ s.heading }}{% else %}{{ s.button_label }}{% endif %}"
+        ></a>
+    {% endif %}
+    </div>
+  </div>
+{% comment %}
+  M--WRAPPER DOCUMENTATION
+  ========================
+  
+  This wrapper supports 4 main layout types:
+  1. VERTICAL - Content stacked vertically (e.g., blog posts)
+  2. HORIZONTAL - Content side-by-side (e.g., image with text)
+  3. OVERLAY - Text overlaid on media (e.g., hero banner)
+  4. MIXED - Flexible layout switching (e.g., newsletter, countdown)
+  
+  Responsive Breakpoints:
+  - Mobile (default): Base styles
+  - Tablet (md): 768px+
+  - Desktop (lg): 1024px+
+  
+  Key Settings:
+  - content_alignment: Text alignment per breakpoint
+  - content_vertical_position: Vertical positioning
+  - content_horizontal_position: Horizontal positioning
+  - section_layout: Overall section structure
+  
+  /===== VERTICAL SECTION TYPE =====/
+    i.e blog posts
+    - where the section can't have a horizontal or overlaid layout
+
+      # SECTION SETTINGS
+      {
+        "type": "header",
+        "content": "t:global.text_and_buttons"
+      },
+      % IF NOT INDIVIDUAL BLOCKS %
+      {
+        "type": "checkbox",
+        "id": "hide_text_and_buttons",
+        "label": "t:global.hide_text_and_buttons",
+        "info": "t:global_info.hide_text_and_buttons",
+        "default": false
+      },
+      % ENDIF %
+      {
+        "type": "select",
+        "id": "content_layout_md",
+  "info": "t:global_info.spread",
+        "options": [
+          {
+            "value": "left-stacked",
+            "label": "t:global.left"
+          },
+          {
+            "value": "center-stacked",
+            "label": "t:global.center"
+          },
+          {
+            "value": "spread-horizontal",
+            "label": "t:global.spread"
+          }
+        ],
+        "default": "spread-horizontal",
+        "label": "t:global.layout_desktop"
+      },
+      {
+        "type": "select",
+        "id": "content_alignment",
+        "options": [
+          {
+            "value": "items-start",
+            "label": "t:global.left"
+          },
+          {
+            "value": "items-center text-center",
+            "label": "t:global.center"
+          },
+          {
+            "value": "items-end text-right",
+            "label": "t:global.right"
+          }
+        ],
+        "default": "items-start",
+        "label": "t:global.alignment_mobile"
+      },
+      // add section or block settings of inputs
+      {
+        "type": "header",
+        "content": "t:global.section_layout_and_style"
+      },
+      // add default section layout settings for wrapper
+
+    /===== HORIZONTAL SECTION TYPE =====/
+    i.e video with text and buttons on the right
+    - where the text and buttons are next to the section content and the section content is big
+
+      # SECTION SETTINGS
+      {
+        "type": "header",
+        "content": "t:global.text_and_buttons"
+      },
+      % IF NOT INDIVIDUAL BLOCKS %
+      {
+        "type": "checkbox",
+        "id": "hide_text_and_buttons",
+        "label": "t:global.hide_text_and_buttons",
+        "info": "t:global_info.hide_text_and_buttons",
+        "default": false
+      },
+      % ENDIF %
+      % IF NOT COMPACT
+      {
+        "type": "select",
+        "id": "content_alignment",
+        "options": [
+          {
+            "value": "items-start",
+            "label": "t:global.left"
+          },
+          {
+            "value": "items-center text-center justify-center",
+            "label": "t:global.center"
+          },
+          {
+          "value": "items-end text-right justify-end",
+            "label": "t:global.right"
+          }
+        ],
+        "default": "items-start",
+        "label": "t:global.alignment_mobile"
+      },
+      % ENDIF %
+      {
+        "type": "select",
+        "id": "content_alignment_lg",
+        "options": [
+          {
+            "value": "lg:text-left",
+            "label": "t:global.left"
+          },
+          {
+            "value": "lg:text-center",
+            "label": "t:global.center"
+          },
+          {
+            "value": "lg:text-right",
+            "label": "t:global.right"
+          }
+        ],
+        "default": "lg:text-left",
+        "label": "t:global.alignment_desktop"
+      },
+      % IF NOT COMPACT
+      {
+        "type": "select",
+        "id": "content_horizontal_position_lg",
+        "options": [
+          {
+            "value": "lg:justify-start",
+            "label": "t:global.left"
+          },
+          {
+            "value": "lg:justify-center",
+            "label": "t:global.center"
+          },
+          {
+            "value": "lg:justify-end",
+            "label": "t:global.right"
+          }
+        ],
+        "default": "lg:justify-center",
+        "label": "t:global.horizontal_position_desktop"
+      },
+      {
+        "type": "select",
+        "id": "content_vertical_position_lg",
+        "options": [
+          {
+            "value": "lg:items-start",
+            "label": "t:global.top"
+          },
+          {
+            "value": "lg:items-center",
+            "label": "t:global.center"
+          },
+          {
+            "value": "lg:items-end",
+            "label": "t:global.bottom"
+          }
+        ],
+        "default": "lg:items-start",
+        "label": "t:global.vertical_position_desktop"
+      },
+      % ENDIF %
+      // add section or block settings of inputs
+      {
+        "type": "header",
+        "content": "t:global.section_layout_and_style"
+      },
+      // add default section layout settings for wrapper
+
+    /===== OVERLAY SECTION TYPE =====/
+    i.e image with text overlay
+    - where the section content is an image or video and the text and buttons are overlaid on top of it
+
+      # SECTION SETTINGS
+      {
+        "type": "header",
+        "content": "t:global.text_and_buttons"
+      },
+      % IF NOT INDIVIDUAL BLOCKS %
+      {
+        "type": "checkbox",
+        "id": "hide_text_and_buttons",
+        "label": "t:global.hide_text_and_buttons",
+        "info": "t:global_info.hide_text_and_buttons",
+        "default": false
+      },
+      % ENDIF %
+      {
+        "type": "select",
+        "id": "content_layout_md",
+        "info": "t:global_info.spread",
+        "options": [
+          {
+            "value": "left-stacked",
+            "label": "t:global.left"
+          },
+          {
+            "value": "center-stacked",
+            "label": "t:global.center"
+          },
+          {
+            "value": "spread-horizontal",
+            "label": "t:global.spread"
+          }
+        ],
+        "default": "center-stacked",
+        "label": "t:global.layout_desktop"
+      },
+      {
+        "type": "select",
+        "id": "overlay_vertical_position",
+        "options": [
+          {
+            "value": "top",
+            "label": "t:global.out"
+          },
+          {
+            "value": "overlay-top",
+            "label": "t:global.top"
+          },
+          {
+            "value": "overlay-center",
+            "label": "t:global.center"
+          },
+          {
+            "value": "overlay-bottom",
+            "label": "t:global.bottom"
+          },
+          {
+            "value": "bottom",
+            "label": "t:global.out"
+          }
+        ],
+        "default": "overlay-center",
+        "label": "t:global.overlay_vertical_position"
+      },
+      {
+        "type": "color",
+        "id": "overlay_color",
+        "label": "t:global.overlay_color",
+        "default": "#000000"
+      },
+      {
+        "type": "range",
+        "id": "overlay_opacity",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "default": 50,
+        "unit": "%",
+        "label": "t:global.overlay_opacity"
+      },
+      {
+        "type": "select",
+        "id": "content_alignment",
+        "options": [
+          {
+            "value": "items-start",
+            "label": "t:global.left"
+          },
+          {
+            "value": "items-center text-center",
+            "label": "t:global.center"
+          },
+          {
+            "value": "items-end text-right",
+            "label": "t:global.right"
+          }
+        ],
+        "default": "items-start",
+        "label": "t:global.alignment_mobile"
+      },
+      // add section or block settings of inputs
+      {
+        "type": "header",
+        "content": "t:global.section_layout_and_style"
+      },
+      {
+        "type": "select",
+        "id": "content_vertical_position_lg",
+        "options": [
+          {
+            "value": "lg:items-start",
+            "label": "t:global.top"
+          },
+          {
+            "value": "lg:items-center",
+            "label": "t:global.center"
+          },
+          {
+            "value": "lg:items-end",
+            "label": "t:global.bottom"
+          }
+        ],
+        "default": "lg:items-start",
+        "label": "t:global.vertically"
+      },
+      // add default section layout settings for wrapper
+
+    /===== MIXED SECTION TYPE =====/
+    i.e countdown-timer, newsletter
+    - where the section content is small like a countdown so it can be switched between horizontal and vertical layouts and the text and buttons can be higher than the actual content so both needs to be vertically aligned.
+
+      # SECTION SETTINGS
+      {
+        "type": "header",
+        "content": "t:global.section_layout"
+      },
+      {
+        "type": "select",
+        "id": "section_layout_lg",
+        "options": [
+          {
+            "value": "lg:justify-between lg:text-left lg:flex-row",
+            "label": "t:global.spread"
+          },
+          {
+            "value": "lg:justify-evenly lg:text-center lg:flex-row",
+            "label": "t:global.evenly"
+          },
+          {
+            "value": "lg:justify-center lg:text-center lg:flex-row lg:gap-2",
+            "label": "t:global.centered"
+          },
+          {
+            "value": "lg:items-center! lg:flex-col lg:text-center",
+            "label": "t:global.stacked"
+          }
+        ],
+        "default": "lg:justify-between lg:text-left lg:flex-row",
+        "label": "t:global.layout"
+      },
+      {
+        "type": "select",
+        "id": "content_alignment",
+        "options": [
+          {
+            "value": "items-start",
+            "label": "t:global.left"
+          },
+          {
+            "value": "items-center text-center",
+            "label": "t:global.center"
+          },
+          {
+            "value": "items-end text-right",
+            "label": "t:global.right"
+          }
+        ],
+        "default": "items-start",
+        "label": "t:global.alignment_mobile"
+      },
+      {
+        "type": "select",
+        "id": "content_vertical_position_lg",
+        "options": [
+          {
+            "value": "lg:items-start",
+            "label": "t:global.top"
+          },
+          {
+            "value": "lg:items-center",
+            "label": "t:global.center"
+          },
+          {
+            "value": "lg:items-end",
+            "label": "t:global.bottom"
+          }
+        ],
+        "default": "lg:items-start",
+        "label": "t:global.vertical_alignment_desktop"
+      },
+      {
+        "type": "header",
+        "content": "t:global.text_and_buttons"
+      },
+      % IF NOT INDIVIDUAL BLOCKS %
+      {
+        "type": "checkbox",
+        "id": "hide_text_and_buttons",
+        "label": "t:global.hide_text_and_buttons",
+        "info": "t:global_info.hide_text_and_buttons",
+        "default": false
+      },
+      % ENDIF %
+
+      // add section or block settings of inputs
+      {
+        "type": "header",
+        "content": "t:global.section_style"
+      },
+      // add default section layout settings for wrapper
+
+    /===== MIXED SIMPLER SECTION TYPE =====/
+    i.e faq-list, contact-form
+    - where the section content is narrow but long like a faq list so it can be switched between horizontal and vertical layouts and the text and buttons can only be on top left on horizontal
+
+
+      # SECTION SETTINGS
+      {
+        "type": "header",
+        "content": "t:global.text_and_buttons"
+      },
+      % IF NOT INDIVIDUAL BLOCKS %
+      {
+        "type": "checkbox",
+        "id": "hide_text_and_buttons",
+        "label": "t:global.hide_text_and_buttons",
+        "info": "t:global_info.hide_text_and_buttons",
+        "default": false
+      },
+      % ENDIF %
+      {
+        "type": "select",
+        "id": "content_alignment",
+        "options": [
+          {
+            "value": "items-start",
+            "label": "t:global.left"
+          },
+          {
+            "value": "items-center text-center",
+            "label": "t:global.center"
+          },
+          {
+            "value": "items-end text-right",
+            "label": "t:global.right"
+          }
+        ],
+        "default": "items-start",
+        "label": "t:global.alignment_mobile"
+      },
+      // add section or block settings of inputs
+      {
+        "type": "header",
+        "content": "t:global.section_layout_and_style"
+      },
+      {
+        "type": "select",
+        "id": "section_direction",
+        "options": [
+          {
+            "value": "lg:flex-row",
+            "label": "t:global.horizontal"
+          },
+          {
+            "value": "lg:flex-col",
+            "label": "t:global.vertical"
+          }
+        ],
+        "default": "lg:flex-row",
+        "label": "t:global.direction"
+      },
+      // add default section layout settings for wrapper
+
+
+      /===== RESPONSIVE POSITIONING SETTINGS =====/
+      # Add these to any section that uses m--wrapper:
+      
+      # Mobile alignment
+      {
+        "type": "select",
+        "id": "content_alignment",
+        "options": [
+          {"value": "items-start", "label": "t:global.left"},
+          {"value": "items-center text-center", "label": "t:global.center"},
+          {"value": "items-end text-right", "label": "t:global.right"}
+        ],
+        "default": "items-start",
+        "label": "t:global.alignment_mobile"
+      },
+      
+      # Tablet alignment (NEW)
+      {
+        "type": "select",
+        "id": "content_alignment_md",
+        "options": [
+          {"value": "md:items-start md:text-left", "label": "t:global.left"},
+          {"value": "md:items-center md:text-center", "label": "t:global.center"},
+          {"value": "md:items-end md:text-right", "label": "t:global.right"}
+        ],
+        "default": "md:items-start md:text-left",
+        "label": "t:global.alignment_tablet"
+      },
+      
+      # Desktop alignment
+      {
+        "type": "select",
+        "id": "content_alignment_lg",
+        "options": [
+          {"value": "lg:items-start lg:text-left", "label": "t:global.left"},
+          {"value": "lg:items-center lg:text-center", "label": "t:global.center"},
+          {"value": "lg:items-end lg:text-right", "label": "t:global.right"}
+        ],
+        "default": "lg:items-start lg:text-left",
+        "label": "t:global.alignment_desktop"
+      },
+      
+      # Tablet vertical position (NEW)
+      {
+        "type": "select",
+        "id": "content_vertical_position_md",
+        "options": [
+          {"value": "md:items-start", "label": "t:global.top"},
+          {"value": "md:items-center", "label": "t:global.center"},
+          {"value": "md:items-end", "label": "t:global.bottom"}
+        ],
+        "default": "md:items-center",
+        "label": "t:global.vertical_position_tablet"
+      },
+      
+      # Desktop vertical position
+      {
+        "type": "select",
+        "id": "content_vertical_position_lg",
+        "options": [
+          {"value": "lg:items-start", "label": "t:global.top"},
+          {"value": "lg:items-center", "label": "t:global.center"},
+          {"value": "lg:items-end", "label": "t:global.bottom"}
+        ],
+        "default": "lg:items-center",
+        "label": "t:global.vertical_position_desktop"
+      },
+      
+      # Tablet horizontal position (NEW)
+      {
+        "type": "select",
+        "id": "content_horizontal_position_md",
+        "options": [
+          {"value": "md:justify-start", "label": "t:global.left"},
+          {"value": "md:justify-center", "label": "t:global.center"},
+          {"value": "md:justify-end", "label": "t:global.right"}
+        ],
+        "default": "md:justify-center",
+        "label": "t:global.horizontal_position_tablet"
+      },
+      
+      # Desktop horizontal position
+      {
+        "type": "select",
+        "id": "content_horizontal_position_lg",
+        "options": [
+          {"value": "lg:justify-start", "label": "t:global.left"},
+          {"value": "lg:justify-center", "label": "t:global.center"},
+          {"value": "lg:justify-end", "label": "t:global.right"}
+        ],
+        "default": "lg:justify-center",
+        "label": "t:global.horizontal_position_desktop"
+      },
+      
+      # Tablet section layout (NEW)
+      {
+        "type": "select",
+        "id": "section_layout_md",
+        "options": [
+          {"value": "spread", "label": "t:global.spread"},
+          {"value": "evenly", "label": "t:global.evenly"},
+          {"value": "centered", "label": "t:global.centered"},
+          {"value": "stacked", "label": "t:global.stacked"}
+        ],
+        "default": "spread",
+        "label": "t:global.layout_tablet"
+      },
+      
+      # Desktop section layout
+      {
+        "type": "select",
+        "id": "section_layout_lg",
+        "options": [
+          {"value": "spread", "label": "t:global.spread"},
+          {"value": "evenly", "label": "t:global.evenly"},
+          {"value": "centered", "label": "t:global.centered"},
+          {"value": "stacked", "label": "t:global.stacked"}
+        ],
+        "default": "spread",
+        "label": "t:global.layout_desktop"
+      },
+      
+      /===== TEXT AND BUTTON INPUTS TOGETHER =====/
+     % IF NOT COMPACT %
+      {
+        "type": "text",
+        "id": "caption",
+        "default": "Your caption",
+        "label": "t:global.caption"
+      },
+      % ENDIF %
+      {
+        "type": "inline_richtext",
+        "id": "heading",
+        "default": "Your heading",
+        "label": "t:global.heading"
+      },
+      {
+        "type": "select",
+        "id": "heading_size",
+        "label": "t:global.heading_size",
+        "default": "text-heading-md",
+        "options": [
+          {
+            "value": "text-heading-sm",
+            "label": "t:global.small"
+          },
+          {
+            "value": "text-heading-md",
+            "label": "t:global.medium"
+          },
+          {
+            "value": "text-heading-lg",
+            "label": "t:global.large"
+          }
+        ]
+      },
+      {
+        "type": "richtext",
+        "id": "body_text",
+        "default": "<p>Your body text goes here.</p>",
+        "label": "t:global.body_text"
+      },
+      {
+        "type": "text",
+        "id": "button_label",
+        "default": "Button",
+        "label": "t:global.first_button_label",
+        "info": "t:global_info.leave_blank_to_hide"
+      },
+      {
+        "type": "url",
+        "id": "button_url",
+        "label": "t:global.first_button_url"
+      },
+      {
+        "type": "radio",
+        "id": "button_style",
+        "label": "t:global.first_button_style",
+        "default": "primary",
+        "options": [
+          {
+            "label": "t:global.primary",
+            "value": "primary"
+          },
+          {
+            "label": "t:global.secondary",
+            "value": "secondary"
+          },
+          {
+            "label": "t:global.ghost",
+            "value": "ghost"
+          },
+          {
+            "label": "t:global.link",
+            "value": "link"
+          }
+        ]
+      },
+
+      {
+        "type": "text",
+        "id": "button_label_2",
+        "label": "t:global.second_button_label",
+        "info": "t:global_info.leave_blank_to_hide"
+      },
+      {
+        "type": "url",
+        "id": "button_url_2",
+        "label": "t:global.second_button_url"
+      },
+      {
+        "type": "radio",
+        "id": "button_style_2",
+        "label": "t:global.second_button_style",
+        "default": "secondary",
+        "options": [
+          {
+            "label": "t:global.primary",
+            "value": "primary"
+          },
+          {
+            "label": "t:global.secondary",
+            "value": "secondary"
+          },
+          {
+            "label": "t:global.ghost",
+            "value": "ghost"
+          }
+        ]
+      },
+
+      /===== TEXT AND BUTTON INPUTS AS INDIVIDUAL BLOCKS =====/
+      "blocks": [
+        {
+          "type": "heading",
+          "name": "t:global.heading",
+          "limit": 3,
+          "settings": [
+            {
+              "type": "inline_richtext",
+              "id": "heading",
+              "default": "Your heading",
+              "label": "t:global.heading"
+            },
+            {
+              "type": "select",
+              "id": "heading_size",
+              "label": "t:global.heading_size",
+              "default": "text-heading-md",
+              "options": [
+                {
+                  "value": "text-heading-sm",
+                  "label": "t:global.small"
+                },
+                {
+                  "value": "text-heading-md",
+                  "label": "t:global.medium"
+                },
+                {
+                  "value": "text-heading-lg",
+                  "label": "t:global.large"
+                }
+              ]
+            }
+          ]
+        },
+        % IF NOT COMPACT %
+        {
+          "type": "caption",
+          "name": "t:global.caption",
+          "limit": 3,
+          "settings": [
+            {
+              "type": "text",
+              "id": "caption",
+              "default": "Add a tagline",
+              "label": "t:global.caption"
+            }
+          ]
+        },
+        % ENDIF %
+        {
+          "type": "text",
+          "name": "t:global.body_text",
+          "limit": 3,
+          "settings": [
+            {
+              "type": "richtext",
+              "id": "body_text",
+              "default": "<p>Share information about your brand with your customers. Describe a product, make announcements, or welcome customers to your store.</p>",
+              "label": "t:global.body_text"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "name": "t:global.button",
+          "limit": 1,
+          "settings": [
+            {
+              "type": "text",
+              "id": "button_label",
+              "default": "Button",
+              "label": "t:global.first_button_label",
+              "info": "t:global_info.leave_blank_to_hide"
+            },
+            {
+              "type": "url",
+              "id": "button_url",
+              "label": "t:global.first_button_url"
+            },
+            {
+              "type": "radio",
+              "id": "button_style",
+              "label": "t:global.first_button_style",
+              "default": "primary",
+              "options": [
+                {
+                  "label": "t:global.primary",
+                  "value": "primary"
+                },
+                {
+                  "label": "t:global.secondary",
+                  "value": "secondary"
+                },
+                {
+                  "label": "t:global.ghost",
+                  "value": "ghost"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "button_label_2",
+              "label": "t:global.second_button_label",
+              "info": "t:global_info.leave_blank_to_hide"
+            },
+            {
+              "type": "url",
+              "id": "button_url_2",
+              "label": "t:global.second_button_url"
+            },
+            {
+              "type": "radio",
+              "id": "button_style_2",
+              "label": "t:global.second_button_style",
+              "default": "secondary",
+              "options": [
+                {
+                  "label": "t:global.primary",
+                  "value": "primary"
+                },
+                {
+                  "label": "t:global.secondary",
+                  "value": "secondary"
+                },
+                {
+                  "label": "t:global.ghost",
+                  "value": "ghost"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+
+      /===== DEFAULT SECTION LAYOUT SETTINGS =====/
+      % IF SECTION IS NOT COMPACT %
+      {
+        "type": "select",
+        "id": "section_style",
+        "label": "t:global.section_style",
+        "default": "separator",
+        "options": [
+          {
+            "value": "none",
+            "label": "t:global.none"
+          },
+          {
+            "value": "separator",
+            "label": "t:global.separator"
+          },
+          {
+            "value": "color_scheme",
+            "label": "t:global.background"
+          }
+        ]
+      },
+      % ENDIF %
+      {
+        "type": "color_scheme",
+        "id": "color_scheme",
+        "label": "t:global.color_scheme",
+        "info": "t:global_info.color_scheme"
+      },
+      % IF SECTION IS NOT COMPACT %
+      {
+        "type": "select",
+        "id": "section_width",
+        "default": "limited",
+        "label": "t:global.limit_width",
+        "options": [
+          {
+            "value": "limited",
+            "label": "t:global.all"
+          },
+          {
+            "value": "bg-full",
+            "label": "t:global.content_only"
+          },
+          {
+            "value": "section-full",
+            "label": "t:global.none"
+          }
+        ],
+        "info": "t:global_info.limit_width"
+      },
+      {
+        "type": "header",
+        "content": "t:global.vertical_padding",
+        "info": "t:global_info.vertical_padding"
+      },
+      {
+        "type": "checkbox",
+        "id": "override_vertical_padding",
+        "label": "t:global.override_global_vertical_padding",
+        "info": "t:global_info.override_global_vertical_padding",
+        "default": false
+      },
+      {
+        "type": "range",
+        "id": "vertical_padding",
+        "min": 0,
+        "max": 320,
+        "step": 8,
+        "default": 64,
+        "unit": "px",
+        "label": "t:global.mobile"
+      },
+      {
+        "type": "range",
+        "id": "vertical_padding_md",
+        "min": 0,
+        "max": 320,
+        "step": 8,
+        "default": 64,
+        "unit": "px",
+        "label": "t:global.tablet"
+      },
+      {
+        "type": "range",
+        "id": "vertical_padding_lg",
+        "min": 0,
+        "max": 320,
+        "step": 8,
+        "default": 64,
+        "unit": "px",
+        "label": "t:global.desktop"
+      },
+      {
+        "type": "header",
+        "content": "t:global.top_margin",
+        "info": "t:global_info.top_margin"
+      },
+      {
+        "type": "checkbox",
+        "id": "override_margin_top",
+        "label": "t:global.override_global_top_margin",
+        "info": "t:global_info.override_global_top_margin",
+        "default": false
+      },
+      {
+        "type": "range",
+        "id": "margin_top",
+        "min": 0,
+        "max": 480,
+        "step": 16,
+        "default": 96,
+        "unit": "px",
+        "label": "t:global.mobile"
+      },
+      {
+        "type": "range",
+        "id": "margin_top_md",
+        "min": 0,
+        "max": 480,
+        "step": 16,
+        "default": 96,
+        "unit": "px",
+        "label": "t:global.tablet"
+      },
+      {
+        "type": "range",
+        "id": "margin_top_lg",
+        "min": 0,
+        "max": 480,
+        "step": 16,
+        "default": 96,
+        "unit": "px",
+        "label": "t:global.desktop"
+      },
+      % ENDIF %
+      {
+        "type": "header",
+        "content": "t:global.visibility",
+        "info": "t:global_info.visibility"
+      },
+      % IF SECTION IS NOT COMPACT
+      {
+        "type": "select",
+        "id": "show_on",
+        "label": "t:global.show_on",
+        "options": [
+          {
+            "value": "home",
+            "label": "t:global.home_only"
+          },
+          {
+            "value": "all",
+            "label": "t:global.all_pages"
+          }
+        ]
+      },
+      % ENDIF %
+      {
+        "type": "checkbox",
+        "id": "show_sm",
+        "label": "t:global.mobile",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_md",
+        "label": "t:global.tablet",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_lg",
+        "label": "t:global.desktop",
+        "default": true
+      }
+{% endcomment %}

@@ -1,0 +1,84 @@
+{%- doc -%}
+Article card component for blog/article listings and sliders.
+
+Renders a single article card with a cover image and a bottom gradient overlay that contains title, excerpt, date, and a "Read more" affordance. Reused by the blog listing template.
+
+@param {object} article - Article object (required)
+@param {string} [class] - Additional CSS classes for the card link
+@param {boolean} [show_date] - Show publish date (defaults to theme setting)
+@param {boolean} [show_author] - Show author (defaults to theme setting; currently not rendered)
+@param {number} [excerpt_words] - Excerpt word limit (defaults to 18)
+@param {number} [sm_cols] - Approx columns hint for image sizing (optional)
+@param {number} [md_cols] - Approx columns hint for image sizing (optional)
+@param {number} [lg_cols] - Approx columns hint for image sizing (optional)
+
+@example
+{% render 'm--article-card', article: article %}
+{%- enddoc -%}
+
+{%- liquid
+  assign article = article | default: empty
+  assign class = class | default: ''
+  assign show_date = show_date | default: settings.article_card_show_date
+  assign show_author = show_author | default: settings.article_card_show_author
+  assign excerpt_words = excerpt_words | default: 18
+
+  unless article != empty
+    echo '<!-- Error: article parameter required for m--article-card -->'
+    break
+  endunless
+
+  assign image = article.image
+  assign title = article.title | default: ''
+  assign excerpt = article.excerpt_or_content | strip_html | truncatewords: excerpt_words
+  assign date_text = article.published_at | date: '%b %e, %Y'
+
+  assign cols = lg_cols | default: md_cols | default: sm_cols | default: 12
+
+  assign placeholder_index = forloop.index | default: 1 | modulo: 3
+  if placeholder_index == 0
+    assign placeholder_index = 3
+  endif
+  assign placeholder_name = 'blog-apparel-' | append: placeholder_index
+-%}
+
+{%- capture overlay_content -%}
+  <div class="absolute inset-0 bg-black/10"></div>
+  <div class="absolute inset-x-0 bottom-0 backdrop-blur-[2px] bg-linear-to-b from-contrast/0 to-contrast/80 px-b-sm py-b-sm flex flex-col gap-y-b-xs justify-end">
+    {%- if title != blank -%}
+      <div class="h4 text-on-accent">{{ title | escape }}</div>
+    {%- endif -%}
+    {%- if excerpt != blank -%}
+      <div class="text-ui-base/copy text-on-accent-sec">{{ excerpt | escape }}</div>
+    {%- endif -%}
+    <div class="flex items-center justify-between gap-x-b-base">
+      {%- if show_date and date_text != blank -%}
+        <div class="text-ui-base text-on-accent">{{ date_text | escape }}</div>
+      {%- endif -%}
+      <div class="flex items-center gap-x-1">
+        <span class="underline underline-offset-2 text-ui-base text-on-accent">
+          {{ 'blogs.article.read_more' | t }}
+        </span>
+        {%- render 'a--icon', icon: 'chevron-r', width: '1.5rem', height: '1.5rem', class: 'text-on-accent' -%}
+      </div>
+    </div>
+  </div>
+{%- endcapture -%}
+
+<a
+  href="{{ article.url }}"
+  class="group relative block w-full {{ class }}"
+  aria-label="{{ title | escape }}"
+  {{ block.shopify_attributes }}
+>
+  {%- render 'a--image',
+    image: image,
+    cols: cols,
+    aspect_ratio: 0.8,
+    object_fit: 'object-cover',
+    picture_class: 'relative overflow-hidden w-full',
+    image_class: 'w-full h-full object-cover transition-opacity duration-500 group-hover:opacity-90',
+    placeholder: placeholder_name,
+    overlay_content: overlay_content
+  -%}
+</a>

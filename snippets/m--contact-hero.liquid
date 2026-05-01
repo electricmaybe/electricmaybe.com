@@ -1,0 +1,28 @@
+{%- doc -%}
+Contact hero content with title and supporting description.
+
+This molecule is the extracted content model for the contact page hero. It focuses only on the main text block while the wrapper and section handle the contact detail blocks around it.
+
+@param {string} [title] - Contact hero title
+@param {string} [description] - Rich text description
+
+@example
+{% render 'm--contact-hero',
+  title: section.settings.contact_title,
+  description: section.settings.contact_description
+%}
+{%- enddoc -%}
+
+<div class="hero-content flex flex-col gap-y-s-xs w-full max-w-[448px]">
+  {%- if title != blank -%}
+    <h1 class="h1 text-on-accent max-w-[448px]">
+      {{ title | escape | newline_to_br }}
+    </h1>
+  {%- endif -%}
+
+  {%- if description != blank -%}
+    <div class="text-body-lg text-on-accent max-w-[448px]">
+      {{ description }}
+    </div>
+  {%- endif -%}
+</div>

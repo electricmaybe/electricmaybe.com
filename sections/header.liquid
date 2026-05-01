@@ -1,0 +1,730 @@
+<header-element
+  class="block text-ui-base {% comment %}[[data-threshold-passed=true]]:max-lg:-translate-y-(--promo-banner-height){% endcomment %} transition-transform duration-750 ease-in-out"
+  data-sticky="true"
+>
+
+  <header class="lg:relative [[data-threshold-passed=true]_&]:lg:max-h-28 bg-surface transition-colors duration-300" id="Header">
+    <div class="header__main flex min-h-15 lg:min-h-28 lg:px-s-whole items-stretch lg:gap-x-s-xl z-40 relative">
+      <drawer-trigger
+        data-target="menu-drawer"
+        class="px-b-xs py-b-xs transition-colors lg:hidden content-center"
+      >
+        {%- render 'a--icon', icon: 'menu', width: '1.5rem', height: '1.5rem', animate: true, aria_hidden: true -%}
+      </drawer-trigger>
+      {% capture logo_black %}
+        <img
+          src="{{ 'logo.png' | asset_url }}"
+          alt="{{ shop.name | escape }}"
+          class="w-30 lg:w-35"
+          width="280"
+          height="68"
+          loading="eager"
+        >
+      {% endcapture %}
+      {{
+        logo_black
+        | link_to: routes.root_url,
+          class: 'logo-black shrink-0 place-self-center',
+          aria-label: shop.name
+      }}
+      {% capture logo_white %}
+        <img
+          src="{{ 'logo-white.png' | asset_url }}"
+          alt="{{ shop.name | escape }}"
+          class="w-30 lg:w-35"
+          width="280"
+          height="68"
+          loading="eager"
+        >
+      {% endcapture %}
+      {{
+        logo_white
+        | link_to: routes.root_url,
+          class: 'logo-white shrink-0 place-self-center hidden',
+          aria-label: shop.name
+      }}
+      {%- render 'header--main-navigation' %}
+      <div class="flex items-center justify-end lg:gap-x-b-base max-lg:ml-auto max-lg:w-auto max-lg:gap-x-b-xs shrink-0">
+        {%- liquid
+          render 'header--predictive-search'
+          render 'm--account-selector', align: 'bottom-right', identifier: 'Header', account_title_class: 'max-lg:hidden'
+          capture cart_icon
+            render 'a--icon', icon: 'bag', width: '1.5rem', height: '1.5rem'
+            render 'header--cart-bubble'
+          endcapture
+          assign cart_aria_label = 'templates.cart.cart' | t
+
+
+          # Cart icon behavior:
+          # - On /cart: go to cart page (reloads current page)
+          # - Elsewhere: open cart drawer
+          if request.page_type == 'cart'
+            echo cart_icon | link_to: routes.cart_url, class: 'header-action max-lg:text-primary px-b-xs py-b-xs lg:bg-subtle hover:bg-emphasis lg:rounded-full max-lg:h-full transition-colors content-center relative flex items-center shrink-0', aria_label: cart_aria_label
+          else
+            echo '<drawer-trigger data-target="cart-drawer" class="header-action max-lg:text-primary px-b-xs py-b-xs lg:bg-subtle hover:bg-emphasis lg:rounded-full max-lg:h-full transition-colors content-center relative flex items-center shrink-0" aria-label="' | append: cart_aria_label | append: '">'
+            echo cart_icon
+            echo '</drawer-trigger>'
+          endif
+        -%}
+      </div>
+    </div>
+  </header>
+</header-element>
+{%- render 'header--menu-drawer' -%}
+
+<script>
+  (() => {
+    if (document.documentElement.dataset.headerNavOpenInit === 'true') return;
+    document.documentElement.dataset.headerNavOpenInit = 'true';
+
+    const headerEl = document.querySelector('header-element');
+    if (!headerEl) return;
+
+    const nav = headerEl.querySelector('.header__desktop-navigation');
+    const controller = new AbortController();
+
+    const menuDrawer = document.getElementById('menu-drawer');
+
+    const setOpen = (isOpen) => {
+      if (isOpen) headerEl.setAttribute('data-nav-open', 'true');
+      else headerEl.removeAttribute('data-nav-open');
+    };
+
+    const setMenuOpen = (isOpen) => {
+      if (isOpen) headerEl.setAttribute('data-menu-open', 'true');
+      else headerEl.removeAttribute('data-menu-open');
+    };
+
+    if (nav) {
+      nav.addEventListener('mouseenter', () => setOpen(true), { signal: controller.signal });
+      nav.addEventListener('mouseleave', () => setOpen(false), { signal: controller.signal });
+      nav.addEventListener('focusin', () => setOpen(true), { signal: controller.signal });
+      nav.addEventListener(
+        'focusout',
+        (e) => {
+          if (!nav.contains(e.relatedTarget)) setOpen(false);
+        },
+        { signal: controller.signal }
+      );
+    }
+
+    if (menuDrawer) {
+      menuDrawer.addEventListener('drawer:opening', () => setMenuOpen(true), { signal: controller.signal });
+      menuDrawer.addEventListener('drawer:closing', () => setMenuOpen(false), { signal: controller.signal });
+    }
+
+    window.addEventListener(
+      'pagehide',
+      () => {
+        try {
+          controller.abort();
+        } catch (e) {}
+      },
+      { signal: controller.signal }
+    );
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "t:global.header",
+  "class": "header-elements",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "link_list",
+      "id": "menu",
+      "default": "main-menu",
+      "label": "Menu desktop"
+    },
+    {
+      "type": "link_list",
+      "id": "mobile_menu",
+      "label": "Menu mobile",
+      "info": "Menu to display in mobile drawer. If empty, uses menu desktop."
+    },
+    {
+      "type": "header",
+      "content": "Navigation collection promo 1"
+    },
+    {
+      "type": "collection",
+      "id": "nav_promo_1_collection",
+      "label": "Collection"
+    },
+    {
+      "type": "text",
+      "id": "nav_promo_1_title",
+      "label": "Title override",
+      "info": "Leave empty to use collection title"
+    },
+    {
+      "type": "text",
+      "id": "nav_promo_1_description",
+      "label": "Description override",
+      "info": "Leave empty to use collection description"
+    },
+    {
+      "type": "image_picker",
+      "id": "nav_promo_1_image",
+      "label": "Image override",
+      "info": "Leave empty to use collection image"
+    },
+    {
+      "type": "header",
+      "content": "Navigation collection promo 2"
+    },
+    {
+      "type": "collection",
+      "id": "nav_promo_2_collection",
+      "label": "Collection"
+    },
+    {
+      "type": "text",
+      "id": "nav_promo_2_title",
+      "label": "Title override",
+      "info": "Leave empty to use collection title"
+    },
+    {
+      "type": "text",
+      "id": "nav_promo_2_description",
+      "label": "Description override",
+      "info": "Leave empty to use collection description"
+    },
+    {
+      "type": "image_picker",
+      "id": "nav_promo_2_image",
+      "label": "Image override",
+      "info": "Leave empty to use collection image"
+    },
+    {
+      "type": "header",
+      "content": "USPs"
+    },
+    {
+      "type": "paragraph",
+      "content": "Header USPs are sourced from shop metafield `custom.store_level_usps` (metaobject list with `icon` + `name`)."
+    },
+    {
+      "type": "header",
+      "content": "Mobile drawer CTAs"
+    },
+    {
+      "type": "text",
+      "id": "drawer_cta_primary_text",
+      "label": "Primary CTA text",
+      "default": "Bulk orders"
+    },
+    {
+      "type": "url",
+      "id": "drawer_cta_primary_url",
+      "label": "Primary CTA link"
+    },
+    {
+      "type": "text",
+      "id": "drawer_cta_secondary_text",
+      "label": "Secondary CTA text",
+      "default": "Become a partner"
+    },
+    {
+      "type": "url",
+      "id": "drawer_cta_secondary_url",
+      "label": "Secondary CTA link"
+    },
+    {
+      "type": "text",
+      "id": "drawer_cta_tertiary_text",
+      "label": "Tertiary CTA text",
+      "default": "Shop for my car"
+    },
+    {
+      "type": "url",
+      "id": "drawer_cta_tertiary_url",
+      "label": "Tertiary CTA link"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "megamenu",
+      "name": "Megamenu",
+      "settings": [
+        {
+          "type": "text",
+          "id": "menu_item",
+          "label": "Menu item",
+          "info": "Enter the name of the link you want this to be attached to."
+        },
+        {
+          "type": "select",
+          "id": "layout",
+          "default": "sidebar",
+          "label": "Layout",
+          "options": [
+            {
+              "label": "Column",
+              "value": "column"
+            },
+            {
+              "label": "Sidebar",
+              "value": "sidebar"
+            }
+          ]
+        },
+        {
+          "type": "select",
+          "id": "size",
+          "default": "comfortable",
+          "label": "Size",
+          "info": "Choose compact if you have lots of links",
+          "options": [
+            {
+              "label": "Compact",
+              "value": "compact"
+            },
+            {
+              "label": "Comfortable",
+              "value": "comfortable"
+            }
+          ]
+        },
+        {
+          "type": "header",
+          "content": "Parent links"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_parent_image",
+          "label": "Show collection images"
+        },
+        {
+          "type": "checkbox",
+          "id": "use_first_product_image_parent",
+          "label": "Use first product image"
+        },
+        {
+          "type": "select",
+          "id": "parent_aspect_ratio",
+          "default": "landscape",
+          "label": "Image aspect ratio",
+          "options": [
+            {
+              "label": "Auto",
+              "value": "auto"
+            },
+            {
+              "label": "Landscape",
+              "value": "landscape"
+            },
+            {
+              "label": "Square",
+              "value": "square"
+            },
+            {
+              "label": "Circle",
+              "value": "circle"
+            },
+            {
+              "label": "Portrait",
+              "value": "portrait"
+            }
+          ]
+        },
+        {
+          "type": "header",
+          "content": "Child links"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_child_image",
+          "label": "Show collection images"
+        },
+        {
+          "type": "checkbox",
+          "id": "use_first_product_image_child",
+          "label": "Use first product image"
+        },
+        {
+          "type": "select",
+          "id": "child_aspect_ratio",
+          "default": "landscape",
+          "label": "Aspect ratio",
+          "options": [
+            {
+              "label": "Auto",
+              "value": "auto"
+            },
+            {
+              "label": "Landscape",
+              "value": "landscape"
+            },
+            {
+              "label": "Square",
+              "value": "square"
+            },
+            {
+              "label": "Circle",
+              "value": "circle"
+            },
+            {
+              "label": "Portrait",
+              "value": "portrait"
+            }
+          ]
+        },
+        {
+          "type": "header",
+          "content": "Promotions"
+        },
+        {
+          "type": "select",
+          "id": "promotions_type",
+          "default": "comfortable",
+          "label": "Promotion type",
+          "options": [
+            {
+              "label": "Comfortable",
+              "value": "comfortable"
+            },
+            {
+              "label": "Compact",
+              "value": "compact"
+            }
+          ]
+        },
+        {
+          "type": "header",
+          "content": "Auto promotions"
+        },
+        {
+          "type": "checkbox",
+          "id": "enable_auto_promotions",
+          "label": "Enable auto promotions"
+        },
+        {
+          "type": "text",
+          "id": "auto_promotions_title_override",
+          "label": "Title override (optional)",
+          "info": "separate with ';' i.e apples;oranges;;;lemons to change 1st, 2nd and 5th."
+        },
+        {
+          "type": "select",
+          "id": "auto_promotions_position",
+          "default": "bottom",
+          "label": "Position",
+          "info": "If the layout is 'column', prefer top or bottom.",
+          "options": [
+            {
+              "label": "Top",
+              "value": "top"
+            },
+            {
+              "label": "Right",
+              "value": "right"
+            },
+            {
+              "label": "Bottom",
+              "value": "bottom"
+            }
+          ]
+        },
+        {
+          "type": "color",
+          "id": "auto_promotions_text_color",
+          "label": "Text color",
+          "default": "#000000"
+        },
+        {
+          "type": "color",
+          "id": "auto_promotions_bg_color",
+          "label": "Background color",
+          "default": "#eeeeee"
+        },
+        {
+          "type": "header",
+          "content": "Custom promotions"
+        },
+        {
+          "type": "range",
+          "id": "custom_promotion_minimum_height",
+          "label": "Minimum height",
+          "min": 50,
+          "max": 200,
+          "step": 2,
+          "default": 150,
+          "unit": "px"
+        },
+        {
+          "type": "color",
+          "id": "custom_promotion_text_color",
+          "label": "Text color",
+          "default": "#000000"
+        },
+        {
+          "type": "color",
+          "id": "custom_promotion_overlay_color",
+          "label": "Overlay color"
+        },
+        {
+          "type": "range",
+          "id": "custom_promotion_overlay_opacity",
+          "label": "Overlay opacity",
+          "default": 50,
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "unit": "%"
+        },
+        {
+          "type": "select",
+          "id": "custom_promotion_position",
+          "default": "bottom",
+          "label": "Position",
+          "options": [
+            {
+              "label": "Top",
+              "value": "top"
+            },
+            {
+              "label": "Bottom",
+              "value": "bottom"
+            }
+          ]
+        },
+        {
+          "type": "header",
+          "content": "Custom promotion 1"
+        },
+        {
+          "type": "image_picker",
+          "id": "promotion_1_image",
+          "label": "Image"
+        },
+        {
+          "type": "video",
+          "id": "promotion_1_video",
+          "label": "Video"
+        },
+        {
+          "type": "url",
+          "id": "promotion_1_url",
+          "label": "Link URL"
+        },
+        {
+          "type": "richtext",
+          "id": "promotion_1_text",
+          "label": "Text"
+        },
+        {
+          "type": "range",
+          "id": "promotion_1_text_size",
+          "label": "Text size",
+          "min": 14,
+          "max": 32,
+          "step": 2,
+          "default": 16,
+          "unit": "px"
+        },
+        {
+          "type": "range",
+          "id": "promotion_1_text_width",
+          "label": "Text width",
+          "min": 48,
+          "max": 256,
+          "step": 8,
+          "default": 128,
+          "unit": "px"
+        },
+        {
+          "type": "select",
+          "id": "promotion_1_text_alignment",
+          "default": "middle-right",
+          "label": "Text alignment",
+          "options": [
+            {
+              "label": "Top left",
+              "value": "top-left"
+            },
+            {
+              "label": "Top center",
+              "value": "top-center"
+            },
+            {
+              "label": "Top right",
+              "value": "top-right"
+            },
+            {
+              "label": "Middle left",
+              "value": "middle-left"
+            },
+            {
+              "label": "Middle center",
+              "value": "middle-center"
+            },
+            {
+              "label": "Middle right",
+              "value": "middle-right"
+            },
+            {
+              "label": "Bottom left",
+              "value": "bottom-left"
+            },
+            {
+              "label": "Bottom center",
+              "value": "bottom-center"
+            },
+            {
+              "label": "Bottom right",
+              "value": "bottom-right"
+            }
+          ]
+        },
+        {
+          "type": "header",
+          "content": "Custom promotion 2"
+        },
+        {
+          "type": "image_picker",
+          "id": "promotion_2_image",
+          "label": "Image"
+        },
+        {
+          "type": "video",
+          "id": "promotion_2_video",
+          "label": "Video"
+        },
+        {
+          "type": "url",
+          "id": "promotion_2_url",
+          "label": "Link URL"
+        },
+        {
+          "type": "richtext",
+          "id": "promotion_2_text",
+          "label": "Text"
+        },
+        {
+          "type": "range",
+          "id": "promotion_2_text_size",
+          "label": "Text size",
+          "min": 14,
+          "max": 32,
+          "step": 2,
+          "default": 16,
+          "unit": "px"
+        },
+        {
+          "type": "range",
+          "id": "promotion_2_text_width",
+          "label": "Text width",
+          "min": 48,
+          "max": 256,
+          "step": 8,
+          "default": 128,
+          "unit": "px"
+        },
+        {
+          "type": "select",
+          "id": "promotion_2_text_alignment",
+          "default": "middle-right",
+          "label": "Text alignment",
+          "options": [
+            {
+              "label": "Top left",
+              "value": "top-left"
+            },
+            {
+              "label": "Top center",
+              "value": "top-center"
+            },
+            {
+              "label": "Top right",
+              "value": "top-right"
+            },
+            {
+              "label": "Middle left",
+              "value": "middle-left"
+            },
+            {
+              "label": "Middle center",
+              "value": "middle-center"
+            },
+            {
+              "label": "Middle right",
+              "value": "middle-right"
+            },
+            {
+              "label": "Bottom left",
+              "value": "bottom-left"
+            },
+            {
+              "label": "Bottom center",
+              "value": "bottom-center"
+            },
+            {
+              "label": "Bottom right",
+              "value": "bottom-right"
+            }
+          ]
+        },
+        {
+          "type": "header",
+          "content": "Badge #1"
+        },
+        {
+          "type": "color",
+          "id": "badge_1_color",
+          "label": "Color"
+        },
+        {
+          "type": "url",
+          "id": "badge_1_url",
+          "label": "Link"
+        },
+        {
+          "type": "text",
+          "id": "badge_1_text",
+          "label": "Text"
+        },
+        {
+          "type": "header",
+          "content": "Badge #2"
+        },
+        {
+          "type": "color",
+          "id": "badge_2_color",
+          "label": "Color"
+        },
+        {
+          "type": "url",
+          "id": "badge_2_url",
+          "label": "Link"
+        },
+        {
+          "type": "text",
+          "id": "badge_2_text",
+          "label": "Text"
+        },
+        {
+          "type": "header",
+          "content": "Badge #3"
+        },
+        {
+          "type": "color",
+          "id": "badge_3_color",
+          "label": "Color"
+        },
+        {
+          "type": "url",
+          "id": "badge_3_url",
+          "label": "Link"
+        },
+        {
+          "type": "text",
+          "id": "badge_3_text",
+          "label": "Text"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

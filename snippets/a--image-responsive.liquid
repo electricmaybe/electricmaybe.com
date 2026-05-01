@@ -1,0 +1,382 @@
+{%- doc -%}
+  Renders images in an optimized way. If no image is sent, placeholder svg is displayed.
+
+  @param {object} [image_mobile] - Mobile image source; fallback for tablet/desktop when not provided.
+  @param {object} [image_tablet] - Tablet image source.
+  @param {object} [image_desktop] - Desktop image source.
+  @param {object} [image] - Single image source used as mobile baseline.
+  @param {boolean} [retina_mobile] - Whether to include 2x/3x srcset for mobile and tablet.
+  @param {boolean} [retina_desktop] - Whether to include 2x srcset for desktop.
+  @param {boolean} [three_x_retina_mobile] - Whether to include 3x srcset for mobile/tablet.
+  @param {number} [sm_cols] - Mobile column span for width calculation.
+  @param {number} [md_cols] - Tablet column span for width calculation.
+  @param {number} [lg_cols] - Desktop column span for width calculation.
+  @param {number} [sm_height] - Explicit mobile image height.
+  @param {number} [md_height] - Explicit tablet image height.
+  @param {number} [lg_height] - Explicit desktop image height.
+  @param {string} [alt] - Alt text override.
+  @param {boolean} [lazyload] - Whether to lazy load the image.
+  @param {string} [fetchpriority] - Fetch priority value ('high', 'low', or 'auto').
+  @param {string} [mask] - Optional mask modifier class suffix.
+  @param {string} [object_fit] - Object-fit utility class, e.g. 'object-cover'.
+  @param {number} [aspect_ratio] - Aspect ratio override used for all breakpoints.
+  @param {string} [crop] - Crop mode for Shopify image_url.
+  @param {string} [wrapper_properties] - Additional attributes for the picture element.
+  @param {string} [wrapper_style] - Inline style additions for the picture element.
+  @param {string} [picture_class] - Additional classes for the picture wrapper.
+  @param {string} [image_class] - Additional classes for source img element.
+  @param {string} [placeholder_picture_class] - Extra classes when placeholder wrapper is rendered.
+  @param {string} [placeholder_class] - Extra classes for placeholder SVG output.
+  @param {string} [placeholder] - Placeholder SVG key, defaults to 'image'.
+  @param {object} [section] - Section object used for defaults and loading strategy checks.
+  @param {object} [block] - Block object used for settings and Shopify attributes.
+  @param {string} [mdSizes] - Sizes attribute value for tablet source.
+  @param {string} [lgSizes] - Sizes attribute value for desktop source.
+  @param {boolean} [preload] - Whether to append a preload link on first section render.
+
+  @example
+  {% render 'a--image'
+      image_mobile: section.settings.image_mobile
+      image_tablet: section.settings.image_tablet
+      image_desktop: section.settings.image_desktop
+      sm_cols: 4
+      md_cols: 6
+      lg_cols: 4
+  %}
+{%- enddoc -%}
+
+{%- liquid
+  assign s = section.settings
+  if block
+    assign s = block.settings
+  endif
+
+  assign crop = crop | default: 'center'
+
+  if image
+    assign image_mobile = image
+  else
+    assign image_mobile = image_mobile | default: s.image_mobile
+    if s.image_tablet == blank and image_tablet == blank
+      assign image_tablet = image_mobile
+    else
+      assign image_tablet = image_tablet | default: s.image_tablet
+    endif
+    if s.image_desktop == blank and image_desktop == blank
+      assign image_desktop = image_tablet
+    else
+      assign image_desktop = image_desktop | default: s.image_desktop
+    endif
+  endif
+
+  if aspect_ratio and aspect_ratio != 'adapt'
+    assign aspect_ratio_mobile = aspect_ratio | times: 1
+    assign object_fit = object_fit | default: 'object-cover'
+    assign aspect_ratio_desktop = aspect_ratio_mobile
+    assign aspect_ratio_tablet = aspect_ratio_mobile
+  else
+    assign aspect_ratio_mobile = image_mobile.aspect_ratio | default: image_mobile.value.aspect_ratio
+    assign aspect_ratio_tablet = image_tablet.aspect_ratio | default: image_tablet.value.aspect_ratio
+    assign aspect_ratio_desktop = image_desktop.aspect_ratio | default: image_desktop.value.aspect_ratio
+  endif
+  assign image_class = image_class | append: ' ' | append: object_fit
+  if aspect_ratio_mobile == nil
+    assign aspect_ratio_mobile = 1.77
+    assign aspect_ratio_tablet = 1.77
+    assign aspect_ratio_desktop = 1.77
+  endif
+
+  if sm_height != blank
+    assign md_height = md_height | default: sm_height
+    assign lg_height = lg_height | default: sm_height
+    if sm_cols == blank
+      assign sm_width = sm_height | times: aspect_ratio_mobile
+    else
+      assign sm_width = sm_cols | times: 105
+    endif
+    if md_cols == blank
+      assign md_width = md_height | times: aspect_ratio_tablet
+    else
+      assign md_width = md_cols | times: 120
+    endif
+    if lg_cols == blank
+      assign lg_width = lg_height | times: aspect_ratio_desktop
+    else
+      assign lg_width = lg_cols | times: 120
+    endif
+  else
+    assign sm_cols = sm_cols | default: 4
+    assign md_cols = md_cols | default: 6
+    assign lg_cols = lg_cols | default: 12
+    assign sm_width = sm_cols | times: 105
+    assign md_width = md_cols | times: 120
+    assign lg_width = lg_cols | times: 120
+    assign sm_height = sm_width | divided_by: aspect_ratio_mobile
+    assign md_height = md_width | divided_by: aspect_ratio_tablet
+    assign lg_height = lg_width | divided_by: aspect_ratio_desktop
+  endif
+
+  unless image_tablet
+    if md_width
+      assign diff = md_width | minus: sm_width | abs
+      if diff > 50
+        assign image_tablet = image_mobile
+      endif
+    endif
+  endunless
+
+  if image_tablet and aspect_ratio == nil
+    assign aspect_ratio_tablet = image_tablet.aspect_ratio | default: image_tablet.value.aspect_ratio
+  endif
+
+  unless image_desktop
+    if lg_width
+      assign diff = lg_width | minus: sm_width | abs
+      if diff > 50
+        if image_tablet
+          assign image_desktop = image_tablet
+        else
+          assign image_desktop = image_mobile
+        endif
+      endif
+    endif
+  endunless
+
+  if image_desktop and aspect_ratio == nil
+    assign aspect_ratio_desktop = image_desktop.aspect_ratio | default: image_desktop.value.aspect_ratio
+  endif
+
+  assign default_lazyload = false
+  if section and section.index > 2
+    assign default_lazyload = true
+  endif
+  assign lazyload = lazyload | default: default_lazyload, allow_false: true
+
+  unless fetchpriority
+    if lazyload
+      assign fetchpriority = 'auto'
+    else
+      assign fetchpriority = 'high'
+    endif
+  endunless
+
+  # define default retina settings
+  assign retina_mobile = retina_mobile | default: true, allow_false: true
+  assign three_x_retina_mobile = three_x_retina_mobile | default: true, allow_false: true
+  assign retina_desktop = retina_desktop | default: true, allow_false: true
+  # for lcp
+  unless lazyload
+    assign retina_desktop = false
+  endunless
+
+  assign sm_retina_width = sm_width | times: 2
+  assign md_retina_width = md_width | times: 2
+  assign lg_retina_width = lg_width | times: 2
+  assign sm_retina_height = sm_height | times: 2
+  assign md_retina_height = md_height | times: 2
+  assign lg_retina_height = lg_height | times: 2
+
+  if three_x_retina_mobile
+    assign sm_three_x_retina_width = sm_width | times: 3
+    assign md_three_x_retina_width = md_width | times: 3
+    assign sm_three_x_retina_height = sm_height | times: 3
+    assign md_three_x_retina_height = md_height | times: 3
+  endif
+
+  assign wrapper_style = '--aspect-ratio: ' | append: aspect_ratio_mobile | append: ';--aspect-ratio-md: ' | append: aspect_ratio_tablet | append: ';--aspect-ratio-lg: ' | append: aspect_ratio_desktop | append: ';' | append: wrapper_style
+
+  if image_mobile == blank and image_tablet == blank and image_desktop == blank
+    assign picture_class = picture_class | append: ' ' | append: placeholder_picture_class | append: ' relative'
+  endif
+
+  if object_fit == 'object-cover' and aspect_ratio == blank
+    assign picture_class = picture_class | append: ' h-full w-full'
+    assign image_class = image_class | append: ' h-full w-full'
+  endif
+
+  assign image_class = image_class | append: ' grow block'
+
+  # define alttext fallbacks
+  assign alt = alt | default: image_mobile.alt
+
+  # final check for crop sizes
+  if object_fit != 'object-contain'
+    if sm_width > image_mobile.width
+      assign sm_width = image_mobile.width
+      assign sm_retina_width = image_mobile.width
+      assign sm_three_x_retina_width = image_mobile.width
+    elsif sm_retina_width > image_mobile.width
+      assign sm_retina_width = image_mobile.width
+      assign sm_three_x_retina_width = image_mobile.width
+    elsif sm_three_x_retina_width > image_mobile.width
+      assign sm_three_x_retina_width = image_mobile.width
+    endif
+    if md_width > image_tablet.width
+      assign md_width = image_tablet.width
+      assign md_retina_width = image_tablet.width
+      assign md_three_x_retina_width = image_tablet.width
+    elsif md_retina_width > image_tablet.width
+      assign md_retina_width = image_tablet.width
+      assign md_three_x_retina_width = image_tablet.width
+    elsif md_three_x_retina_width > image_tablet.width
+      assign md_three_x_retina_width = image_tablet.width
+    endif
+    if lg_width > image_desktop.width
+      assign lg_width = image_desktop.width
+      assign lg_retina_width = image_desktop.width
+    elsif lg_retina_width > image_desktop.width
+      assign lg_retina_width = image_desktop.width
+    endif
+    if sm_height > image_mobile.height
+      assign sm_height = image_mobile.height
+      assign sm_retina_height = image_mobile.height
+      assign sm_three_x_retina_height = image_mobile.height
+    elsif sm_retina_height > image_mobile.height
+      assign sm_retina_height = image_mobile.height
+      assign sm_three_x_retina_height = image_mobile.height
+    elsif sm_three_x_retina_height > image_mobile.height
+      assign sm_three_x_retina_height = image_mobile.height
+    endif
+    if md_height > image_tablet.height
+      assign md_height = image_tablet.height
+      assign md_retina_height = image_tablet.height
+      assign md_three_x_retina_height = image_tablet.height
+    elsif md_retina_height > image_tablet.height
+      assign md_retina_height = image_tablet.height
+      assign md_three_x_retina_height = image_tablet.height
+    elsif md_three_x_retina_height > image_tablet.height
+      assign md_three_x_retina_height = image_tablet.height
+    endif
+    if lg_height > image_desktop.height
+      assign lg_height = image_desktop.height
+      assign lg_retina_height = image_desktop.height
+    elsif lg_retina_height > image_desktop.height
+      assign lg_retina_height = image_desktop.height
+    endif
+  endif
+
+  if lazyload
+    assign lazyload_height = 20 | divided_by: aspect_ratio_mobile
+  endif
+
+  if image_mobile != blank
+    if object_fit == 'object-contain'
+      if lazyload
+        assign img_src = image_mobile | image_url: width: 20
+      else
+        assign img_src = image_mobile | image_url: width: sm_width
+      endif
+    else
+      if lazyload
+        assign img_src = image_mobile | image_url: width: 20, height: lazyload_height, crop: crop
+      else
+        assign img_src = image_mobile | image_url: width: sm_width, height: sm_height, crop: crop
+      endif
+    endif
+  endif
+-%}
+
+<picture class="{{ picture_class }} {% if mask %}mask mask--{{ mask }}{% endif %}"{% if block %} {{ block.shopify_attributes }}{% endif %} {{ wrapper_properties }} {% if wrapper_style %}style="{{ wrapper_style }}"{% endif %}>
+  {% if image_desktop %}
+    <source
+      media="(min-width: 960px)"
+      width="{{ lg_width | round }}"
+      height="{{ lg_height | round }}"
+  {% if lazyload %}data-{% endif %}srcset="
+    {% if object_fit == 'object-contain' %}
+      {% if lazyload %}
+        {{ image_desktop | image_url: width: 20 }},
+      {% endif %}
+      {{ image_desktop | image_url: width: lg_width }}{% if retina_desktop %}, 
+      {{ image_desktop | image_url: width: lg_retina_width }} 2x{% endif %}
+    {% else %}
+      {% if lazyload %}
+        {{ image_desktop | image_url: width: 20, height: lazyload_height, crop: crop }},
+      {% endif %}
+      {{ image_desktop | image_url: width: lg_width, height: lg_height, crop: crop }}{% if retina_desktop %}, 
+      {{ image_desktop | image_url: width: lg_retina_width, height: lg_retina_height, crop: crop }} 2x{% endif %}
+    {% endif %}"
+      sizes="{{ lgSizes }}">
+ {% endif %}
+
+  {% if image_tablet %}
+    <source
+      media="(min-width: 768px)"
+      width="{{ md_width | round }}"
+      height="{{ md_height | round }}"
+      {% if lazyload %}data-{% endif %}srcset="
+      {% if object_fit == 'object-contain' %}
+        {% if lazyload %}
+         {{ image_tablet | image_url: width: 20 }},
+        {% endif %}
+        {{ image_tablet | image_url: width: md_width }}{% if retina_mobile %}, 
+        {{ image_tablet | image_url: width: md_retina_width }} 2x{% endif %}
+      {% else %}
+        {% if lazyload %}
+          {{ image_tablet | image_url: width: 20, height: lazyload_height, crop: crop }},
+        {% endif %}
+        {{ image_tablet | image_url: width: md_width, height: md_height, crop: crop }}{% if retina_mobile %},
+        {{ image_tablet | image_url: width: md_retina_width, height: md_retina_height, crop: crop }} 2x{% endif %}
+      {% endif %}"
+      sizes="{{ mdSizes }}">
+  {% endif %}
+
+{% if image_mobile != blank or image_tablet != blank or image_desktop != blank %}
+  <img
+    src="{{ img_src }}"
+    {% comment %} onload="this.classList.remove('opacity-50', 'blur-sm')" {% endcomment %}
+
+    {% if lazyload %}data-{% endif %}srcset="
+    {% if object_fit == 'object-contain' %}
+      {{ image_mobile | image_url: width: sm_width }}{% if retina_mobile %}, 
+      {{ image_mobile | image_url: width: sm_retina_width }} 2x{% endif %}{% if three_x_retina_mobile %}, 
+      {{ image_mobile | image_url: width: sm_three_x_retina_width }} 3x{% endif %} 
+    {% else %}
+      {{ image_mobile | image_url: width: sm_width, height: sm_height, crop: crop }}{% if retina_mobile %}, 
+      {{ image_mobile | image_url: width: sm_retina_width, height: sm_retina_height, crop: crop }} 2x{% endif %}{% if three_x_retina_mobile %}, 
+      {{ image_mobile | image_url: width: sm_three_x_retina_width, height: sm_three_x_retina_height, crop: crop }} 3x{% endif %}
+    {% endif %}"
+    alt="{{ alt }}"
+    fetchpriority="{{ fetchpriority }}"
+    {% if fetchpriority == 'high' %}
+      loading="eager"
+      decoding="async"
+    {% endif %}
+    width="{{ sm_width | round }}"
+    height="{{ sm_height | round }}"
+    class="{{ image_class }} aspect-(--aspect-ratio) md:aspect-(--aspect-ratio-md) lg:aspect-(--aspect-ratio-lg) {% if lazyload and false %}lazyload{% endif %}">
+{% else %}
+  {%- liquid
+      assign placeholder_class = placeholder_class | append: '  ' | append: image_class
+      unless placeholder_class contains ' h-'
+        assign placeholder_class = placeholder_class | append: ' h-[var(--logo-height)] aspect-(--aspect-ratio) md:aspect-(--aspect-ratio-md) lg:aspect-(--aspect-ratio-lg)'
+      endunless
+      assign placeholder = placeholder | default: 'image'
+      echo placeholder | placeholder_svg_tag: placeholder_class
+  -%}
+{% endif %}
+</picture>
+{% if section.index == 1 and preload == true %}
+  <script>
+    // Preload critical images
+      const preloadLink = document.createElement('link');
+      preloadLink.rel = 'preload';
+      preloadLink.as = 'image';
+      const mobile = '{{ image_mobile | image_url: width: sm_retina_width, height: sm_retina_height, crop: crop }}';
+      const tablet = '{{ image_tablet | image_url: width: md_retina_width, height: md_retina_height, crop: crop }}';
+      const desktop = '{{ image_desktop | image_url: width: lg_width, height: lg_height, crop: crop }}';
+
+      {% comment %} const breakpoints = ['sm', 'md', 'lg', 'xl', 'wide']; {% endcomment %}
+      const breakpoint = getCurrentBreakpoint();
+      if (breakpoint === 'xs' || breakpoint === 'sm') {  
+        preloadLink.href = mobile;
+      } else if (breakpoint === 'md') {
+        preloadLink.href = tablet;
+      } else if (breakpoint === 'lg' || breakpoint === 'xl' || breakpoint === 'wide') {
+        preloadLink.href = desktop;
+      } else {
+        preloadLink.href = desktop;
+      }
+      document.head.appendChild(preloadLink);
+  </script>
+{% endif %}

@@ -1,0 +1,127 @@
+<nav
+  class="text-ui-small py-4 truncate flex flex-row items-center gap-1 {% unless inline %}container my-2 md:my-2{% endunless %} {{ class }}"
+  role="navigation"
+  aria-label="breadcrumbs"
+>
+{%- liquid
+    assign class_url = 'hover:underline opacity-30'
+    if inline
+      assign class_url = 'hover:underline transition truncate opacity-30'
+    endif
+    capture divider
+    echo '<span>/</span>'
+    endcapture
+    echo 'general.breadcrumbs.home' | t | link_to: routes.root_url, class: class_url
+    case request.page_type
+      when 'product'
+        assign collection = collection | default: product.metafields.custom.full_collection.value | default: collections.all
+                    echo '<script>window.theme.productParentCollection = "' | append: collection.handle | append: '";</script>'
+        if settings.show_breadcrumbs_collection_link
+          assign parent = null
+          assign found_collection = null
+          
+          # First check if collection is a top-level menu item
+          assign found_collection = settings.breadcrumbs_menu.links | where: 'title', collection.title | first
+          if found_collection
+            assign parent = null
+          else
+            # Search through menu structure to find collection and its parent
+            for link in settings.breadcrumbs_menu.links
+              assign found_collection = link.links | where: 'title', collection.title | first
+              if found_collection
+                assign parent = link
+                break
+              endif
+              for child_link in link.links
+                assign found_collection = child_link.links | where: 'title', collection.title | first
+                if found_collection
+                  assign parent = child_link
+                  break
+                endif
+              endfor
+              if found_collection
+                break
+              endif
+            endfor
+          endif
+          if parent
+            echo divider
+            echo parent.title | link_to: parent.url, class: class_url
+          endif
+          comment
+          echo divider
+          echo 'general.search.collections' | t | link_to: routes.collections_url, class: class_url
+          endcomment
+          echo divider
+          echo collection.title | link_to: collection.url, class: class_url
+        endif
+        echo divider
+        echo product_title | link_to: '', class: 'truncate'
+      when 'collection'
+        assign parent = settings.breadcrumbs_menu.links | where: 'child_current' | first
+        if parent
+          assign child = parent.links | where: 'child_current' | first
+          if child
+            echo divider
+            echo child.title | link_to: child.url, class: class_url
+          endif
+        endif
+
+        if current_tags
+          assign collectionUrl = routes.collections_url | append: '/' | append: collection.handle
+          echo divider
+          echo collection.title | link_to: collectionUrl, class: class_url
+          echo divider
+          for tag in current_tags
+            if tag contains '_'
+              assign tag_starts_with = tag | slice: 0
+              if tag_starts_with == '_'
+                if tag_count
+                  assign tag_count = tag_count | minus: 1 | at_least: 0
+                endif
+                continue
+              endif
+            endif
+            assign tag_name = tag | strip
+            assign tag_text = tag_name | capitalize
+            echo tag_text
+            unless forloop.last
+            echo '+'
+            endunless
+          endfor
+        else
+          echo divider
+          echo collection.title
+        endif
+      when 'blog'
+        echo divider
+        if current_tags
+          echo blog.title | link_to: blog.url, class: class_url
+          echo divider
+          echo current_tags | join: ' + '
+        else
+          echo blog.title
+        endif
+      when 'article'
+        echo divider
+        echo blog.title | link_to: blog.url, class: class_url
+        if current_tags
+          echo divider
+          assign current_tags_url_piece = current_tags | join: '+'
+          assign tag_url = blog.url | append: '/' | append: current_tags_url_piece
+          echo current_tags | join: ' + ' | link_to: tag_url, class: class_url
+        endif
+        echo divider
+        echo article.title
+      when 'page'
+        echo divider
+        echo page.title
+      when 'search'
+        echo divider
+        echo page_title | replace: '*', ''
+      else
+        echo divider
+        echo page_title
+    endcase
+-%}
+</nav>

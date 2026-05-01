@@ -1,0 +1,81 @@
+<div class="lg:py-s-xs lg:px-s-outer {% if section.blocks.size > 1 %}grid md:grid-cols-2{% endif %} gap-x-b-base gap-y-b-xs text-on-accent">
+  {%- liquid
+    assign overlay_content_template = '<div class="absolute bottom-0 left-0 right-0 py-b-base px-s-inner space-y-2 bg-gradient-contrast"><h2>[heading]</h2><p class="max-w-md text-on-accent-sec">[body_text]</p></div>'
+    assign base_class = 'w-full h-full object-cover'
+    
+    for block in section.blocks
+      assign item_class = base_class
+
+      if section.blocks.size >= 3
+        assign aspect_ratio = 2
+        if forloop.index == 2
+          assign item_class = item_class | append: ' md:row-start-2'
+        elsif forloop.index == 3
+          assign item_class = item_class | append: ' md:row-span-2 md:col-start-2'
+          assign aspect_ratio = 'adapt'
+        endif
+        assign cols = 6
+      elsif section.blocks.size == 2
+        assign aspect_ratio = 1
+        assign cols = 6
+      else
+        assign aspect_ratio = 'adapt'
+        assign cols = 12
+      endif
+
+      if block.type == 'image'
+        assign overlay_content = overlay_content_template | replace: '[body_text]', block.settings.body_text | replace: '[heading]', block.settings.heading 
+        
+        render 'a--image', image: block.settings.image, picture_class: item_class, cols: cols, aspect_ratio: aspect_ratio, image_class: 'w-full h-full aspect-square md:aspect-auto object-cover', overlay_content: overlay_content
+      else
+        render 'a--video', video: block.settings.video, picture_class: item_class, autoplay: true, aspect_ratio: aspect_ratio
+      endif
+    endfor
+  -%}
+</div>
+
+{% schema %}
+{
+  "name": "Media Grid",
+  "tag": "section",
+  "blocks": [
+    {
+      "type": "image",
+      "name": "Image",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading"
+        },
+        {
+          "type": "richtext",
+          "id": "body_text",
+          "label": "Body text"
+        }
+      ]
+    },
+    {
+      "type": "video",
+      "name": "Video",
+      "settings": [
+        {
+          "type": "video",
+          "id": "video",
+          "label": "Video"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Media Grid"
+    }
+  ]
+}
+{% endschema %}

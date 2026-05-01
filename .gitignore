@@ -1,4 +1,10 @@
+# climaybe: theme dev kit (managed)
+.vscode
+node_modules/
 .DS_Store
-node_modules
-.env
-.log 
+**/.DS_Store
+assets/style.css
+assets/index.js
+.shopify
+.vercel
+testemail

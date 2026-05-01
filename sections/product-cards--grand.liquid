@@ -1,0 +1,16 @@
+{%- liquid
+  if search
+    assign products = search.results | where: 'object_type', 'product'
+  else
+    assign products = collection.products
+  endif
+  # 10 is the max limit for id+OR+id+OR... queries
+  if search
+    assign limit = 10
+  else
+    assign limit = 24
+  endif
+  for product in products limit: limit
+    render 'm--product-card', card_product: product, forloop_index: forloop.index, sm_cols: 2, md_cols: 2, lg_cols: 3
+  endfor
+-%}

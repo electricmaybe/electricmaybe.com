@@ -1,0 +1,442 @@
+{%- capture content -%}
+  <div class="w-full py-s-sm flex flex-col items-center">
+    <div class="w-full max-w-[698px] flex flex-col items-center gap-y-s-base">
+      {%- liquid
+        if section.settings.heading != blank
+          assign heading = section.settings.heading
+        else
+          assign heading = 'customer.help_center.faq' | t
+        endif
+        if section.index == 1
+          assign tag = 'h1'
+        else
+          assign tag = 'h2'
+        endif
+      -%}
+      <{{ tag }} class="h1 text-primary text-center w-full">{{ heading }}</{{ tag }}>
+
+      <div class="w-full flex flex-col gap-y-b-sm items-start">
+        <p class="text-ui-small font-medium text-primary">{{ 'customer.help_center.faq_search_label' | t }}</p>
+
+        <div class="w-full flex items-center justify-between gap-x-b-base">
+          <input
+            id="faq-search"
+            name="faq-search"
+            type="search"
+            class="w-full bg-transparent border-0 p-0 m-0 focus:ring-0 focus:outline-hidden text-primary font-normal h5 placeholder:text-primary"
+            placeholder="{{ 'customer.help_center.faq_search_prompt' | t }}"
+            aria-label="{{ 'customer.help_center.faq_search_aria' | t }}"
+          >
+          <span class="shrink-0" aria-hidden="true">
+            {%- render 'a--icon', icon: 'arrow-right-l', size: '24' -%}
+          </span>
+        </div>
+
+        <div class="w-full border-b border-primary"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lg:max-w-[698px] mx-auto text-ui-base w-full text-left flex flex-col gap-y-b-base px-s-outer lg:px-0">
+    {%- assign last_heading_group = 'default' -%}
+    <div class="w-full">
+      {%- for block in section.blocks -%}
+        {%- case block.type -%}
+          {%- when 'heading' -%}
+            {%- assign last_heading_group = block.id -%}
+            <h2 class="faq-heading {% if forloop.first %}mb-6{% else %}mt-18 mb-6{% endif %}" data-faq-group="{{ last_heading_group }}">
+              {{ block.settings.heading }}
+            </h2>
+
+          {%- when 'faq_list' -%}
+            {%- if block.settings.faq_list != blank -%}
+              {%- for faq in block.settings.faq_list -%}
+                {%- liquid
+                  assign answer = faq.answer | metafield_text
+                  if answer == blank and faq.answer.value
+                    assign answer = faq.answer.value
+                  elsif answer == blank and faq.answer != blank
+                    assign answer = faq.answer
+                  endif
+                -%}
+                <div class="faq-item" data-faq-group="{{ last_heading_group }}">
+                  {%- liquid
+                    render 'm--accordion', heading: faq.question, body: answer, title_size: 'h3 font-normal py-b-lg', title_height: 'min-h-14 lg:min-h-18'
+                  -%}
+                </div>
+              {%- endfor -%}
+            {%- endif -%}
+        {%- endcase -%}
+      {%- endfor -%}
+    </div>
+  </div>
+{%- endcapture -%}
+{%- render 'm--wrapper-v2', content: content, container_class: 'px-s-whole flex flex-col w-full place-self-center text-left' -%}
+
+<script>
+  (function() {
+    const input = document.getElementById('faq-search');
+    if (!input) return;
+    const items = Array.from(document.querySelectorAll('.faq-item'));
+    const headings = Array.from(document.querySelectorAll('.faq-heading'));
+    const controller = new AbortController();
+
+    function normalize(str) {
+      return (str || '').toString().toLowerCase();
+    }
+
+    function filterFaqs() {
+      const q = normalize(input.value);
+      const active = q.length >= 3;
+
+      items.forEach(item => {
+        const text = normalize(item.textContent);
+        const match = !active || text.includes(q);
+        item.classList.toggle('hidden', !match);
+      });
+
+      headings.forEach(h => {
+        const group = h.getAttribute('data-faq-group');
+        if (!active) {
+          h.classList.remove('hidden');
+          return;
+        }
+        const hasVisible = items.some(item => !item.classList.contains('hidden') && item.getAttribute('data-faq-group') === group);
+        h.classList.toggle('hidden', !hasVisible);
+      });
+    }
+
+    let t = 0;
+    function onInput() {
+      window.clearTimeout(t);
+      t = window.setTimeout(filterFaqs, 120);
+    }
+
+    input.addEventListener('input', onInput, { signal: controller.signal });
+    filterFaqs();
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "FAQ Main",
+  "tag": "section",
+  "class": "full-spaced-section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "blocks": [
+    {
+      "type": "heading",
+      "name": "Heading",
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading Text",
+          "default": "Section Heading"
+        }
+      ]
+    },
+    {
+      "type": "faq_list",
+      "name": "FAQ List",
+      "settings": [
+        {
+          "type": "metaobject_list",
+          "id": "faq_list",
+          "label": "FAQ Items",
+          "metaobject_type": "faq_1"
+        }
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "FAQ"
+    },
+    {
+      "type": "header",
+      "content": "Hero Section"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_mobile",
+      "label": "Hero Image (Mobile)"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_tablet",
+      "label": "Hero Image (Tablet)"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_desktop",
+      "label": "Hero Image (Desktop)"
+    },
+    {
+      "type": "select",
+      "id": "height",
+      "label": "Height (Mobile)",
+      "default": "h-sm",
+      "options": [
+        {
+          "label": "Small",
+          "value": "h-sm"
+        },
+        {
+          "label": "Medium",
+          "value": "h-md"
+        },
+        {
+          "label": "Large",
+          "value": "h-lg"
+        },
+        {
+          "label": "Extra Large",
+          "value": "h-xl"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "height_md",
+      "label": "Height (Tablet)",
+      "default": "md:h-128",
+      "options": [
+        {
+          "label": "Small",
+          "value": "md:h-sm"
+        },
+        {
+          "label": "Medium",
+          "value": "md:h-md"
+        },
+        {
+          "label": "Large",
+          "value": "md:h-lg"
+        },
+        {
+          "label": "Extra Large",
+          "value": "md:h-xl"
+        },
+        {
+          "label": "128",
+          "value": "md:h-128"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "height_lg",
+      "label": "Height (Desktop)",
+      "default": "lg:h-[40vw]",
+      "options": [
+        {
+          "label": "Small",
+          "value": "lg:h-sm"
+        },
+        {
+          "label": "Medium",
+          "value": "lg:h-md"
+        },
+        {
+          "label": "Large",
+          "value": "lg:h-lg"
+        },
+        {
+          "label": "Extra Large",
+          "value": "lg:h-xl"
+        },
+        {
+          "label": "30vw",
+          "value": "lg:h-[30vw]"
+        },
+        {
+          "label": "40vw",
+          "value": "lg:h-[40vw]"
+        },
+        {
+          "label": "50vw",
+          "value": "lg:h-[50vw]"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "position_mobile",
+      "label": "Content Position (Mobile)",
+      "default": "items-center justify-center text-center",
+      "options": [
+        {
+          "label": "Center",
+          "value": "items-center justify-center text-center"
+        },
+        {
+          "label": "Top Left",
+          "value": "items-start justify-start text-left"
+        },
+        {
+          "label": "Top Center",
+          "value": "items-start justify-center text-center"
+        },
+        {
+          "label": "Top Right",
+          "value": "items-start justify-end text-right"
+        },
+        {
+          "label": "Bottom Left",
+          "value": "items-end justify-start text-left"
+        },
+        {
+          "label": "Bottom Center",
+          "value": "items-end justify-center text-center"
+        },
+        {
+          "label": "Bottom Right",
+          "value": "items-end justify-end text-right"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "position_tablet",
+      "label": "Content Position (Tablet)",
+      "default": "md:items-center md:justify-center md:text-center",
+      "options": [
+        {
+          "label": "Center",
+          "value": "md:items-center md:justify-center md:text-center"
+        },
+        {
+          "label": "Top Left",
+          "value": "md:items-start md:justify-start md:text-left"
+        },
+        {
+          "label": "Top Center",
+          "value": "md:items-start md:justify-center md:text-center"
+        },
+        {
+          "label": "Top Right",
+          "value": "md:items-start md:justify-end md:text-right"
+        },
+        {
+          "label": "Bottom Left",
+          "value": "md:items-end md:justify-start md:text-left"
+        },
+        {
+          "label": "Bottom Center",
+          "value": "md:items-end md:justify-center md:text-center"
+        },
+        {
+          "label": "Bottom Right",
+          "value": "md:items-end md:justify-end md:text-right"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "position_desktop",
+      "label": "Content Position (Desktop)",
+      "default": "lg:items-center lg:justify-center lg:text-center",
+      "options": [
+        {
+          "label": "Center",
+          "value": "lg:items-center lg:justify-center lg:text-center"
+        },
+        {
+          "label": "Top Left",
+          "value": "lg:items-start lg:justify-start lg:text-left"
+        },
+        {
+          "label": "Top Center",
+          "value": "lg:items-start lg:justify-center lg:text-center"
+        },
+        {
+          "label": "Top Right",
+          "value": "lg:items-start lg:justify-end lg:text-right"
+        },
+        {
+          "label": "Bottom Left",
+          "value": "lg:items-end lg:justify-start lg:text-left"
+        },
+        {
+          "label": "Bottom Center",
+          "value": "lg:items-end lg:justify-center lg:text-center"
+        },
+        {
+          "label": "Bottom Right",
+          "value": "lg:items-end lg:justify-end lg:text-right"
+        }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Overlay Opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "default": 30,
+      "unit": "%"
+    },
+    {
+      "type": "range",
+      "id": "overlay_blur",
+      "label": "Overlay Blur",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "default": 0,
+      "unit": "px"
+    },
+    {
+      "type": "header",
+      "content": "FAQ Settings"
+    },
+    {
+      "type": "checkbox",
+      "id": "shrink_others",
+      "label": "Shrink Others",
+      "default": false
+    }
+  ],
+  "presets": [
+    {
+      "name": "FAQ Main",
+      "blocks": [
+        {
+          "type": "heading",
+          "settings": {
+            "heading": "Products"
+          }
+        },
+        {
+          "type": "faq_list"
+        },
+        {
+          "type": "heading",
+          "settings": {
+            "heading": "Orders"
+          }
+        },
+        {
+          "type": "faq_list"
+        },
+        {
+          "type": "heading",
+          "settings": {
+            "heading": "Payments"
+          }
+        },
+        {
+          "type": "faq_list"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,41 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin language editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "general": {
+    "cart": {
+      "title": "Jouw winkelwagen"
+    }
+  },
+  "sections": {
+    "cart": {
+      "cart": "Winkelwagen",
+      "title": "Jouw winkelwagen",
+      "caption": "Artikelen",
+      "remove_title": "Verwijder {{ title }}",
+      "subtotal": "Subtotaal",
+      "new_subtotal": "Nieuw subtotaal",
+      "total": "Totaal",
+      "shipping_text": "Berekend bij afrekenen",
+      "shipping": "Verzending",
+      "note": "Opmerkingen bij bestelling",
+      "checkout": "Afrekenen",
+      "empty": "Je winkelwagen is leeg",
+      "add_items": "Voeg producten toe om af te rekenen",
+      "cart_error": "Er is een fout opgetreden bij het bijwerken van je winkelwagen. Probeer opnieuw.",
+      "cart_quantity_error_html": "Je kunt maximaal {{ quantity }} van dit product toevoegen",
+      "savings": "Besparing",
+      "store_credit": "Tegoed (indien toegepast)",
+      "store_credit_text_html": "Je hebt <span class=\"text-green\">{{ amount }}</span> tegoed dat je kunt gebruiken bij het afrekenen",
+      "add_a_gift_message": "Cadeaubericht toevoegen",
+      "add_a_gift_message_tooltip": "De ontvanger ontvangt een e-mail met je bericht zodra de bestelling is verzonden. Retourinformatie wordt meegestuurd. Cadeaubonnen worden binnen 2 uur per e-mail verzonden.",
+      "checkout_button_usp_text": "100 dagen retourneren & 3 jaar garantie"
+    }
+  }
+}

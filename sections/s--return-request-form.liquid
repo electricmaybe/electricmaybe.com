@@ -1,0 +1,165 @@
+{%- liquid
+  assign heading = section.settings.heading | default: 'Request a return'
+  assign body = section.settings.body
+-%}
+
+<div class="px-s-whole py-s-base grid grid-cols-1 lg:grid-cols-12 gap-x-b-base w-full md:max-w-7/12 md:mx-auto lg:max-w-none gap-y-s-lg">
+  <h2 class="text-center lg:text-left display-1 lg:col-span-10">
+    {{ heading }}
+  </h2>
+
+  {%- if body != blank -%}
+    <div class="lg:col-span-4 text-ui-base/copy">
+      {{ body }}
+    </div>
+  {%- else -%}
+    <div class="lg:col-span-4 text-ui-base/copy">
+      <p>Please fill out the form and we will email you a return label within 1 working day.</p>
+    </div>
+  {%- endif -%}
+
+  <div class="lg:col-start-7 lg:col-span-6">
+    {% form 'contact' %}
+      {%- comment -%}
+        Keep the user on the same "view" template after submit.
+        This section is intended for /pages/*?view=free-return usage.
+      {%- endcomment -%}
+      <input type="hidden" name="return_to" value="{{ request.path }}?view=free-return&contact_posted=true">
+      <input type="hidden" name="contact[topic]" value="Return request">
+
+      <div class="flex flex-col gap-y-s-xs">
+        <div class="flex flex-col lg:flex-row gap-4">
+          <div class="flex flex-col gap-2 flex-1">
+            {%- assign name_value = form.name | default: customer.name -%}
+            {%- render 'a--input',
+              type: 'text',
+              name: 'contact[name]',
+              id: 'ReturnRequestName',
+              class: 'w-full [border-color:var(--border-secondary)] placeholder:[color:var(--text-secondary)] px-b-base! py-b-sm! h-auto',
+              size: 'large',
+              placeholder: 'Full name',
+              required: true,
+              autocomplete: 'name',
+              value: name_value
+            -%}
+          </div>
+
+          <div class="flex flex-col gap-2 flex-1">
+            {%- assign email_value = form.email | default: customer.email -%}
+            {%- render 'a--input',
+              type: 'email',
+              name: 'contact[email]',
+              id: 'ReturnRequestEmail',
+              class: 'w-full [border-color:var(--border-secondary)] placeholder:[color:var(--text-secondary)] px-b-base! py-b-sm! h-auto',
+              size: 'large',
+              placeholder: 'Email',
+              required: true,
+              autocomplete: 'email',
+              value: email_value
+            -%}
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          {%- render 'a--input',
+            type: 'text',
+            name: 'contact[order_number]',
+            id: 'ReturnRequestOrderNumber',
+            class: 'w-full [border-color:var(--border-secondary)] placeholder:[color:var(--text-secondary)] px-b-base! py-b-sm! h-auto',
+            size: 'large',
+            placeholder: 'Order number (e.g. #12345)',
+            required: true,
+            autocomplete: 'off',
+            value: form.order_number
+          -%}
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <div class="relative">
+            <label class="sr-only" for="ReturnRequestReason">Return reason</label>
+            <select
+              id="ReturnRequestReason"
+              name="contact[return_reason]"
+              required
+              class="w-full h-14 bg-transparent text-ui-base placeholder:text-ui-base border border-secondary p-4 pr-14 appearance-none focus:ring-0 focus:bg-transparent focus:outline-hidden cursor-pointer"
+            >
+              <option value="" selected disabled>Return reason</option>
+              <option value="Wrong item ordered">Wrong item ordered</option>
+              <option value="Does not fit / compatibility">Does not fit / compatibility</option>
+              <option value="Damaged on arrival">Damaged on arrival</option>
+              <option value="Quality issue">Quality issue</option>
+              <option value="Changed my mind">Changed my mind</option>
+              <option value="Other">Other</option>
+            </select>
+            <span class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 overflow-hidden">
+              {%- render 'a--icon', icon: 'chevron-d', width: '1.5rem', height: '1.5rem' -%}
+            </span>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          {%- render 'a--input',
+            textarea: true,
+            type: 'text',
+            name: 'contact[comment]',
+            id: 'ReturnRequestMessage',
+            class: 'w-full min-h-[198px] [border-color:var(--border-secondary)] placeholder:[color:var(--text-secondary)] px-b-base! py-b-sm!',
+            size: 'large',
+            placeholder: 'Additional details (optional)',
+            body: form.body,
+            input_wrapper_class: ' pb-0!'
+          -%}
+        </div>
+
+        {%- render 'a--button',
+          tag: 'button',
+          size: 'lg',
+          label: 'Submit return request',
+          name: 'send',
+          type: 'submit'
+        -%}
+
+        {% if form.posted_successfully? %}
+          <p class="inline-block w-auto p-2 mt-2 text-center rounded-sm shadow bg-accent1 text-accent1_fg note form-success">
+            Thanks! We received your return request and will get back to you shortly.
+          </p>
+        {% endif %}
+        {% if form.errors %}
+          <div class="inline-block w-auto p-2 mt-2 bg-white rounded-sm border-alert text-alert">
+            {{ form.errors | default_errors }}
+          </div>
+        {% endif %}
+      </div>
+    {% endform %}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Return request form",
+  "tag": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "default": "Request a return",
+      "label": "Heading"
+    },
+    {
+      "type": "richtext",
+      "id": "body",
+      "label": "Intro text",
+      "default": "<p>Please fill out the form and we will email you a return label within 1 working day.</p>"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Return request form"
+    }
+  ]
+}
+{% endschema %}
+

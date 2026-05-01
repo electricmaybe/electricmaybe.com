@@ -1,0 +1,102 @@
+{%- liquid
+  assign form_uid = product.id | append: '-' | append: section.id
+  assign name_value = form.name | default: customer.name
+  assign email_value = form.email | default: customer.email
+  assign product_url = shop.url | append: product.url
+  assign store_name = shop.permanent_domain
+  assign name_input_id = 'ProductRequestName-' | append: form_uid
+  assign email_input_id = 'ProductRequestEmail-' | append: form_uid
+  assign name_label = 'templates.contact.form.name' | t
+  assign email_label = 'templates.contact.form.email' | t
+  assign name_placeholder = 'general.placeholders.name' | t
+  assign email_placeholder = 'general.placeholders.email' | t
+  assign submit_label = 'products.product.request_form.submit' | t
+
+  capture request_body
+    echo 'Customer is interested in this product.'
+    echo '\n'
+    echo 'Product: '
+    echo product.title
+    echo '\n'
+    echo 'Product ID: '
+    echo product.id
+    echo '\n'
+    echo 'Product URL: '
+    echo product_url
+    echo '\n'
+    echo 'Store: '
+    echo store_name
+  endcapture
+-%}
+
+{% form 'contact', class: 'flex flex-col gap-y-s-xs' %}
+  <input type="hidden" name="return_to" value="{{ product.url }}?contact_posted=true">
+  <input type="hidden" name="contact[topic]" value="Product request">
+  <input type="hidden" name="contact[product_name]" value="{{ product.title | escape }}">
+  <input type="hidden" name="contact[product_id]" value="{{ product.id }}">
+  <input type="hidden" name="contact[product_url]" value="{{ product_url | escape }}">
+  <input type="hidden" name="contact[store_name]" value="{{ store_name | escape }}">
+  <input type="hidden" name="contact[body]" value="{{ request_body | escape }}">
+
+  <div class="flex flex-col gap-y-2">
+    <p class="text-ui-base font-medium text-primary">
+      {{ 'products.product.request_form.heading' | t }}
+    </p>
+    <p class="text-ui-small text-secondary">
+      {{ 'products.product.request_form.description' | t }}
+    </p>
+  </div>
+
+  <div class="flex flex-col lg:flex-row gap-4">
+    <div class="flex flex-col gap-2 flex-1">
+      {%- render 'a--input',
+        type: 'text',
+        name: 'contact[name]',
+        id: name_input_id,
+        class: 'w-full [border-color:var(--border-secondary)] placeholder:[color:var(--text-secondary)] px-b-base! py-b-sm! h-auto',
+        size: 'large',
+        label: name_label,
+        placeholder: name_placeholder,
+        autocomplete: 'name',
+        required: true,
+        value: name_value
+      -%}
+    </div>
+
+    <div class="flex flex-col gap-2 flex-1">
+      {%- render 'a--input',
+        type: 'email',
+        name: 'contact[email]',
+        id: email_input_id,
+        class: 'w-full [border-color:var(--border-secondary)] placeholder:[color:var(--text-secondary)] px-b-base! py-b-sm! h-auto',
+        size: 'large',
+        label: email_label,
+        placeholder: email_placeholder,
+        autocomplete: 'email',
+        required: true,
+        value: email_value
+      -%}
+    </div>
+  </div>
+
+  {%- render 'a--button',
+    tag: 'button',
+    size: 'lg',
+    label: submit_label,
+    name: 'send',
+    type: 'submit',
+    class: 'w-full'
+  -%}
+
+  {% if form.posted_successfully? %}
+    <p class="inline-block w-auto p-2 mt-2 text-center rounded-sm shadow bg-accent1 text-accent1_fg note form-success">
+      {{ 'products.product.request_form.success' | t }}
+    </p>
+  {% endif %}
+
+  {% if form.errors %}
+    <div class="inline-block w-auto p-2 mt-2 bg-white rounded-sm border-alert text-alert">
+      {{ form.errors | default_errors }}
+    </div>
+  {% endif %}
+{% endform %}

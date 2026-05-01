@@ -1,0 +1,621 @@
+{%- liquid
+  assign products = search.results | where: 'object_type', 'product'
+  assign results_count = search.results_count | default: 0
+  assign has_product_results = false
+  if results_count > 0
+    assign has_product_results = true
+  endif
+
+  if search.terms contains ' AND '
+    assign terms = search.terms | split: ' AND ' | last
+  else
+    assign terms = search.terms
+  endif
+
+  assign class_outer_wrapper = ''
+  assign class_inner_wrapper = 'gap-0! gap-8 px-0!'
+  if search.performed and products.size == 0
+    assign class_outer_wrapper = '_emptyCollection'
+    assign class_inner_wrapper = class_inner_wrapper
+  endif
+-%}
+
+{%- capture content -%}
+  <script src="{{ 'collection-quick-filter.js' | asset_url }}" defer="defer"></script>
+
+  <div class="search-content-header w-full px-s-outer">
+    <div class="w-full px-s-inner py-s-xs flex flex-col items-center gap-y-s-xs text-center">
+      <div class="w-full flex flex-col items-center justify-center gap-y-b-sm leading-[1.2] text-primary">
+        <p
+          class="text-ui-base"
+          data-search-count
+          data-i18n-products-one="{{ 'general.search.products_found_with_count' | t: count: 1 | escape }}"
+          data-i18n-products-other="{{ 'general.search.products_found_with_count' | t: count: 2 | escape }}"
+          data-i18n-cars-one="{{ 'general.search.cars_found_with_count' | t: count: 1 | escape }}"
+          data-i18n-cars-other="{{ 'general.search.cars_found_with_count' | t: count: 2 | escape }}"
+        >
+          {%- liquid
+            if results_count > 0
+              echo 'general.search.products_found_with_count' | t: count: results_count
+            else
+              echo 'general.search.cars_found_with_count' | t: count: 0
+            endif
+          -%}
+        </p>
+        <p class="h4">
+          “{{ terms | escape }}”
+        </p>
+      </div>
+
+      <form
+        action="{{ routes.search_url }}"
+        method="get"
+        role="search"
+        {% if settings.force_native_search %}data-force-native-search="true"{% endif %}
+        class="w-full max-w-[512px] h-16 border-b border-primary flex items-center justify-center gap-x-3"
+      >
+        <label for="Search-Results-Input" class="sr-only">{{ 'general.search.search' | t }}</label>
+        <input
+          id="Search-Results-Input"
+          type="search"
+          name="q"
+          value="{{ terms | escape }}"
+          placeholder="{{ 'general.search.search' | t }}"
+          class="flex-1 h-full bg-transparent focus:outline-none translate-y-px text-primary text-[18px] leading-[1.2] placeholder:opacity-50"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+        >
+        <input type="hidden" name="type" value="product">
+        <a
+          href="{{ routes.search_url }}"
+          class="button-icon bg-transparent! px-0!"
+          aria-label="{{ 'general.search.clear_search' | t }}"
+        >
+          {%- render 'a--icon', icon: 'close', class: 'w-5 h-5 lg:w-6 lg:h-6' -%}
+        </a>
+      </form>
+    </div>
+  </div>
+
+  {%- if search.performed and has_product_results -%}
+    <div data-search-car-models-slider>
+      <div class="hidden w-full" data-car-model-module data-car-model-mode="slider">
+        {%- comment -%}
+          When products + cars are shown together, we hide car filters UI entirely.
+          (Requirement: element containing `data-car-model-filters` must not be visible.)
+        {%- endcomment -%}
+        <div class="w-full px-s-outer pt-s-xs flex flex-col gap-y-s-base">
+          <div class="w-full flex items-center justify-center">
+            <p class="h1 text-primary flex-1">
+              {{ 'general.search.car_models_using' | t: terms: terms | escape }}
+            </p>
+          </div>
+          {%- render 'm--electric-slider',
+            id: 'search-car-models-slider',
+            feed: '',
+            per_row_mobile: 2.1,
+            per_row_tablet: 3,
+            per_row_desktop: 6,
+            gap: 'grid-gutter-base',
+            bar: true,
+            type: 'bottom',
+            slider_class: 'w-full',
+            feed_class: '[&_>_*]:min-w-0',
+            slider_navigation_wrapper_class: 'order-2 px-0! pt-b-base',
+            small: true,
+          -%}
+        </div>
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- if search.performed -%}
+    {%- if products.size == 0 -%}
+      <div class="flex flex-col gap-6">
+        <div class="flex flex-col gap-6 h-full transition-opacity _feed px-s-inner lg:px-s-outer">
+          <div data-search-empty-state class="pt-24 pb-36 hidden">
+            {%- liquid
+              assign empty_heading = 'sections.collection_template.empty' | t
+              assign link = routes.search_url | append: '?q=' | append: terms | append: '&type=product'
+              assign empty_body_text = 'sections.collection_template.use_fewer_filters_html' | t: link: link, class: 'ms-1 font-medium underline'
+              assign button_label = 'sections.collection_template.shop_now' | t
+
+              render 'm--text-and-buttons', heading: empty_heading, body_text: empty_body_text, button_url: routes.all_products_collection_url, button_label: button_label, content_alignment: 'text-center items-center'
+            -%}
+          </div>
+
+          <div data-search-car-models-grid>
+            <div class="hidden w-full" data-car-model-module data-car-model-mode="grid">
+              {%- render 'm--search-car-model-filters', id_base: 'search-car-models-grid' -%}
+              <div
+                id="car-models-grid"
+                class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-2 md:gap-x-4 gap-y-6 mt-s-xs py-b-xs"
+                role="grid"
+                aria-label="{{ 'general.search.car_models_grid_label' | t }}"
+              ></div>
+              <div data-car-pagination class="mt-s-xs"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {%- else -%}
+      {%- if section.settings.show_filters -%}
+        {%- render 'm--filters', results: search, filter_threshold: section.settings.desktop_filters_threshold -%}
+      {%- endif -%}
+
+      <div class="flex flex-col gap-6">
+        <div class="flex flex-col gap-6 h-full transition-opacity _feed px-s-inner lg:px-s-outer">
+          <div data-search-results-container>
+            {%- render 'm--search-results', results: search, limit: section.settings.products_per_page -%}
+          </div>
+        </div>
+      </div>
+    {%- endif -%}
+  {%- endif -%}
+
+  <script>
+    (() => {
+      try {
+        // Some search apps may rewrite form actions to custom pages.
+        // Enforce native search action on submit for the search page input too.
+        const searchUrl = window?.routes?.search_url || '/search';
+        const pageSearchForm = document.querySelector('.search-content-header form[role="search"][data-force-native-search="true"]');
+        if (pageSearchForm) {
+          pageSearchForm.addEventListener('submit', () => {
+            try {
+              pageSearchForm.setAttribute('action', searchUrl);
+            } catch (e) {
+              // ignore
+            }
+          }, true);
+        }
+
+        const sliderTarget = document.querySelector('[data-search-car-models-slider]');
+        const gridTarget = document.querySelector('[data-search-car-models-grid]');
+        const emptyState = document.querySelector('[data-search-empty-state]');
+
+        const hasProductResults = {{ has_product_results | json }};
+        const urlParams = new URLSearchParams(window.location.search);
+        const query = urlParams.get('q') || '';
+        if (!query) return;
+
+        // Some environments/apps end up on `/search?q=...` without explicit `page` and/or `type`.
+        // Normalize to a stable, product-search URL so page 1 always renders consistently.
+        let shouldNormalize = false;
+        if (!urlParams.has('type')) {
+          urlParams.set('type', 'product');
+          shouldNormalize = true;
+        }
+        if (!urlParams.has('page')) {
+          urlParams.set('page', '1');
+          shouldNormalize = true;
+        }
+        if (shouldNormalize) {
+          window.location.replace(`${window.location.pathname}?${urlParams.toString()}`);
+          return;
+        }
+
+        const fetchAndInject = async () => {
+          const target = hasProductResults ? sliderTarget : gridTarget;
+          if (!target) return;
+          const moduleEl = target.querySelector('[data-car-model-module]');
+          const emptyStateEl = emptyState;
+
+          const root = moduleEl || target;
+          const feedEl = hasProductResults
+            ? root.querySelector('.electric-slider__feed')
+            : root.querySelector('#car-models-grid');
+          if (!feedEl) return;
+
+          // Drawer-like source of truth: Shopify Predictive Search collections.
+          // This matches the drawer's `api--search--predictive` behavior and avoids per-handle requests.
+          const predictiveUrl = new URL(window?.routes?.predictive_search_url || '/search/suggest', window.location.origin);
+          predictiveUrl.searchParams.set('q', query);
+          predictiveUrl.searchParams.set('resources[type]', 'collection');
+          predictiveUrl.searchParams.set('section_id', 'api--search--predictive-car-models');
+
+          let cardsHtml = '';
+          try {
+          const res = await fetch(predictiveUrl.toString(), { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            if (!res.ok) return;
+            const html = await res.text();
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const section = doc.querySelector('#shopify-section-api--search--predictive-car-models');
+            cardsHtml = section ? section.innerHTML.trim() : '';
+          } catch (e) {
+            return;
+          }
+
+          const hasCards = Boolean(cardsHtml && cardsHtml.trim().length);
+          
+          if (!hasCards) {
+            if (moduleEl) moduleEl.classList.add('hidden');
+            if (emptyStateEl) emptyStateEl.classList.remove('hidden');
+            // Update count to 0 when no cards found
+            if (!hasProductResults) {
+              const countEl = document.querySelector('[data-search-count]');
+              if (countEl) {
+                const tmpl = countEl.dataset.i18nCarsOther || '';
+                if (tmpl) {
+                  const spaceIdx = tmpl.indexOf(' ');
+                  const suffix = spaceIdx > -1 ? tmpl.slice(spaceIdx) : '';
+                  countEl.textContent = '0' + suffix;
+                }
+              }
+            }
+            return;
+          }
+
+          if (emptyStateEl) emptyStateEl.classList.add('hidden');
+          if (moduleEl) moduleEl.classList.remove('hidden');
+
+          // Cache version: bump this whenever we change markup/logic.
+          const cacheVersion = 'v7';
+          const cacheKey = `car-models:${cacheVersion}:${query.toLowerCase().trim()}:${hasProductResults ? 'slider' : 'grid'}`;
+
+          // Update header count function (defined early so it can be used in cache path)
+          const updateCarCount = () => {
+            if (!hasProductResults) {
+              const countEl = document.querySelector('[data-search-count]');
+              if (!countEl) return;
+              
+              // Search for car model cards in multiple possible locations
+              let cards = [];
+              
+              // Try grid first
+              const gridEl = root.querySelector('#car-models-grid');
+              if (gridEl) {
+                cards = Array.from(gridEl.querySelectorAll('[data-car-model-card]'));
+              }
+              
+              // If no cards in grid, try slider feed
+              if (cards.length === 0) {
+                const sliderFeedEl = root.querySelector('.electric-slider__feed');
+                if (sliderFeedEl) {
+                  cards = Array.from(sliderFeedEl.querySelectorAll('[data-car-model-card]'));
+                }
+              }
+              
+              // If still no cards, search in entire root
+              if (cards.length === 0) {
+                cards = Array.from(root.querySelectorAll('[data-car-model-card]'));
+              }
+              
+              // If still no cards, search entire document (fallback)
+              if (cards.length === 0) {
+                cards = Array.from(document.querySelectorAll('[data-car-model-card]'));
+              }
+              
+              const count = cards.length;
+              const tmpl = count === 1 ? countEl.dataset.i18nCarsOne : countEl.dataset.i18nCarsOther;
+              if (tmpl) {
+                const spaceIdx = tmpl.indexOf(' ');
+                const suffix = spaceIdx > -1 ? tmpl.slice(spaceIdx) : '';
+                countEl.textContent = String(count) + suffix;
+              }
+            }
+          };
+
+          // Fast path: cached HTML for the whole module
+          try {
+            const cached = window.sessionStorage?.getItem(cacheKey);
+            if (cached) {
+              if (cached.includes('<=""')) {
+                window.sessionStorage?.removeItem(cacheKey);
+              } else {
+                root.innerHTML = cached;
+                initCarModelFilters(root);
+                const sliderEl = root.querySelector('electric-slider');
+                if (sliderEl) sliderEl.dispatchEvent(new CustomEvent('rebuy-products-loaded', { bubbles: false }));
+                // Update count after cache load
+                updateCarCount();
+                setTimeout(updateCarCount, 100);
+                setTimeout(updateCarCount, 300);
+                return;
+              }
+            }
+          } catch (e) {
+            // ignore
+          }
+
+          const buildOptionChipsFromMap = (map, key) => {
+            return Array.from(map.entries())
+              .sort((a, b) => String(a[1]).localeCompare(String(b[1])))
+              .map(([value, label]) => {
+                return `
+                  <label class="cursor-pointer">
+                    <input type="checkbox" class="sr-only peer" data-car-filter="${key}" value="${value}">
+                    <span class="inline-flex items-center justify-center h-[35px] px-b-xs rounded-full border border-secondary bg-surface text-ui-base leading-[1.2] peer-checked:color-schema-contrast">
+                      ${label}
+                    </span>
+                  </label>
+                `;
+              })
+              .join('');
+          };
+
+          const typeMap = new Map();
+          const powerMap = new Map();
+          const cableMap = new Map();
+          const portableMap = new Map();
+
+          const ingestCardForOptions = (cardEl) => {
+            const setMap = (map, valueAttr, labelAttr) => {
+              const v = cardEl.getAttribute(valueAttr) || '';
+              const l = cardEl.getAttribute(labelAttr) || '';
+              if (v && l && !map.has(v)) map.set(v, l);
+            };
+            setMap(typeMap, 'data-car-type', 'data-car-type-label');
+            setMap(powerMap, 'data-car-power', 'data-car-power-label');
+            setMap(cableMap, 'data-car-cable', 'data-car-cable-label');
+            setMap(portableMap, 'data-car-portable', 'data-car-portable-label');
+          };
+
+          const renderFilterOptions = () => {
+            const setHtml = (key, html) => {
+              root.querySelectorAll(`[data-car-filter-options="${key}"]`).forEach((el) => {
+                el.innerHTML = html;
+              });
+            };
+            setHtml('type', buildOptionChipsFromMap(typeMap, 'type'));
+            setHtml('power', buildOptionChipsFromMap(powerMap, 'power'));
+            setHtml('cable', buildOptionChipsFromMap(cableMap, 'cable'));
+            setHtml('portable', buildOptionChipsFromMap(portableMap, 'portable'));
+          };
+
+          const persistChecked = () => {
+            const checked = {
+              type: new Set(),
+              power: new Set(),
+              cable: new Set(),
+              portable: new Set(),
+            };
+            root.querySelectorAll('input[type="checkbox"][data-car-filter]:checked').forEach((el) => {
+              const k = el.getAttribute('data-car-filter');
+              if (k && checked[k]) checked[k].add(el.value);
+            });
+            return checked;
+          };
+
+          const restoreChecked = (checked) => {
+            if (!checked) return;
+            Object.keys(checked).forEach((k) => {
+              checked[k].forEach((v) => {
+                root
+                  .querySelectorAll(`input[type="checkbox"][data-car-filter="${k}"][value="${CSS.escape(v)}"]`)
+                  .forEach((el) => {
+                    el.checked = true;
+                  });
+              });
+            });
+          };
+
+          feedEl.innerHTML = '';
+          feedEl.innerHTML = cardsHtml;
+
+          // Build filter options only when car filters UI exists (cars-only view).
+          const hasCarFiltersUi = Boolean(root.querySelector('[data-car-model-filters]'));
+          if (hasCarFiltersUi) {
+            const checked = persistChecked();
+            Array.from(feedEl.querySelectorAll('[data-car-model-card]')).forEach((cardEl) => ingestCardForOptions(cardEl));
+            renderFilterOptions();
+            restoreChecked(checked);
+            initCarModelFilters(root);
+          }
+
+          // Ensure slider recalculates after DOM injection (progress bar + arrows state).
+          const sliderEl = root.querySelector('electric-slider');
+          if (sliderEl) {
+            sliderEl.dispatchEvent(new CustomEvent('rebuy-products-loaded', { bubbles: false }));
+          }
+
+          
+          // Update count multiple times with delays to catch delayed renders
+          updateCarCount();
+          setTimeout(updateCarCount, 100);
+          setTimeout(updateCarCount, 300);
+          setTimeout(updateCarCount, 600);
+          setTimeout(updateCarCount, 1000);
+          
+          // Also update after filters are applied (in case cards are filtered)
+          if (hasCarFiltersUi) {
+            const filters = root.querySelector('[data-car-model-filters]');
+            if (filters) {
+              filters.addEventListener('change', () => {
+                setTimeout(updateCarCount, 100);
+              });
+            }
+          }
+          
+          // Update count when slider loads products
+          if (sliderEl) {
+            sliderEl.addEventListener('rebuy-products-loaded', () => {
+              setTimeout(updateCarCount, 100);
+            });
+          }
+          
+          // Use MutationObserver as fallback to catch any DOM changes
+          if (!hasProductResults) {
+            const observer = new MutationObserver((mutations) => {
+              let shouldUpdate = false;
+              mutations.forEach((mutation) => {
+                if (mutation.addedNodes.length > 0) {
+                  mutation.addedNodes.forEach((node) => {
+                    if (node.nodeType === 1) {
+                      if (node.hasAttribute && node.hasAttribute('data-car-model-card')) {
+                        shouldUpdate = true;
+                      } else if (node.querySelector && node.querySelector('[data-car-model-card]')) {
+                        shouldUpdate = true;
+                      }
+                    }
+                  });
+                }
+              });
+              if (shouldUpdate) {
+                setTimeout(updateCarCount, 50);
+              }
+            });
+            
+            // Observe the root element for changes
+            if (root) {
+              observer.observe(root, {
+                childList: true,
+                subtree: true
+              });
+              
+              // Clean up after 10 seconds
+              setTimeout(() => {
+                observer.disconnect();
+              }, 10000);
+            }
+          }
+
+          // Cache full module HTML (single response, so safe to cache immediately).
+          try {
+            window.sessionStorage?.setItem(cacheKey, root.innerHTML);
+          } catch (e) {
+            // ignore
+          }
+        };
+
+        const initCarModelFilters = (root) => {
+          if (!root || root.__carModelFiltersInitialized) return;
+          root.__carModelFiltersInitialized = true;
+
+          const filters = root.querySelector('[data-car-model-filters]');
+          if (!filters) return;
+
+          const sliderEl = root.querySelector('electric-slider');
+          const feedEl = sliderEl?.querySelector('.electric-slider__feed') || root;
+          if (!feedEl) return;
+
+          // Cache original card nodes for reliable filtering (especially for sliders)
+          const originalCards = Array.from(root.querySelectorAll('[data-car-model-card]')).map((el) => el.cloneNode(true));
+
+          const getCriteria = () => {
+            const criteria = { portable: [], type: [], power: [], cable: [] };
+            const inputs = root.querySelectorAll('input[type="checkbox"][data-car-filter]');
+            inputs.forEach((input) => {
+              if (!input.checked) return;
+              const key = input.getAttribute('data-car-filter');
+              const value = (input.value || '').trim();
+              if (!key || !value) return;
+              if (!criteria[key]) criteria[key] = [];
+              criteria[key].push(value);
+            });
+            return criteria;
+          };
+
+          const matches = (card, criteria) => {
+            for (const [key, value] of Object.entries(criteria)) {
+              if (!value || (Array.isArray(value) && value.length === 0)) continue;
+              const attr = card.getAttribute(`data-car-${key}`) || '';
+              if (Array.isArray(value)) {
+                if (!value.includes(attr)) return false;
+              } else {
+                if (attr !== value) return false;
+              }
+            }
+            return true;
+          };
+
+          const apply = () => {
+            const criteria = getCriteria();
+            const nextCards = originalCards.filter((c) => matches(c, criteria));
+
+            // Slider: replace feed contents to trigger observers + nav updates.
+            if (sliderEl && feedEl.classList.contains('electric-slider__feed')) {
+              feedEl.innerHTML = '';
+              nextCards.forEach((c) => feedEl.appendChild(c.cloneNode(true)));
+              feedEl.scrollLeft = 0;
+              sliderEl.dispatchEvent(new CustomEvent('rebuy-products-loaded', { bubbles: false }));
+              return;
+            }
+
+            // Grid: toggle visibility without reflowing the whole section.
+            const current = root.querySelectorAll('[data-car-model-card]');
+            current.forEach((el) => {
+              const shouldShow = matches(el, criteria);
+              el.classList.toggle('hidden', !shouldShow);
+            });
+          };
+
+          // Sync duplicate controls (quick panel + drawer) and apply
+          filters.addEventListener('change', (event) => {
+            const input = event.target?.closest?.('input[type="checkbox"][data-car-filter]');
+            if (input) {
+              const key = input.getAttribute('data-car-filter');
+              const value = input.value;
+              const checked = input.checked;
+              root.querySelectorAll(`input[type="checkbox"][data-car-filter="${key}"][value="${CSS.escape(value)}"]`).forEach((el) => {
+                el.checked = checked;
+              });
+            }
+            apply();
+          });
+
+          apply();
+        };
+
+        fetchAndInject();
+
+        document.addEventListener('filters:filter-changed', () => {
+          fetchAndInject();
+        });
+      } catch (e) {
+        // non-blocking
+      }
+    })();
+  </script>
+{%- endcapture -%}
+
+{%- render 'm--wrapper', content: content, class_outer_wrapper: class_outer_wrapper, class_inner_wrapper: class_inner_wrapper -%}
+
+{% schema %}
+{
+  "name": "Search Section",
+  "tag": "section",
+  "class": "full-spaced-section",
+  "enabled_on": {
+    "templates": ["search"]
+  },
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Search Quick Filter management: The \"Quick Filter\" bar on the Search page can be controlled via Shop metafield instead of automatic selection. Go to Admin → Settings → Custom data → Store (Shop) and enter values for `custom.search_quick_filters` (max 4). Each value must match a filter label or filter param_name (e.g., `Availability`, `filter.v.option.color`)."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_filters",
+      "label": "Show filters",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "desktop_filters_threshold",
+      "label": "More filters threshold",
+      "default": 4,
+      "min": 0,
+      "max": 10,
+      "step": 1
+    },
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "label": "Products per page",
+      "default": 24,
+      "min": 12,
+      "max": 48,
+      "step": 6
+    }
+  ],
+  "presets": [
+    {
+      "name": "Search Section"
+    }
+  ]
+}
+{% endschema %}
+

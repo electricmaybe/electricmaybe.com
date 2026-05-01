@@ -1,0 +1,174 @@
+{% comment %}
+  {% render 'm--breadcrumbs' %}
+{% endcomment %}
+{%- liquid
+  assign cart_recommendations_heading = cart_recommendations_heading | default: section.settings.cart_recommendations_heading
+  assign cart_upsell_success_label = cart_upsell_success_label | default: section.settings.cart_upsell_success_label
+  assign cart_upsell_error_label = cart_upsell_error_label | default: section.settings.cart_upsell_error_label
+  assign cart_trust_title = cart_trust_title | default: section.settings.cart_trust_title
+  assign cart_trust_subtext = cart_trust_subtext | default: section.settings.cart_trust_subtext
+
+  if cart_trust_title == blank or cart_trust_title == 'Order with confidence.'
+    assign cart_trust_title = 'sections.cart.trust_title_default' | t
+  endif
+
+  if cart_trust_subtext == blank or cart_trust_subtext == 'Buyer protection available in the next steps'
+    assign cart_trust_subtext = 'sections.cart.trust_subtext_default' | t
+  endif
+-%}
+<div class="px-s-outer h-full" style="container-type: inline-size;">
+  <div class="{% if request.page_type == 'cart' %}px-s-inner py-s-xs @lg:py-s-base @lg:pt-14{% else %}px-s-inner lg:px-0{% endif %} flex flex-col h-full">
+    {% unless cart.empty? %}
+      <div class="{% if render_context == 'drawer' %}flex-1 min-h-0 overflow-y-auto{% endif %}">
+        <div class="@lg:grid @lg:grid-cols-12 gap-x-b-base">
+          <div class="@lg:col-span-7 space-y-s-sm">
+          <div class="flex items-center gap-x-s-xs {% if render_context == 'drawer' %}sticky top-0 z-30 bg-surface pt-(--py-s-xs) pb-s-2{% endif %}">
+            {%- if request.page_type == 'cart' -%}
+              <a
+                href="{{ routes.all_products_collection_url }}"
+                class="inline-flex items-center justify-center"
+                aria-label="{{ 'general.continue_shopping' | t | escape }}"
+              >
+                {%- render 'a--icon', icon: 'arrow-left-s', width: '1.5rem', height: '1.5rem', aria_hidden: true -%}
+              </a>
+            {%- elsif render_context == 'drawer' -%}
+              <drawer-trigger
+                data-target="cart-drawer"
+                class="inline-flex items-center justify-center rounded-full bg-accent text-on-accent w-12 h-12 md:w-14 md:h-14 hover:opacity-85 transition-opacity shrink-0"
+                aria-label="{{ 'collections.filters_ui.close_filters' | t | escape }}"
+              >
+                {%- render 'a--icon', icon: 'arrow-left-l', width: '1.25rem', height: '1.25rem', aria_hidden: true -%}
+              </drawer-trigger>
+            {%- endif -%}
+            <h4 class="h4">
+              {{ 'general.cart.title' | t }} (<span data-cart-item-count>{{ cart.item_count }}</span>)
+            </h4>
+          </div>
+          {% render 'cart--items' %}
+          <div class="hidden space-y-b-sm" data-cart-upsell-wrapper>
+            <h4 class="h5">{{ cart_recommendations_heading }}</h4>
+            {% render 'cart--upsell',
+              render_context: render_context,
+              upsell_success_label: cart_upsell_success_label,
+              upsell_error_label: cart_upsell_error_label
+            %}
+          </div>
+          <script>
+            (() => {
+              const upsellWrappers = document.querySelectorAll('[data-cart-upsell-wrapper]');
+
+              for (const wrapper of upsellWrappers) {
+                if (wrapper.dataset.upsellObserverInitialized === 'true') continue;
+
+                const relatedProducts = wrapper.querySelector('related-products');
+                if (!relatedProducts) continue;
+
+                const syncUpsellVisibility = () => {
+                  const hasUpsellContent = relatedProducts.querySelector('[data-cart-upsell-content]') !== null;
+                  wrapper.classList.toggle('hidden', !hasUpsellContent);
+                };
+
+                const observer = new MutationObserver(syncUpsellVisibility);
+                observer.observe(relatedProducts, { childList: true, subtree: true });
+
+                wrapper.dataset.upsellObserverInitialized = 'true';
+                syncUpsellVisibility();
+              }
+            })();
+          </script>
+        </div>
+          <div class="flex flex-col col-start-9 col-end-13 gap-2 @lg:gap-6 w-full max-lg:max-w-md max-lg:mx-auto {% if render_context == 'drawer' %}sticky bottom-0 z-20 mt-auto bg-surface border-t border-secondary px-s-inner lg:px-0 py-s-xs{% else %}max-lg:py-s-xs{% endif %}">
+          
+        <div class="@max-lg:hidden pb-4 h4">
+            {{ 'sections.cart.order_summary_label' | t }}
+          </div>
+          {%- render 'cart--summary', block: block -%}
+          <div {{ block.shopify_attributes }} class="space-y-b-sm">
+            {% if customer.store_credit_account.balance > 0 %}
+              <div class="w-full text-ui-base mb-3 text-center @max-lg:hidden">
+                {% assign amount = customer.store_credit_account.balance | money %}
+                {{ 'sections.cart.store_credit_text_html' | t: amount: amount }}
+              </div>
+            {% endif %}
+            {%- form 'cart', cart -%}
+              {%- assign checkout_securely_label = 'sections.cart.checkout_securely' | t -%}
+              {%- render 'a--button',
+                tag: 'button',
+                size: 'lg',
+                label: checkout_securely_label,
+                icon: 'secure',
+                name: 'checkout',
+                type: 'submit',
+                class: 'w-full'
+              -%}
+            {%- endform -%}
+            {% comment %}
+            <div class="text-ui-sm mt-3 text-center @max-lg:hidden">
+              {{ 'sections.cart.checkout_button_usp_text' | t }}
+            </div>
+            {% endcomment %}
+              {%- if additional_checkout_buttons -%}
+                <div class="additional-checkout-buttons--horizontal" style="
+                  --shopify-accelerated-checkout-button-border-radius: 50px;
+                  --shopify-accelerated-checkout-button-inline-size: 3rem;
+                  ">
+                  {{ content_for_additional_checkout_buttons }}
+                </div>
+              {%- endif -%}
+              <div class="flex border border-secondary overflow-hidden mt-8 {% if render_context == 'drawer' %}-mx-s-inner lg:-mx-s-outer -mb-s-xs rounded-none text-xs mt-0!{% else %}rounded-xl text-ui-small{% endif %}">
+                <div class="flex items-center border-r border-secondary bg-white w-full {% if render_context == 'drawer' %}p-2 gap-1.5{% else %}p-3 gap-2{% endif %}">
+                  <img
+                    src="{{ 'ets1.png' | asset_img_url: '96x' }}"
+                    width="{% if render_context == 'drawer' %}24{% else %}32{% endif %}"
+                    height="{% if render_context == 'drawer' %}24{% else %}32{% endif %}"
+                    class="{% if render_context == 'drawer' %}w-6 h-6{% else %}w-8 h-8{% endif %}"
+                    alt="ETS1"
+                  >
+                  <div class="{% if render_context == 'drawer' %}space-y-0.5 leading-tight{% else %}space-y-1{% endif %}">
+                    <div class="font-medium">{{ cart_trust_title }}</div>
+                    <span class="text-secondary">{{ cart_trust_subtext }}</span>
+                  </div>
+                </div>
+                <div class="bg-[#FFDC0F] flex items-center shrink-0 {% if render_context == 'drawer' %}p-2{% else %}p-3{% endif %}">
+                  <img
+                    src="{{ 'ets2.png' | asset_img_url: 'x96' }}"
+                    width="{% if render_context == 'drawer' %}37{% else %}49{% endif %}"
+                    height="{% if render_context == 'drawer' %}15{% else %}20{% endif %}"
+                    class="{% if render_context == 'drawer' %}h-6{% else %}h-8{% endif %} shrink-0 w-auto"
+                    alt="ETS1"
+                  >
+                </div>
+              </div>
+          </div>
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <div class="mt-16 w-full text-center">
+        {%- if render_context == 'drawer' -%}
+          <div class="mb-6 flex justify-start">
+            <drawer-trigger
+              data-target="cart-drawer"
+              class="inline-flex items-center justify-center rounded-full bg-accent text-on-accent w-12 h-12 md:w-14 md:h-14 hover:opacity-85 transition-opacity shrink-0"
+              aria-label="{{ 'collections.filters_ui.close_filters' | t | escape }}"
+            >
+              {%- render 'a--icon', icon: 'arrow-left-l', width: '1.25rem', height: '1.25rem', aria_hidden: true -%}
+            </drawer-trigger>
+          </div>
+        {%- endif -%}
+        <h1 class="text-4xl/solid">{{ 'sections.cart.empty' | t }}</h1>
+        {%- assign label = 'general.continue_shopping' | t -%}
+        <div class="mt-4">
+          {% render 'a--button', url: routes.all_products_collection_url, label: label %}
+        </div>
+
+        {%- if customer == null -%}
+          <h2 class="mt-12 text-2xl/solid">{{ 'sections.cart.login.title' | t }}</h2>
+          <p class="flex justify-center mt-4 text-center">
+            {{ 'sections.cart.login.paragraph_html' | t: link: routes.account_login_url }}
+          </p>
+        {%- endif -%}
+      </div>
+    {% endunless %}
+  </div>
+</div>

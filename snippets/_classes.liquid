@@ -1,0 +1,24 @@
+{%- liquid
+  case item
+    when 'predictive_search_title'
+      echo ' font-body text-base/solid p-2 sm:p-3 pb-1!'
+    when 'dropdown-element'
+      echo ' max-h-48 border border-secondary w-auto overflow-y-scroll absolute z-[1001] p-2 bg-subtle'
+      case align
+        when 'top-right'
+          echo ' right-0 bottom-full -translate-y-1'
+        when 'top-left'
+          echo ' left-0 bottom-full -translate-y-1'
+        when 'bottom-right'
+          echo ' right-0 top-full translate-y-1'
+        when 'bottom-left'
+          echo ' left-0 top-full translate-y-1'
+      endcase
+    when 'dropdown-trigger'
+      echo ' flex gap-2 items-center px-3 py-2 whitespace-nowrap -scale-y-1'
+    when 'dropdown-link'
+      echo ' flex gap-2 items-center px-2 py-2 w-max whitespace-nowrap hover:underline'
+    when 'dropdown-list'
+      echo ' flex flex-col gap-px w-max'
+  endcase
+-%}

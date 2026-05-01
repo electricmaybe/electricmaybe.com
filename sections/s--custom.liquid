@@ -1,0 +1,72 @@
+{% comment %}
+Custom content section with plain paragraph, raw HTML, and Liquid fields.
+
+Merchants can combine a simple text block with theme-editor HTML and Liquid for embeds or dynamic snippets. Custom HTML and Liquid are powerful; restrict section access to trusted staff.
+
+@example
+Add section in the theme editor and fill Paragraph, Custom HTML, and/or Custom Liquid settings.
+{% endcomment %}
+
+<div class="px-s-outer py-s-xs lg:py-s-sm">
+  <div class="px-s-inner flex flex-col gap-y-s-sm text-primary">
+    {%- if section.settings.paragraph != blank -%}
+      <div class="rte text-body">
+        {{ section.settings.paragraph | newline_to_br }}
+      </div>
+    {%- endif -%}
+
+    {%- if section.settings.custom_html != blank -%}
+      <div class="s--custom__html">
+        {{ section.settings.custom_html }}
+      </div>
+    {%- endif -%}
+
+    {%- if section.settings.custom_liquid != blank -%}
+      <div class="s--custom__liquid">
+        {{ section.settings.custom_liquid }}
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Custom content",
+  "tag": "section",
+  "class": "section-s--custom",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "textarea",
+      "id": "paragraph",
+      "label": "Paragraph",
+      "default": "Add plain text here. Line breaks are preserved.",
+      "info": "Simple text; use Custom HTML or Custom Liquid for markup and dynamic content."
+    },
+    {
+      "type": "html",
+      "id": "custom_html",
+      "label": "Custom HTML",
+      "info": "Raw HTML from the theme editor. Only use trusted content."
+    },
+    {
+      "type": "liquid",
+      "id": "custom_liquid",
+      "label": "Custom Liquid",
+      "info": "Liquid runs in the theme context (products, collections, etc.). Use with care."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "@app"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Custom content"
+    }
+  ]
+}
+{% endschema %}

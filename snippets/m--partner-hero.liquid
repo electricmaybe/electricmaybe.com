@@ -1,0 +1,59 @@
+{%- doc -%}
+Partner hero content with rich heading, description, and two CTA buttons.
+
+This molecule powers the partner/reseller hero variant and keeps the main content stack separate from the partner-specific mini card layout handled by the section.
+
+@param {string} [heading] - Rich text heading content
+@param {string} [description] - Rich text description
+@param {string} [button_1_label] - Primary button label
+@param {string} [button_1_url] - Primary button URL
+@param {string} [button_2_label] - Secondary button label
+@param {string} [button_2_url] - Secondary button URL
+
+@example
+{% render 'm--partner-hero',
+  heading: section.settings.heading,
+  description: section.settings.description,
+  button_1_label: section.settings.button_1_label,
+  button_1_url: section.settings.button_1_url,
+  button_2_label: section.settings.button_2_label,
+  button_2_url: section.settings.button_2_url
+%}
+{%- enddoc -%}
+
+<div class="hero-content flex flex-col gap-y-s-xs w-full lg:w-auto max-w-[448px]">
+  {%- if heading != blank -%}
+    <div class="h1 text-on-accent [&>p]:m-0 [&>h1]:m-0 [&>h2]:m-0 [&>h3]:m-0 [&>h4]:m-0 [&>h5]:m-0 [&>h6]:m-0">
+      {{ heading }}
+    </div>
+  {%- endif -%}
+
+  {%- if description != blank -%}
+    <div class="text-body-lg text-on-accent">
+      {{ description }}
+    </div>
+  {%- endif -%}
+
+  {%- if button_1_label != blank or button_2_label != blank -%}
+    <div data-hero-actions class="flex flex-wrap w-full gap-x-b-lg gap-y-b-sm">
+      {%- if button_1_label != blank and button_1_url != blank -%}
+        {%- render 'a--button',
+          tag: 'a',
+          style: 'secondary',
+          label: button_1_label,
+          url: button_1_url,
+          class: 'bg-transparent border border-on-accent text-on-accent'
+        -%}
+      {%- endif -%}
+      {%- if button_2_label != blank and button_2_url != blank -%}
+        {%- render 'a--button',
+          tag: 'a',
+          style: 'primary',
+          label: button_2_label,
+          url: button_2_url,
+          class: '!bg-white !text-primary !border-0'
+        -%}
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+</div>

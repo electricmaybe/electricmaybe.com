@@ -1,0 +1,69 @@
+@utility button {
+
+  &[data-state="loading"] {
+    @apply pointer-events-none;
+
+    & .loading-context {
+      @apply visible opacity-100;
+      & svg {
+        animation: rotating 1s infinite;
+      }
+    }
+
+    & .default-context,
+    & .icons {
+      @apply invisible opacity-0;
+    }
+  }
+
+  &[data-state="success"] {
+    @apply pointer-events-none text-white border-success;
+
+    &:not(.link) {
+      @apply bg-success;
+
+      &:hover {
+        @apply brightness-95;
+      }
+    }
+
+    & .success-context {
+      @apply visible opacity-100;
+    }
+
+    & .default-context,
+    & .icons {
+      @apply invisible opacity-0;
+    }
+  }
+
+  &[data-state="error"],
+  &.alert {
+    @apply bg-alert text-white outline-1 outline-alert;
+
+    &:hover {
+      @apply outline-2;
+    }
+
+    & .error-context {
+      @apply visible opacity-100;
+    }
+
+    & .default-context,
+    & .icons {
+      @apply invisible opacity-0;
+    }
+  }
+  &:active {
+    box-shadow: inset 10000px 0px 0px rgba(0, 0, 0, 0.09);
+  }
+}
+
+@keyframes rotating {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

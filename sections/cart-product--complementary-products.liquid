@@ -1,0 +1,56 @@
+{%- liquid
+  if request.page_type == 'cart'
+    assign product_id = cart.items.first.product.id
+  else
+    assign product_id = product.id
+  endif
+-%}
+<script src="{{ 'related-products.js' | asset_url }}" defer></script>
+<related-products data-url="{{ routes.product_recommendations_url }}?section_id={{ section.id }}&product_id={{ product_id }}&limit={{ section.settings.products_to_show }}&intent=complementary" class="px-s-whole py-s-base w-full block space-y-s-lg">
+  {%- liquid
+    if recommendations.performed and recommendations.products_count > 0
+    capture feed 
+      for product in recommendations.products
+        render 'm--product-card', card_product: product, class: 'shrink-0 block snap-start', forloop_index: forloop.index, sm_cols: 3, md_cols: 3, lg_cols: 4 
+      endfor 
+    endcapture 
+    echo '<h2 class="h1">'
+    echo section.settings.heading
+    echo '</h2>'
+    render 'm--electric-slider' feed: feed, feed_class: 'px-s-whole scroll-px-s-whole [&_>_*:nth-child(n+9)]:hidden', slider_class: 'w-full', per_row_desktop: 4, per_row_tablet: 2.2, per_row_mobile: 1.33, gap: '', bar: false, id: 'more-to-love-slider'
+    endif
+  -%}
+</related-products>
+
+{% schema %}
+{
+  "name": "t:global.complementary_products",
+  "tag": "section",
+  "class": "full-spaced-section",
+  "enabled_on": {
+    "templates": ["cart", "product"]
+  },
+  "settings": [
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "t:global.products_to_show",
+      "min": 1,
+      "max": 20,
+      "step": 1,
+      "default": 10
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "default": "Related products",
+      "label": "t:global.heading"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:global.complementary_products"
+    }
+  ]
+}
+{% endschema %}

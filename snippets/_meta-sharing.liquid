@@ -1,0 +1,78 @@
+{%- liquid
+  comment
+    Social sharing meta tags (Open Graph & Twitter Cards).
+    Uses settings.share_image / settings.share_description when present, else shop fallbacks.
+  endcomment
+
+  assign og_title = page_title
+  assign og_url = canonical_url
+  assign og_type = 'website'
+  assign og_description = page_description | default: settings.share_description | default: shop.description | default: shop.name
+  assign og_image = settings.share_image | default: shop.brand.logo
+  assign twitter_handle = settings.twitter_handle
+  if twitter_handle == blank and settings.twitter != blank
+    assign twitter_handle = settings.twitter | split: 'twitter.com/' | last | split: '/' | first | prepend: '@'
+  endif
+
+  case request.page_type
+    when 'product'
+      assign og_title = product.title | strip_html
+      assign og_type = 'product'
+      if product.featured_image
+        assign og_image = product.featured_image
+      endif
+    when 'article'
+      assign og_title = article.title | strip_html
+      assign og_type = 'article'
+      assign og_description = article.excerpt_or_content | strip_html | truncate: 200
+      if article.image
+        assign og_image = article.image
+      endif
+    when 'collection'
+      assign og_title = collection.title | strip_html
+      if collection.description != blank
+        assign og_description = collection.description | strip_html | truncate: 200
+      endif
+      if collection.image
+        assign og_image = collection.image
+      endif
+    when 'password'
+      assign og_title = shop.name
+      assign og_url = shop.url
+      assign og_description = shop.description | default: shop.name
+  endcase
+-%}
+
+<meta property="og:site_name" content="{{ shop.name }}">
+<meta property="og:url" content="{{ og_url }}">
+<meta property="og:title" content="{{ og_title | escape }}">
+<meta property="og:type" content="{{ og_type }}">
+<meta property="og:description" content="{{ og_description | escape }}">
+
+{%- if request.page_type == 'product' -%}
+  <meta property="og:price:amount" content="{{ product.selected_or_first_available_variant.price | money_without_currency | strip_html }}">
+  <meta property="og:price:currency" content="{{ cart.currency.iso_code }}">
+  {%- for image in product.images limit: 3 -%}
+    <meta property="og:image" content="https:{{ image | image_url: width: 1200 }}">
+    <meta property="og:image:secure_url" content="https:{{ image | image_url: width: 1200 }}">
+  {%- endfor -%}
+{%- elsif og_image -%}
+  <meta property="og:image" content="https:{{ og_image | image_url: width: 1200 }}">
+  <meta property="og:image:secure_url" content="https:{{ og_image | image_url: width: 1200 }}">
+  {%- assign og_w = 1200 -%}
+  {%- assign og_h = og_image.height | times: 1200 | divided_by: og_image.width | at_least: 630 -%}
+  <meta property="og:image:width" content="{{ og_w }}">
+  <meta property="og:image:height" content="{{ og_h }}">
+{%- endif -%}
+
+{%- if twitter_handle != blank and twitter_handle != '@' -%}
+  <meta name="twitter:site" content="{{ twitter_handle }}">
+{%- endif -%}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ og_title | escape }}">
+<meta name="twitter:description" content="{{ og_description | escape }}">
+{%- if request.page_type == 'product' and product.featured_image -%}
+  <meta name="twitter:image" content="https:{{ product.featured_image | image_url: width: 1200 }}">
+{%- elsif og_image -%}
+  <meta name="twitter:image" content="https:{{ og_image | image_url: width: 1200 }}">
+{%- endif -%}

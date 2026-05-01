@@ -1,0 +1,109 @@
+{%- assign visible_specs_count = 0 -%}
+{%- for block in section.blocks -%}
+  {%- assign spec_value = block.settings.value | strip -%}
+  {%- if spec_value != blank -%}
+    {%- assign visible_specs_count = visible_specs_count | plus: 1 -%}
+  {%- endif -%}
+{%- endfor -%}
+
+{%- if visible_specs_count > 0 -%}
+  <div class="px-s-whole py-s-base">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-x-b-base w-full gap-y-s-base">
+      <div class="lg:col-span-4 order-1 lg:order-3">
+        {% render 'a--image',
+          image: section.settings.image,
+          cols: 4,
+          picture_class: 'block w-fit place-self-center',
+          object_fit: 'object-contain'
+        %}
+      </div>
+      <h2 class="h1 lg:col-span-12 order-2 lg:order-1">
+        {{ section.settings.heading }}
+      </h2>
+      <div class="flex items-stretch gap-x-b-base lg:col-span-8 text-ui-base leading-solid text-secondary order-3 lg:order-2">
+        <table class="w-full no-border-table" cellspacing="0" cellpadding="0">
+          <tbody>
+            {% for block in section.blocks %}
+              {%- assign spec_value = block.settings.value | strip -%}
+              {%- if spec_value != blank -%}
+                <tr class="border-t border-secondary last:border-b py-s-base" {{ block.shopify_attributes }}>
+                  <td class="w-1/2 align-middle py-b-sm">{{ block.settings.key }}</td>
+                  <td class="w-1/2 font-medium align-middle py-b-sm">{{ block.settings.value }}</td>
+                </tr>
+              {%- endif -%}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Technical specifications",
+  "tag": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "<p>Technical Specifications</p>"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "specification",
+      "name": "Specification",
+      "settings": [
+        {
+          "type": "text",
+          "id": "key",
+          "label": "Key"
+        },
+        {
+          "type": "text",
+          "id": "value",
+          "label": "Value"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Technical specifications",
+      "blocks": [
+        {
+          "type": "specification",
+          "settings": {
+            "key": "Voltage",
+            "value": "12V"
+          }
+        },
+        {
+          "type": "specification",
+          "settings": {
+            "key": "Current",
+            "value": "32A"
+          }
+        },
+        {
+          "type": "specification",
+          "settings": {
+            "key": "Power",
+            "value": "7.4 kW"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

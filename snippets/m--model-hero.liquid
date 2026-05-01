@@ -1,0 +1,36 @@
+{%- doc -%}
+Model hero content with year label, model title, and supporting description.
+
+This molecule is used on car model collection templates. It keeps the model-specific copy isolated from the shared hero wrapper so cards and layout can be composed separately.
+
+@param {string} [sub_heading] - Small model/year label above the heading
+@param {string} [heading] - Main model heading
+@param {string} [body] - Supporting rich text body
+
+@example
+{% render 'm--model-hero',
+  sub_heading: section.settings.sub_heading,
+  heading: section.settings.heading,
+  body: section.settings.body
+%}
+{%- enddoc -%}
+
+<div class="hero-content flex flex-col gap-y-s-xs w-full lg:w-auto max-w-[448px]">
+  {%- if sub_heading != blank -%}
+    <p class="text-caption uppercase text-on-accent">
+      {{- sub_heading -}}
+    </p>
+  {%- endif -%}
+
+  {%- if heading != blank -%}
+    <h1 class="h1 text-on-accent max-w-[448px]">
+      {{- heading -}}
+    </h1>
+  {%- endif -%}
+
+  {%- if body != blank -%}
+    <div class="text-body-lg text-on-accent max-w-[448px]">
+      {{- body -}}
+    </div>
+  {%- endif -%}
+</div>

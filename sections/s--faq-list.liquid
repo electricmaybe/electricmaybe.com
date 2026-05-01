@@ -1,0 +1,89 @@
+<div class="px-s-whole py-s-base grid grid-cols-1 md:grid-cols-12 w-full gap-y-s-xl md:gap-x-b-base">
+  <h2 class="display-2 md:col-span-12">
+    {{ section.settings.heading }}
+  </h2>
+  <div class="md:col-span-4 space-y-b-base">
+  {% render 'a--image', image: section.settings.image, cols: 4, aspect_ratio: 1.5 %}
+  {% if section.settings.link_url != blank and section.settings.link_text != blank %}
+    <a href="{{ section.settings.link_url }}" class="text-ui-small flex gap-x-b-base items-center">{{ section.settings.link_text }} 
+      {% render 'a--icon', icon: 'arrow-right-l' , width: '24px', height: '24px' %}
+    </a>
+  {% endif %}
+  </div>
+  <div class="lg:col-start-7 md:col-span-8 lg:col-span-8">
+    {%- liquid
+      for faq in section.settings.faq_list
+        assign answer = faq.answer | metafield_tag
+        if faq.system.url != blank
+          capture answer
+            echo answer
+            echo ' <a href="'
+            echo faq.system.url
+            echo '" class="w-full inline-flex justify-end items-center gap-x-b-xs align-baseline">'
+            render 'a--icon', icon: 'arrow-right-l'
+            echo '</a>'
+          endcapture
+        endif
+        render 'm--accordion', block: faq, heading: faq.question, body: answer, title_size: 'text-base', index: forloop.index, title_height: 'py-b-base', class: 'border-t-0 border-b!'
+      endfor
+    -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:global.faq_list",
+  "tag": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "metaobject_list",
+      "id": "faq_list",
+      "label": "FAQ List",
+      "metaobject_type": "faq_1"
+    },
+    {
+      "type": "checkbox",
+      "id": "shrink_others",
+      "label": "t:global.shrink_others",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "t:global.text_and_buttons"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "default": "Voldt® will integrate with your electric vehicle seamlessly.",
+      "label": "t:global.heading"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "header",
+      "content": "Link below image"
+    },
+    {
+      "type": "url",
+      "id": "link_url",
+      "label": "URL"
+    },
+    {
+      "type": "text",
+      "id": "link_text",
+      "label": "Label"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:global.faq_list"
+    }
+  ]
+}
+{% endschema %}

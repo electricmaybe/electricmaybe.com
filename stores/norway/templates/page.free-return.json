@@ -1,0 +1,82 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "hero_vol37_free_return": {
+      "type": "free-return--hero",
+      "name": "Free return hero",
+      "blocks": {
+        "mini_card_k63Cg4": {
+          "type": "mini_card",
+          "settings": {
+            "icon": "box",
+            "text": "<p>{{ localization.market.metafields.custom.shop_usp1.value.value.value }}</p>"
+          }
+        },
+        "mini_card_GPypEW": {
+          "type": "mini_card",
+          "settings": {
+            "icon": "return-package",
+            "text": "<p>{{ localization.market.metafields.custom.shop_usp_2.value.value.value }}</p>"
+          }
+        },
+        "mini_card_wUmetN": {
+          "type": "mini_card",
+          "settings": {
+            "icon": "return-arrow",
+            "text": "<p>{{ localization.market.metafields.custom.shop_usp_3.value.value.value }}</p>"
+          }
+        }
+      },
+      "block_order": [
+        "mini_card_k63Cg4",
+        "mini_card_GPypEW",
+        "mini_card_wUmetN"
+      ],
+      "settings": {
+        "overlay_header": true,
+        "heading": "<p>{{ page.title }}</p>",
+        "description": "{{ page.content }}",
+        "info_text": "",
+        "button_1_label": "",
+        "button_1_url": "",
+        "button_2_label": "Learn more",
+        "button_2_url": "shopify://collections/32a-adapters-for-cee",
+        "height": "h-128",
+        "height_md": "md:h-128",
+        "height_lg": "lg:h-[32vw]",
+        "image_mobile": "shopify://shop_images/s--hero-banner_6.png",
+        "position_mobile": "items-start justify-start text-left",
+        "position_tablet": "md:items-center md:justify-center md:text-center",
+        "position_desktop": "lg:items-start lg:justify-start lg:text-left",
+        "overlay_color": "#000000",
+        "overlay_opacity": 30,
+        "overlay_blur": 0
+      }
+    },
+    "s_return_request_form": {
+      "type": "s--return-request-form",
+      "settings": {
+        "heading": "{{ page.title }}",
+        "body": "<p>{{ metaobjects.standard_title[\"please-fill-out-the-form-and-we-will-email-you-a-return-label-within-1-working-day\"].title.value }}</p>"
+      }
+    },
+    "main": {
+      "type": "page--default",
+      "disabled": true,
+      "settings": {}
+    }
+  },
+  "order": [
+    "hero_vol37_free_return",
+    "s_return_request_form",
+    "main"
+  ]
+}

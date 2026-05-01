@@ -1,0 +1,375 @@
+{%- doc -%}
+  Length slider component for selecting product length variant option.
+
+This component renders a single-value range slider for selecting length options. It controls hidden radio buttons to maintain compatibility with the variant-radios component. Includes visual markers for available length values and highlights the selected value.
+
+  @param {object} option - Product option object with values (required)
+  @param {string} name - Form name prefix for unique IDs (required)
+  @param {string} section_id - Section ID for unique form IDs (required)
+  @param {number} product_id - Product ID for unique form IDs (required)
+  @param {string} product_form_id - Product form ID (required)
+  @param {object} [faq_list] - Optional list of FAQ metaobjects for drawer content
+  @param {string} [id_prefix] - Optional prefix for radio and drawer IDs (e.g. 'sticky') when rendering a second instance on the page
+  @param {boolean} [compact] - When true, use reduced margins for use in sticky bar or tight layouts
+
+  @example
+  {% render 'product--length-slider',
+  option: option,
+  name: name,
+  section_id: section.id,
+  product_id: product.id,
+  product_form_id: product_form_id
+%}
+{%- enddoc -%}
+
+{%- liquid
+  assign option = option | default: empty
+  assign name = name | default: 'name'
+  assign section_id = section_id | default: ''
+  assign product_id = product_id | default: ''
+  assign product_form_id = product_form_id | default: ''
+  assign faq_list = faq_list | default: blank
+  assign id_prefix = id_prefix | default: ''
+  assign compact = compact | default: false
+
+  unless option != empty
+    echo '<!-- Error: option parameter required for product--length-slider snippet -->'
+    break
+  endunless
+
+  # Length option index: we are only rendered for the length option, so use option.position (1-based) → 0-based index
+  assign length_option_index = option.position | minus: 1
+
+  # Get currently selected variant to determine other selected options
+  assign current_variant = product.selected_or_first_available_variant
+  
+  # Build array of selected options (excluding length) from current variant
+  assign selected_options_excluding_length = ''
+  for opt in product.options_with_values
+    if forloop.index0 != length_option_index and current_variant.options[forloop.index0]
+      if selected_options_excluding_length == ''
+        assign selected_options_excluding_length = current_variant.options[forloop.index0]
+      else
+        assign selected_options_excluding_length = selected_options_excluding_length | append: '|||' | append: current_variant.options[forloop.index0]
+      endif
+    endif
+  endfor
+  assign selected_options_array = selected_options_excluding_length | split: '|||'
+
+  # Build the length list for the current non-length selections.
+  # Keep lengths that exist for the combination even when sold out so they can still be selected.
+  assign sortable_length_entries = ''
+  for value_obj in option.values
+    assign value_str = value_obj.value | default: value_obj
+    assign has_matching_variant = false
+    assign has_available_variant = false
+
+    for variant in product.variants
+      assign variant_matches = true
+      assign selected_option_array_index = 0
+
+      for opt in product.options_with_values
+        if forloop.index0 == length_option_index
+          if variant.options[forloop.index0] != value_str
+            assign variant_matches = false
+            break
+          endif
+        else
+          assign selected_value = selected_options_array[selected_option_array_index]
+          if selected_value and variant.options[forloop.index0] != selected_value
+            assign variant_matches = false
+            break
+          endif
+          assign selected_option_array_index = selected_option_array_index | plus: 1
+        endif
+      endfor
+
+      if variant_matches
+        assign has_matching_variant = true
+        if variant.available
+          assign has_available_variant = true
+        endif
+      endif
+    endfor
+
+    if has_matching_variant
+      assign clean_value = value_str | replace: ' Meter', '' | replace: ' meter', '' | replace: 'm', '' | replace: 'M', '' | strip | times: 1
+      assign sort_key = clean_value | plus: 100000 | append: '' | slice: 1, 5
+      assign availability_flag = 'false'
+      if has_available_variant
+        assign availability_flag = 'true'
+      endif
+      assign sortable_entry = sort_key | append: '::' | append: value_str | append: '::' | append: clean_value | append: '::' | append: availability_flag
+      if sortable_length_entries == ''
+        assign sortable_length_entries = sortable_entry
+      else
+        assign sortable_length_entries = sortable_length_entries | append: '|||' | append: sortable_entry
+      endif
+    endif
+  endfor
+
+  assign sorted_length_entries = sortable_length_entries | split: '|||' | sort
+  assign filtered_option_values = ''
+  assign filtered_length_values = ''
+  assign filtered_length_availability = ''
+  for sorted_entry in sorted_length_entries
+    assign entry_parts = sorted_entry | split: '::'
+    assign sorted_value = entry_parts[1]
+    assign sorted_length = entry_parts[2]
+    assign sorted_availability = entry_parts[3]
+    if sorted_value != blank
+      if filtered_option_values == ''
+        assign filtered_option_values = sorted_value
+        assign filtered_length_values = sorted_length
+        assign filtered_length_availability = sorted_availability
+      else
+        assign filtered_option_values = filtered_option_values | append: '|||' | append: sorted_value
+        assign filtered_length_values = filtered_length_values | append: '|||' | append: sorted_length
+        assign filtered_length_availability = filtered_length_availability | append: '|||' | append: sorted_availability
+      endif
+    endif
+  endfor
+
+  assign available_values = filtered_option_values | split: '|||'
+  assign length_values = filtered_length_values | split: '|||'
+  assign length_availability_flags = filtered_length_availability | split: '|||'
+
+  # Find min and max values from available lengths
+  assign min_length = length_values[0] | times: 1
+  assign last_index = length_values.size | minus: 1
+  assign max_length = length_values[last_index] | times: 1
+
+  # Get selected value index from available values
+  assign selected_index = 0
+  for value in available_values
+    if value == option.selected_value
+      assign selected_index = forloop.index0
+      break
+    endif
+  endfor
+
+  # If selected value is not in available values, use first available
+  if selected_index == 0 and available_values[0] != option.selected_value
+    assign selected_index = 0
+  endif
+
+  # Unique drawer ID when id_prefix is set (e.g. for sticky bar second instance)
+  assign drawer_id = 'length-slider-info'
+  if id_prefix != blank
+    assign drawer_id = id_prefix | append: '-' | append: drawer_id
+  endif
+
+-%}
+
+<length-slider
+  class="w-full"
+  data-option-name="{{ option.name }}"
+  data-option-position="{{ option.position }}"
+  data-name="{{ name }}"
+  data-section-id="{{ section_id }}"
+  data-product-id="{{ product_id }}"
+  data-product-form-id="{{ product_form_id }}"
+  data-min="{{ min_length }}"
+  data-max="{{ max_length }}"
+  data-selected-index="{{ selected_index }}"
+>
+  <fieldset
+    name="{{ option.name }}{{ name }}"
+    class="cursor-default first:mt-0 text-ui-small w-full flex items-center gap-x-b-sm max-lg:flex-col max-lg:items-start max-lg:pr-b-base"
+    style="overflow: visible;"
+  >
+      <div class="flex items-center gap-1.5 text-ui-base relative max-lg:self-start">
+        <drawer-trigger data-target="{{ drawer_id }}" class="relative inline-flex items-center cursor-pointer min-w-16" role="button" tabindex="0" aria-expanded="false" aria-haspopup="dialog" aria-controls="{{ drawer_id }}">
+          {% render 'a--icon', icon: 'info-fill', width: '0.75rem', class: 'shrink-0 mr-1 lg:mr-0 lg:absolute lg:left-0 lg:top-1/2 lg:-translate-y-1/2 lg:-translate-x-full lg:-ml-1' %}
+            {{- option.name -}}
+        </drawer-trigger>
+        {% capture length_slider_info %}
+          <div class="length-slider-info p-4">
+            <h3 class="text-ui-base text-2xl font-bold">
+              {{- option.name -}}
+            </h3>
+            {%- assign drawer_text_key = 'products.product.variant_drawer_text.length' -%}
+            <div class="mt-6 text-ui-small">
+              {{ drawer_text_key | t }}
+            </div>
+            {% if faq_list != blank %}
+              <div class="mt-4 space-y-b-base">
+                {%- for faq in faq_list -%}
+                  {%- liquid
+                    assign question = faq.question | default: faq.question.value | default: faq.question_text | default: ''
+                    assign answer = faq.answer | metafield_text
+                    if answer == blank and faq.answer.value
+                      assign answer = faq.answer.value
+                    elsif answer == blank and faq.answer != blank
+                      assign answer = faq.answer
+                    endif
+                  -%}
+                  {% if question != blank or answer != blank %}
+                    {% render 'm--accordion',
+                      heading: question,
+                      body: answer,
+                    title_size: 'text-base',
+                    title_height: 'py-b-base',
+                    class: 'border-t-0 border-b!'
+                    accordion_class: "mb-0!"
+                    %}
+                  {% endif %}
+                {%- endfor -%}
+              </div>
+            {% endif %}
+          </div>
+        {% endcapture %}
+        {% render 'm--drawer', id: drawer_id, content: length_slider_info, positionMobile: 'right', positionDesktop: 'right', show_close_button: true, close_button_class: 'h-auto! absolute top-3 right-3 z-10 lg:hidden' %}
+      </div>
+
+      {%- comment -%} Simple display for single available length {%- endcomment -%}
+      {%- if available_values.size == 1 -%}
+        <div class="length-simple-display flex items-center gap-x-b-sm">
+          <span class="length-simple-display-text text-ui-base">{{ available_values[0] | replace: ' Meter', 'm' }}</span>
+        </div>
+      {%- endif -%}
+
+    {%- comment -%} Hidden radio buttons for variant selection - all matching lengths {%- endcomment -%}
+    {%- for value in available_values -%}
+      {%- liquid
+        assign value_index_in_all = 0
+        assign value_object = null
+        for all_value in option.values
+          if all_value == value
+            assign value_index_in_all = forloop.index0
+            assign value_object = all_value
+            break
+          endif
+        endfor
+        assign radio_id = 'form-' | append: section_id | append: '-' | append: product_id | append: '-' | append: option.position | append: '-' | append: value_index_in_all | append: '-' | append: name
+        if id_prefix != blank
+          assign radio_id = id_prefix | append: '-' | append: radio_id
+        endif
+      -%}
+      <input
+        id="{{ radio_id }}"
+        type="radio"
+        name="{{ option.name }}-{{ option.position }}-{{ name }}"
+        form="{{ product_form_id }}"
+        value="{{ value | escape }}"
+        data-option-value-id="{{ value_object.id }}"
+        class="hidden peer length-radio"
+        {% if option.selected_value == value or available_values.size == 1 %}
+          checked="checked"
+        {% endif %}
+        data-length-value="{{ length_values[forloop.index0] | default: 0 }}"
+        available="{{ length_availability_flags[forloop.index0] | default: 'true' }}"
+      >
+    {%- endfor -%}
+
+    {%- comment -%} Visual slider track with markers - only show if more than one available length {%- endcomment -%}
+    {%- if available_values.size > 1 -%}
+    {%- liquid
+      assign total_positions = available_values.size | minus: 1
+      assign progress_percentage = 0
+      if total_positions > 0
+        assign progress_percentage = selected_index | times: 100.0 | divided_by: total_positions
+      elsif available_values.size == 1
+        assign progress_percentage = 100
+      endif
+    -%}
+    <div
+      class="length-slider-track relative h-1 bg-emphasis border-r-2 border-secondary {% if compact %}mt-2 mb-2 md:ml-12 ml-12 w-[calc(100%-3rem)]{% else %}mt-12 lg:mt-16 mb-12 md:ml-24 ml-24 w-[calc(100%-6rem)]{% endif %}"
+      style="--length-progress: {{ progress_percentage }}%"
+    >
+      <div class="h-0.5 bg-accent absolute top-(--slider-top) md:top-(--slider-top-md) lg:top-(--slider-top-lg) left-0 w-(--slider-width) md:w-(--slider-width-md) lg:w-(--slider-width-lg) translate-x-(--slider-translate-x) md:translate-x-(--slider-translate-x-md) lg:translate-x-(--slider-translate-x-lg)" style="
+        --slider-width: calc(var(--length-progress) + 2.40rem); 
+        --slider-width-md: calc(var(--length-progress) + 2.40rem);
+        --slider-width-lg: calc(var(--length-progress) + 2.40rem);
+        --slider-translate-x: -4.20rem;
+        --slider-translate-x-md: -4.20rem;
+        --slider-translate-x-lg: -4.20rem;
+        --slider-top: -1.525rem;
+        --slider-top-md: -1.525rem;
+        --slider-top-lg: -1.550rem;
+        "></div>
+      <svg class="absolute -top-full left-(--length-progress) -translate-full z-10 pointer-events-none w-8 h-8" width="31" height="31" viewBox="0 0 31 31" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M1.20021 10.9325C1.32142 10.8583 1.2812 10.9527 1.07255 10.7085C1.18627 10.3412 1.50556 10.0554 1.89741 9.99405L4.98271 9.51104C5.05404 9.49859 5.12633 9.49851 5.19483 9.50413C5.13845 9.28827 5.18384 9.05611 5.32538 8.87996C5.46881 8.70191 5.69319 8.60462 5.92246 8.61863L20.4739 9.61762C20.6423 9.62979 20.8032 9.70285 20.9222 9.82161L21.1079 10.0069C21.1079 10.0069 21.1184 10.0021 21.125 9.99926C21.3666 9.93809 21.6216 10.0082 21.7978 10.184L26.971 15.3452C27.1539 15.5276 27.2122 15.791 27.1497 16.0251L29.3392 18.2095C29.6125 18.4822 29.615 18.9274 29.3404 19.2026L26.2856 22.2645C26.0129 22.5378 25.5677 22.5403 25.2924 22.2657L23.103 20.0813C22.869 20.1444 22.6055 20.0866 22.4226 19.9042L19.1827 16.6718C18.9999 16.4894 18.9311 16.2212 19.004 15.9729L19.0381 15.8606L17.5172 14.3432L12.8965 14.0489L7.31806 14.7355C7.09645 14.7634 6.88233 14.6847 6.73375 14.5364C6.6509 14.4538 6.58704 14.3521 6.55647 14.2322L6.26804 13.23C6.08364 13.3519 5.86589 13.4178 5.63757 13.4029L1.92077 13.1684C1.66011 13.1516 1.42599 13.0396 1.25549 12.8695C1.15073 12.765 1.06973 12.6405 1.0163 12.4998C1.06029 12.0776 1.23576 12.3434 1.20602 12.243C1.06912 12.3117 1.28823 12.128 1.18633 12.0264C1.16157 12.0017 1.21435 12.0735 1.19815 12.0421C1.11329 11.8739 0.91172 12.0777 1.07999 11.9909C1.10108 11.9698 1.07605 11.9476 0.970113 11.811L0.967256 11.8082L0.996273 11.4039C1.20748 11.1554 1.26162 11.1781 1.22068 11.2941C1.05241 11.379 1.28697 11.2577 1.20021 11.0894C1.11535 10.9211 1.07288 11.0806 1.24115 10.9939L1.20021 10.9325ZM25.7949 21.7768L28.8507 18.6949L26.7298 16.579L23.655 19.6609L25.7759 21.7768L25.7949 21.7768ZM22.929 19.4135L26.4795 15.8299L21.2816 10.6783L19.6643 16.1717L19.6691 16.1764L22.9261 19.4107L22.929 19.4135ZM7.2347 14.0496L12.8132 13.3629C12.8569 13.3571 12.8988 13.3552 12.9425 13.3608L17.5574 13.6551C17.7277 13.6654 17.8895 13.7375 18.0114 13.8591L19.26 15.1048L20.6178 10.4905L20.4321 10.3052C20.4321 10.3052 20.4274 10.3004 20.4217 10.3004L5.85317 9.32435L6.09958 10.1688C6.10626 10.1907 6.1196 10.2078 6.12438 10.2277L6.68491 12.0659C6.71165 12.1514 6.72412 12.2418 6.72707 12.3264L7.22754 14.0476L7.2347 14.0496ZM1.9629 12.4823L5.6797 12.7167C5.79386 12.7242 5.9013 12.6755 5.97158 12.5841C6.00578 12.5403 6.0276 12.4899 6.03705 12.4404L5.44488 10.3902C5.38099 10.2543 5.2382 10.1688 5.08509 10.1909L1.99979 10.6739C1.84857 10.6979 1.73742 10.8207 1.71476 10.9691L1.6549 11.8444L1.6381 12.1145C1.62595 12.3019 1.76978 12.4701 1.96005 12.4794L1.9629 12.4823Z" fill="#282220"/>
+        <path d="M1.01315 12.5108C0.874518 12.3092 1 11.2189 1.08008 10.699L1.36757 10.6636L1.52515 10.8054L1.38728 11.5892L1.32429 12.3848C1.27834 12.5108 1.15178 12.7125 1.01315 12.5108Z" fill="#282220"/>
+        </svg>
+      <div
+        class="length-slider-active absolute inset-0"
+      >
+      </div>
+
+      {%- comment -%} Range input for slider control - min is 0 (first variant index), can't go below {%- endcomment -%}
+      <input
+        type="range"
+        aria-label="{{ option.name }}"
+        class="length-range-slider appearance-none bg-transparent pointer-events-auto w-full absolute inset-0 focus:outline-none"
+        min="0"
+        max="{{ available_values.size | minus: 1 }}"
+        value="{{ selected_index }}"
+        step="1"
+        style="margin: 0 -7.5px; width: calc(100% + 15px); z-index: 10;"
+      >
+
+      {%- comment -%} Length markers below slider - all matching lengths {%- endcomment -%}
+      <div class="length-markers relative top-0.75">
+        {%- comment -%} Zero marker at the start (visual only, positioned before track) {%- endcomment -%}
+        <div
+          class="length-marker length-marker-zero absolute flex flex-col items-center gap-1.5"
+          style="left: -6rem; transform: translateX(-50%);"
+        >
+          <div class="absolute -translate-y-full left-1/2 -top-1.75">
+            <svg class="w-8 h-8" width="31" height="31" viewBox="0 0 31 31" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M28.8869 10.9325C28.7657 10.8583 28.806 10.9527 29.0146 10.7085C28.9009 10.3412 28.5816 10.0554 28.1897 9.99405L25.1045 9.51104C25.0331 9.49859 24.9608 9.49851 24.8923 9.50413C24.9487 9.28827 24.9033 9.05611 24.7618 8.87996C24.6183 8.70191 24.394 8.60462 24.1647 8.61863L9.61322 9.61762C9.44484 9.62979 9.28399 9.70285 9.16496 9.82161L8.97925 10.0069C8.97925 10.0069 8.96879 10.0021 8.96214 9.99926C8.72059 9.93809 8.46556 10.0082 8.28939 10.184L3.11613 15.3452C2.93327 15.5276 2.87493 15.791 2.93744 16.0251L0.747964 18.2095C0.474636 18.4822 0.472208 18.9274 0.746806 19.2026L3.8016 22.2645C4.07429 22.5378 4.51948 22.5403 4.79472 22.2657L6.9842 20.0813C7.21813 20.1444 7.48168 20.0866 7.66453 19.9042L10.9044 16.6718C11.0873 16.4894 11.1561 16.2212 11.0831 15.9729L11.049 15.8606L12.57 14.3432L17.1906 14.0489L22.7691 14.7355C22.9907 14.7634 23.2048 14.6847 23.3534 14.5364C23.4363 14.4538 23.5001 14.3521 23.5307 14.2322L23.8191 13.23C24.0035 13.3519 24.2213 13.4178 24.4496 13.4029L28.1664 13.1684C28.427 13.1516 28.6612 13.0396 28.8317 12.8695C28.9364 12.765 29.0174 12.6405 29.0709 12.4998C29.0269 12.0776 28.8514 12.3434 28.8811 12.243C29.018 12.3117 28.7989 12.128 28.9008 12.0264C28.9256 12.0017 28.8728 12.0735 28.889 12.0421C28.9739 11.8739 29.1754 12.0777 29.0072 11.9909C28.9861 11.9698 29.0111 11.9476 29.117 11.811L29.1199 11.8082L29.0909 11.4039C28.8797 11.1554 28.8255 11.1781 28.8665 11.2941C29.0347 11.379 28.8002 11.2577 28.8869 11.0894C28.9718 10.9211 29.0143 11.0806 28.846 10.9939L28.8869 10.9325ZM4.29223 21.7768L1.2365 18.6949L3.3574 16.579L6.43214 19.6609L4.31124 21.7768L4.29223 21.7768ZM7.15817 19.4135L3.60764 15.8299L8.80557 10.6783L10.4229 16.1717L10.4181 16.1764L7.16108 19.4107L7.15817 19.4135ZM22.8525 14.0496L17.274 13.3629C17.2302 13.3571 17.1884 13.3552 17.1446 13.3608L12.5297 13.6551C12.3594 13.6654 12.1976 13.7375 12.0757 13.8591L10.8272 15.1048L9.46931 10.4905L9.65502 10.3052C9.65502 10.3052 9.65978 10.3004 9.66549 10.3004L24.234 9.32435L23.9876 10.1688C23.9809 10.1907 23.9676 10.2078 23.9628 10.2277L23.4022 12.0659C23.3755 12.1514 23.363 12.2418 23.3601 12.3264L22.8596 14.0476L22.8525 14.0496ZM28.1243 12.4823L24.4075 12.7167C24.2933 12.7242 24.1859 12.6755 24.1156 12.5841C24.0814 12.5403 24.0596 12.4899 24.0501 12.4404L24.6423 10.3902C24.7062 10.2543 24.849 10.1688 25.0021 10.1909L28.0874 10.6739C28.2386 10.6979 28.3497 10.8207 28.3724 10.9691L28.4323 11.8444L28.4491 12.1145C28.4612 12.3019 28.3174 12.4701 28.1271 12.4794L28.1243 12.4823Z" fill="#282220"/>
+              <path d="M29.074 12.5108C29.2126 12.3092 29.0872 11.2189 29.0071 10.699L28.7196 10.6636L28.562 10.8054L28.6999 11.5892L28.7629 12.3848C28.8088 12.5108 28.9354 12.7125 29.074 12.5108Z" fill="currentColor"/>
+              </svg>
+          </div>
+          <div class="w-25 h-1 absolute -top-0.75 bg-blue-700 left-1/2 -translate-x-0.5"></div>
+          <div class="length-marker-dot w-1 h-1 bg-emphasis">
+          
+          </div>
+          <span class="length-marker-label opacity-50 whitespace-nowrap">0</span>
+        </div>
+
+        {%- comment -%} Value markers positioned across the track - only available lengths {%- endcomment -%}
+        {%- for value in available_values -%}
+          {%- liquid
+            assign is_available = true
+            if length_availability_flags[forloop.index0] == 'false'
+              assign is_available = false
+            endif
+            assign is_selected = false
+            if value == option.selected_value or available_values.size == 1
+              assign is_selected = true
+            endif
+            # Calculate position percentage: first at 0%, last at 100%, others evenly spaced
+            assign marker_position = 0
+            if available_values.size == 1
+              assign marker_position = 100
+            else
+              assign total_positions = available_values.size | minus: 1
+              assign marker_position = forloop.index0 | times: 100.0 | divided_by: total_positions
+            endif
+          -%}
+          <div
+            class="length-marker absolute flex flex-col items-center gap-1.5 cursor-pointer select-none"
+            data-marker-index="{{ forloop.index0 }}"
+            role="button"
+            tabindex="0"
+            aria-label="Select {{ value | replace: ' Meter', 'm' }}"
+            style="left: {% if forloop.last %}100%{% else %}{{ marker_position }}%{% endif %}; transform: translateX(-50%);"
+          >
+            <div
+              class="length-marker-dot w-1 h-1 bg-emphasis transition-colors {% if is_selected and is_available %}bg-subtle{% endif %} {% unless is_available %}opacity-50{% endunless %}"
+            ></div>
+            <span class="length-marker-label text-center whitespace-nowrap {% if is_selected and is_available %}bg-blue-700 rounded-full text-on-accent! px-2 py-0.5{% elsif is_available == false or is_selected == false %}opacity-50{% endif %} {% if forloop.last %}overflow-visible{% endif %}">
+              {{ value | replace: ' Meter', 'm' }}
+            </span>
+            {%- if forloop.index == 4 -%}
+              <span class="length-marker-badge text-ui-small font-medium hidden!" style="color: #0D9C4C; display: none;">{{ 'products.product.best_deal' | t }}</span>
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+    </div>
+    {%- endif -%}
+  </fieldset>
+</length-slider>

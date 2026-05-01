@@ -1,0 +1,123 @@
+---
+description: JavaScript component refactor tasks and improvement tracking
+globs:
+  - "**/*.js"
+alwaysApply: false
+---
+# JavaScript Component Refactor Tasks
+
+This document tracks JavaScript components that need refactoring to match our gold standard and maintains a prioritized list of improvements.
+
+## 🏆 Gold Standard Reference: `_scripts/electric-modal.js`
+
+The canonical implementation is **`_scripts/electric-modal.js`**. Read that file when implementing or refactoring web components. It exemplifies:
+
+- ✅ **Comprehensive JSDoc comments** with @param, @returns, @private tags
+- ✅ **Private fields/methods** using # syntax for encapsulation
+- ✅ **Proper error handling** with try-catch and error events
+- ✅ **Clean lifecycle** (connectedCallback/disconnectedCallback)
+- ✅ **Resource cleanup** (timeouts, event listeners, focus trap)
+- ✅ **Accessibility** (focus management, ARIA, escape/click-outside)
+- ✅ **Performance** (animation timing, scroll lock)
+
+See also `javascript-standards.mdc` for the full checklist.
+
+## 🚨 High Priority Refactors
+
+### 1. `product--form.js` - NEEDS MAJOR REFACTOR
+**Issues:**
+- ❌ Inconsistent error handling
+- ❌ Complex nested logic without proper organization
+- ❌ Hardcoded magic numbers (e.g. timeouts)
+- ❌ Align JSDoc and lifecycle with electric-modal.js patterns
+
+**Priority:** HIGH - Core e-commerce functionality
+
+## 🔄 Medium / Lower Priority Refactors
+
+### 2. `header.js` - NEEDS REVIEW
+**Status:** Large file; ensure cleanup, JSDoc, and private # usage match gold standard.
+**Priority:** MEDIUM
+
+### 3. `quick-atc-modal.js` - NEEDS REVIEW
+**Status:** Modal usage; align with electric-modal patterns and error handling.
+**Priority:** MEDIUM
+
+### 4. `electric-section.js` / `electric-section-refactored.js` - NEEDS REVIEW
+**Status:** Section behavior; ensure lifecycle and cleanup.
+**Priority:** MEDIUM
+
+### 5. Other `_scripts/*.js` components
+**Status:** Review as touched; add JSDoc, # private methods, and cleanup where missing.
+**Priority:** LOW
+
+## 📋 Refactor Checklist Template
+
+For each component refactor, ensure:
+
+### Documentation
+- [ ] **JSDoc class description** with @example usage
+- [ ] **Method documentation** with @param, @returns, @private tags
+- [ ] **Property documentation** with @type annotations
+- [ ] **Clear inline comments** for complex logic
+
+### Code Structure
+- [ ] **Private methods** using # syntax for encapsulation
+- [ ] **Consistent naming** following camelCase convention
+- [ ] **Proper lifecycle** (connectedCallback/disconnectedCallback)
+- [ ] **Resource cleanup** (timers, observers, event listeners)
+- [ ] **Error boundaries** with try-catch blocks
+
+### Error Handling
+- [ ] **Graceful error handling** with user-friendly messages
+- [ ] **Custom error events** for parent component communication
+- [ ] **Console error logging** with component context
+- [ ] **Fallback behavior** when operations fail
+
+### Performance
+- [ ] **Debouncing** for frequent operations (input, scroll, resize)
+- [ ] **Efficient DOM queries** (cache selectors when possible)
+- [ ] **Memory leak prevention** (cleanup intervals, observers)
+- [ ] **Lazy initialization** where appropriate
+
+### Accessibility
+- [ ] **ARIA attributes** for dynamic content
+- [ ] **Keyboard navigation** support
+- [ ] **Screen reader** announcements for state changes
+- [ ] **Focus management** for interactive elements
+
+### Testing Considerations
+- [ ] **Error scenarios** handled gracefully
+- [ ] **Edge cases** considered (empty data, network failures)
+- [ ] **Browser compatibility** (modern ES6+ features)
+- [ ] **Mobile responsiveness** for touch interactions
+
+## 🎯 Implementation Strategy
+
+### Phase 1: Critical
+1. `product--form.js` - Core product form / ATC
+
+### Phase 2: Important
+2. `header.js`, `quick-atc-modal.js`, `electric-section.js` / `electric-section-refactored.js`
+
+### Phase 3: As touched
+3. Other `_scripts/*.js` — add JSDoc, # private methods, cleanup when editing
+
+## 📝 Notes for Developers
+
+### When Refactoring:
+1. **Keep the existing API** - Don't break existing HTML usage
+2. **Add JSDoc first** - Document before refactoring logic
+3. **Test thoroughly** - Ensure no regression in functionality
+4. **Update this document** - Mark completed tasks and add new findings
+
+### Code Review Focus:
+1. **Documentation quality** - Is it clear and comprehensive?
+2. **Error handling** - Are all failure modes covered?
+3. **Performance impact** - Any new bottlenecks introduced?
+4. **Accessibility** - Does it work with screen readers and keyboard?
+
+---
+
+**Last Updated:** 2025-08-08
+**Next Review:** Weekly during refactor phase

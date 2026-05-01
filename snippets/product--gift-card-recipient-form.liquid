@@ -1,0 +1,266 @@
+{%- doc -%}
+Gift card recipient form component for collecting recipient information.
+
+This component renders a complete gift card recipient form with recipient and sender information fields. It includes a gift message field with character counter, proper form validation, and accessibility features. The form integrates with Shopify's gift card recipient system and is controlled by the recipient-form.js component.
+
+@param {object} product - Product object from Shopify (required)
+@param {object} form - The product form object (required)
+@param {object} section - Section object for unique IDs and context (required)
+@param {string} [formId] - Optional form ID for form association
+
+@example
+{% render 'product--gift-card-recipient-form', product: product, form: form, section: section %}
+
+@example
+{% render 'product--gift-card-recipient-form',
+  product: product,
+  form: form,
+  section: section,
+  formId: 'gift-card-form'
+%}
+{%- enddoc -%}
+
+<div class="customer">
+  
+  <recipient-form
+    class="recipient-form"
+    data-section-id="{{ section.id }}"
+    data-product-variant-id="{{ product.selected_or_first_available_variant.id }}"
+  >
+    <div
+      class="product-form__recipient-error-message-wrapper"
+      role="alert"
+      {% unless form.errors %}
+        hidden
+      {% endunless %}
+    >
+      <h2 class="form__message" tabindex="-1" autofocus>
+        {% render 'a--icon', icon: 'error', class: 'text-red-500' %}
+        <span class="error-message">{{ 'templates.contact.form.error_heading' | t }}</span>
+      </h2>
+
+      <ul>
+        {%- if form.errors -%}
+          {%- for field in form.errors -%}
+            <li>
+              {%- if field == 'form' -%}
+                {{ form.errors.messages[field] }}
+              {%- else -%}
+                <a href="#Recipient-{{ field }}-{{ section.id }}">
+                  {{ form.errors.messages[field] }}
+                </a>
+              {%- endif -%}
+            </li>
+          {%- endfor -%}
+        {%- endif -%}
+      </ul>
+    </div>
+
+    <!-- Form wrapper that gets shown/hidden based on checkbox state -->
+    <div id="Recipient-form-wrapper-{{ section.id }}" class="flex flex-col gap-6" style="display: none;">
+      <!-- To: Section -->
+      <div class="flex flex-col gap-3">
+        <label class="text-base font-bold text-black">To:</label>
+        
+        {% liquid
+          assign recipient_name_id = 'Recipient-name-' | append: section.id
+          assign recipient_email_id = 'Recipient-email-' | append: section.id
+        %}
+        
+        <input
+          type="text"
+          id="{{ recipient_name_id }}"
+          name="properties[gift_message_to]"
+          placeholder="Recipient's Name"
+          value="{{ form.name }}"
+          form="{{ formId }}"
+          class="w-full px-3 py-2 border border-secondary text-sm placeholder-muted focus:outline-none focus:border-primary"
+          required
+          autocomplete="name"
+          disabled
+        >
+        
+        <input
+          type="email"
+          id="{{ recipient_email_id }}"
+          name="properties[gift_message_email]"
+          placeholder="Recipient's Email Address"
+          value="{{ form.email }}"
+          form="{{ formId }}"
+          class="w-full px-3 py-2 border border-secondary text-sm placeholder-muted focus:outline-none focus:border-primary"
+          required
+          autocomplete="email"
+          disabled
+        >
+      </div>
+
+      <!-- From: Section -->
+      <div class="flex flex-col gap-3">
+        <label class="text-base font-bold text-black">From:</label>
+        
+        {% liquid
+          assign sender_name_id = 'Sender-name-' | append: section.id
+        %}
+        
+        <input
+          type="text"
+          id="{{ sender_name_id }}"
+          name="properties[gift_message_from]"
+          placeholder="Sender's Name"
+          value="{{ form.sender_name }}"
+          form="{{ formId }}"
+          class="w-full px-3 py-2 border border-secondary text-sm placeholder-muted focus:outline-none focus:border-primary"
+          required
+          autocomplete="name"
+          disabled
+        >
+      </div>
+
+      <!-- Gift Message Section -->
+      <div class="flex flex-col gap-3">
+        <label class="text-base font-bold text-black">Gift Message (optional):</label>
+        
+        {% liquid
+          assign message_id = 'Recipient-message-' | append: section.id
+          assign max_chars = 300
+          assign default_message = 'Hope you enjoy this gift!'
+        %}
+        
+        <div class="relative">
+          <textarea
+            id="{{ message_id }}"
+            name="properties[gift_message]"
+            placeholder="{{ default_message }}"
+            form="{{ formId }}"
+            class="w-full px-3 py-2 border border-secondary text-sm placeholder-muted focus:outline-none focus:border-primary resize-none"
+            rows="4"
+            maxlength="{{ max_chars }}"
+            data-max-chars="{{ max_chars }}"
+            disabled
+          >{{ form.message | default: default_message }}</textarea>
+          
+          <div class="absolute bottom-2 right-2 text-xs text-gray-400">
+            <span class="char-count">0</span>/{{ max_chars }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Save Button -->
+      {%- assign save_button_properties = 'data-section-id="' | append: section.id | append: '"' -%}
+      {% render 'a--button',
+        tag: 'button',
+        style: 'primary',
+        size: 'base',
+        label: 'Save',
+        type: 'button',
+        class: 'w-full gift-message-save-btn',
+        properties: save_button_properties
+      %}
+    </div>
+
+    <!-- Hidden form controls -->
+    <input
+      type="hidden"
+      name="properties[__shopify_send_gift_card_to_recipient]"
+      value="true"
+      id="Recipient-control-{{ section.id }}"
+    >
+    <input
+      type="hidden"
+      name="properties[__shopify_offset]"
+      value=""
+      id="Recipient-timezone-offset-{{ section.id }}"
+    >
+  </recipient-form>
+</div>
+
+<script>
+  // Character counter functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const textarea = document.getElementById('{{ message_id }}');
+    const charCount = document.querySelector('.char-count');
+    
+    if (textarea && charCount) {
+      // Initialize counter
+      charCount.textContent = textarea.value.length;
+      
+      // Update counter on input
+      textarea.addEventListener('input', function() {
+        charCount.textContent = this.value.length;
+      });
+    }
+
+    // Handle save button clicks
+    const saveButtons = document.querySelectorAll('.gift-message-save-btn');
+    saveButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const sectionId = this.getAttribute('data-section-id');
+        saveGiftMessageToCart(sectionId);
+      });
+    });
+  });
+
+  // Save gift message to cart via fetch API
+  async function saveGiftMessageToCart(sectionId) {
+    try {
+      const formData = new FormData();
+      
+      // Collect gift message data
+      const recipientName = document.getElementById(`Recipient-name-${sectionId}`)?.value;
+      const recipientEmail = document.getElementById(`Recipient-email-${sectionId}`)?.value;
+      const senderName = document.getElementById(`Sender-name-${sectionId}`)?.value;
+      const message = document.getElementById(`Recipient-message-${sectionId}`)?.value;
+      
+      // Add gift message properties to cart
+      if (recipientName) formData.append('properties[gift_message_to]', recipientName);
+      if (recipientEmail) formData.append('properties[gift_message_email]', recipientEmail);
+      if (senderName) formData.append('properties[gift_message_from]', senderName);
+      if (message) formData.append('properties[gift_message]', message);
+      
+      // Add the gift card flag
+      formData.append('properties[__shopify_send_gift_card_to_recipient]', 'true');
+      
+      // Update cart with gift message data
+      const response = await fetch('/cart/update.js', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        }
+      });
+
+      if (response.ok) {
+        // Success - show feedback
+        const button = document.querySelector(`[data-section-id="${sectionId}"]`);
+        const originalText = button.textContent;
+        button.textContent = 'Saved!';
+        button.classList.add('opacity-50');
+        
+        setTimeout(() => {
+          button.textContent = originalText;
+          button.classList.remove('opacity-50');
+        }, 2000);
+        
+        // Dispatch custom event for other components
+        document.dispatchEvent(new CustomEvent('gift-message-saved', {
+          detail: { sectionId, recipientName, recipientEmail, senderName, message }
+        }));
+      } else {
+        throw new Error('Failed to save gift message');
+      }
+    } catch (error) {
+      console.error('Error saving gift message:', error);
+      // Show error feedback
+      const button = document.querySelector(`[data-section-id="${sectionId}"]`);
+      const originalText = button.textContent;
+      button.textContent = 'Error - Try Again';
+      button.classList.add('bg-red-500');
+      
+      setTimeout(() => {
+        button.textContent = originalText;
+        button.classList.remove('bg-red-500');
+      }, 3000);
+    }
+  }
+</script>

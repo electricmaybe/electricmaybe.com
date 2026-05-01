@@ -1,0 +1,110 @@
+{% comment %}theme-check-disable ImgLazyLoading{% endcomment %}
+
+{%- liquid
+  if predictive_search.terms contains ' AND '
+    assign product_type = predictive_search.terms | split: ' AND ' | first | split: ':' | last | replace: '+', ' '
+    assign terms = predictive_search.terms | split: ' AND ' | last
+    assign label = 'templates.search.search_for_type' | t: terms: terms, type: product_type
+    assign no_results = 'templates.search.no_results_for_type' | t: terms: terms, type: product_type
+  else
+    assign terms = predictive_search.terms
+    assign label = 'templates.search.search_for' | t: terms: terms
+    assign no_results = 'templates.search.no_results' | t: terms: terms
+  endif
+-%}
+
+{% if predictive_search.resources.queries.size > 0 %}
+  <ul class="space-y-3 font-medium mb-6">
+    {%- liquid
+      for query in predictive_search.resources.queries
+        echo '<li class="slide-right-sm" style="--nth-child:' | append: forloop.index | append: '">'
+        echo query.title | link_to: query.url
+        echo '</li>'
+      endfor
+    -%}
+  </ul>
+{% endif %}
+{%- liquid
+  assign feed_class = 'grid-cols-2 scroll-px-b-lg px-b-lg'
+  assign per_row = 2
+  if predictive_search.resources.collections.size > 0
+    if predictive_search.resources.products.size == 0
+      assign feed_class = feed_class | append: ' grid'
+      assign per_row = 1
+    endif
+    for collection in predictive_search.resources.collections
+      if collection.metafields.custom.category_type == 'Car Model'
+        echo '<h4 class="px-b-lg">'
+          echo 'general.search.car_model_results_for' | t: terms: predictive_search.terms | replace: '+', ' '
+        echo '</h4>'
+        break
+      endif
+    endfor
+    capture feed
+      assign found_car_model = false
+      for collection in predictive_search.resources.collections
+        if collection.metafields.custom.category_type != 'Car Model'
+          continue
+        endif
+        assign found_car_model = true
+        render 'm--car-model-card', card_collection: collection
+      endfor
+    endcapture
+    if found_car_model
+      render 'm--electric-slider', feed: feed, feed_class: feed_class, slider_class: 'w-full mt-3 px', per_row_desktop: per_row, per_row_tablet: per_row, per_row_mobile: per_row, bar: false, id: 'predictive-search-car-models-list', nav: false
+    endif
+  endif
+-%}
+
+{% if predictive_search.resources.products.size > 0 %}
+  {% # trending products | search promotion %}
+  {%- liquid
+    assign feed_class_products = 'grid-cols-2 scroll-px-b-lg px-b-lg'
+    assign per_row_products = 2
+    if predictive_search.resources.collections.size == 0
+      assign feed_class_products = feed_class_products | append: ' grid'
+      assign per_row_products = 1
+    endif
+  -%}
+  <div
+    id="promoted-list"
+    class="fade-in slide-right-sm space-y-b-sm "
+    role="listbox"
+    aria-labelledby="promoted-products"
+    style="--nth-child: {{ predictive_search.resources.products.size | plus: 1 }}"
+  >
+    <h4 class="px-b-lg">
+      {{ 'general.search.product_results_for' | t: terms: predictive_search.terms | replace: '+', ' ' }}
+    </h4>
+    {%- liquid
+      capture feed
+        for product in predictive_search.resources.products
+          render 'm--product-card', card_product: product, type: 'lite', forloop_index: forloop.index, class: 'shrink-0', sm_cols: 2, md_cols: 2, lg_cols: 2
+        endfor
+      endcapture
+      render 'm--electric-slider', feed: feed, feed_class: feed_class_products, slider_class: 'w-full mt-3', per_row_desktop: per_row_products, per_row_tablet: per_row_products, per_row_mobile: per_row_products, bar: false, id: 'predictive-search-products-list', nav: false
+    -%}
+  </div>
+{% endif %}
+
+{% if predictive_search.resources.collections.size > 0 or predictive_search.resources.products.size > 0 %}
+  <form action="{{ routes.search_url }}" method="get" role="search" class="px-b-lg mt-6">
+    <input id="q" type="search" value="{{ terms | escape }}" name="q" class="hidden">
+    <button class="cursor-pointer hover:opacity-50 underline">{{ label | replace: '+', ' ' }}</button>
+  </form>
+{% else %}
+  <div id="no-results">
+    {{ no_results | replace: '+', ' ' }}
+  </div>
+{% endif %}
+
+<span class="hidden" data-predictive-search-live-region-count-value>
+  {%- liquid
+    if search.results_count == 0
+      echo no_results
+    else
+      assign results = 'templates.search.results_with_count' | t: terms: predictive_search.terms, count: predictive_search.resources.products.size
+      echo results
+    endif
+  -%}
+</span>

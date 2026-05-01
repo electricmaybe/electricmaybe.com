@@ -1,0 +1,65 @@
+<localization-form class="h-full">
+  {%- liquid
+    assign formId = identifier | append: 'LanguageForm'
+    assign h2Id = identifier | append: 'LanguageLabel'
+    assign listId = identifier | append: 'LanguageList'
+  -%}
+  {%- form 'localization', id: formId, class: 'localization-form' -%}
+    <div class="no-js-hidden">
+      <h2 class="sr-only" id="{{ h2Id }}">{{ 'localization.language_label' | t }}</h2>
+      <disclosure-element>
+        <button
+          type="button"
+          class="button inline-flex focus:ring-0 items-center justify-center gap-x-2 h-b-xs px-b-base text-ui-small border-sm rounded-full border-(--background-color-accent) bg-transparent text-(--background-color-accent) hover:opacity-70 cursor-pointer disabled:opacity-30"
+          aria-label="{{ localization.language.endonym_name | downcase }}"
+          aria-expanded="false"
+          aria-controls="{{ listId }}"
+          aria-describedby="{{ h2Id }}"
+          role="button"
+        >
+          <div class="relative pointer-events-none flex items-center gap-x-2 transition-opacity duration-500 delay-150 opacity-100 default-context whitespace-nowrap">
+            <span>{{ localization.language.endonym_name }}</span>
+            {% render 'a--icon', icon: 'chevron-d', width: '14px', height: '14px', stroke: 'stroke-base', class: 'w-auto' %}
+          </div>
+        </button>
+        <div class="{% render '_classes' item: 'dropdown-element' align: align %}  color-background1">
+          <ul id="{{ listId }}" class="dropdown-list" role="list">
+            {%- for language in localization.available_languages -%}
+              <li class="disclosure__item" tabindex="-1">
+                <a
+                  class="{% render '_classes' item: 'dropdown-link' %} {% if language.iso_code == localization.language.iso_code %} font-bold{% endif %}"
+                  href="#"
+                  hreflang="{{ language.iso_code }}"
+                  lang="{{ language.iso_code }}"
+                  {% if language.iso_code == localization.language.iso_code %}
+                    aria-current="true"
+                  {% endif %}
+                  data-value="{{ language.iso_code }}"
+                >
+                  {% assign iso = language.iso_code %}
+                  {% if language.iso_code == 'en' %}
+                    {% assign iso = 'gb' %}
+                  {% endif %}
+                  {% # theme-check-disable RemoteAsset %}
+
+                  <img
+                    src="//cdn.shopify.com/static/images/flags/{{ iso | downcase }}.svg"
+                    alt="{{ language.endonym_name }}"
+                    loading="lazy"
+                    width="16"
+                    height="16"
+                    class="inline-block object-cover w-4 h-4 rounded-full"
+                  >
+                  {% # theme-check-enable RemoteAsset %}
+
+                  {{ language.endonym_name | capitalize }}
+                </a>
+              </li>
+            {%- endfor -%}
+          </ul>
+        </div>
+      </disclosure-element>
+      <input id="locale_code" type="hidden" name="locale_code" value="{{ localization.language.iso_code }}">
+    </div>
+  {%- endform -%}
+</localization-form>

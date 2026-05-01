@@ -1,0 +1,19 @@
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+{%- if page_description != blank -%}
+  <meta name="description" content="{{ page_description | escape }}">
+{%- elsif settings.share_description != blank -%}
+  <meta name="description" content="{{ settings.share_description | escape }}">
+{%- endif -%}
+
+{%- if settings.google_site_verification != blank -%}
+  <meta name="google-site-verification" content="{{ settings.google_site_verification }}">
+{%- endif -%}
+{%- if settings.bing_verification != blank -%}
+  <meta name="msvalidate.01" content="{{ settings.bing_verification }}">
+{%- endif -%}
+
+{%- if request.page_type == 'article' -%}
+  <meta name="robots" content="noindex,nofollow">
+{%- endif -%}

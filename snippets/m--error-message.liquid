@@ -1,0 +1,13 @@
+{%- liquid
+  assign class_wrapper = 'z-50 rounded-sm text-xs/tight p-2 border border-alert shadow-sm bg-background1 font-medium text-alert flex items-start gap-2 hidden max-w-[calc(100vw-2rem)]'
+  case style
+    when 'notification'
+      assign class_wrapper = class_wrapper | append: ' fixed top-8 md:p-4 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:top-36 md:right-5'
+    else
+      assign class_wrapper = class_wrapper | append: ' absolute bottom-full mb-2 left-0'
+  endcase
+-%}
+<error-message class="{{ class_wrapper }}">
+  {%- render 'a--icon', icon: 'warning', size: 'h-3' -%}
+  <span>{{ message }}</span>
+</error-message>

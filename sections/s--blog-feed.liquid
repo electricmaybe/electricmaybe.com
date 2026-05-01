@@ -1,0 +1,688 @@
+{%- liquid
+  assign s = section.settings
+  assign selected_blog = blog
+  assign active_tag = ''
+  assign is_search_page = false
+  if request.page_type == 'search'
+    assign is_search_page = true
+  endif
+
+  if current_tags and current_tags.size > 0
+    assign active_tag = current_tags | first
+  elsif request.params.tag != blank
+    assign active_tag = request.params.tag
+  endif
+
+  capture articles_json
+    echo '['
+    for article in selected_blog.articles
+      capture card_html
+        render 'm--blog-card', article: article
+      endcapture
+      capture search_text
+        echo article.title
+        echo ' '
+        echo article.excerpt_or_content | strip_html
+        echo ' '
+        echo article.tags | join: ' '
+      endcapture
+      if forloop.index0 > 0
+        echo ','
+      endif
+      echo '{'
+      echo '"html":'
+      echo card_html | strip | json
+      echo ',"search":'
+      echo search_text | strip | downcase | json
+      echo ',"tags":'
+      echo article.tags | json
+      echo '}'
+    endfor
+    echo ']'
+  endcapture
+-%}
+
+<section
+  class="px-s-outer"
+  data-blog-feed
+  data-section-id="{{ section.id }}"
+  data-search-url="{{ routes.search_url }}"
+  data-blog-url="{% if selected_blog %}{{ selected_blog.url }}{% endif %}"
+  data-articles-json="{{ articles_json | strip | escape }}"
+  data-articles-per-page="{{ s.articles_per_page }}"
+>
+  <div class="px-s-inner flex flex-col">
+    <div class="hidden" data-blog-icons>
+      <span data-icon-chevron-l>{%- render 'a--icon', icon: 'chevron-l', class: 'w-6 h-6' -%}</span>
+      <span data-icon-chevron-r>{%- render 'a--icon', icon: 'chevron-r', class: 'w-6 h-6' -%}</span>
+    </div>
+    <div class="py-s-sm flex flex-col-reverse gap-y-s-xs lg:flex-row items-center justify-between">
+      {%- if selected_blog != blank -%}
+        <div class="w-full max-w-full overflow-hidden" data-blog-tags>
+          <div class="w-full overflow-x-auto" data-tag-scroll>
+            <div class="flex items-center gap-x-b-base whitespace-nowrap min-w-full justify-center lg:justify-start">
+          {%- assign all_active = false -%}
+          {%- if active_tag == blank and is_search_page == false -%}
+            {%- assign all_active = true -%}
+          {%- endif -%}
+          <a
+            href="{{ selected_blog.url }}"
+            class="rounded-full px-b-base py-b-xs h5 border border-secondary {% if all_active %}color-schema-contrast bg-surface border-contrast{% else %}text-primary{% endif %}"
+            data-tag-link
+            data-tag=""
+            data-tag-value=""
+          >
+            {{ s.tag_all_label | default: 'See all' | escape }}
+          </a>
+          {%- for tag in selected_blog.all_tags -%}
+            {%- assign tag_handle = tag | handleize -%}
+            {%- assign active_handle = active_tag | handleize -%}
+            <a
+              href="{{ selected_blog.url }}/tagged/{{ tag_handle }}"
+              class="rounded-full px-b-base py-b-xs h5 border border-secondary {% if tag_handle == active_handle %}color-schema-contrast bg-surface border-contrast{% else %}text-primary{% endif %}"
+              data-tag-link
+              data-tag="{{ tag_handle }}"
+              data-tag-value="{{ tag | escape }}"
+            >
+              {{ tag | escape }}
+            </a>
+          {%- endfor -%}
+            </div>
+          </div>
+        </div>
+      {%- endif -%}
+
+      <form
+        action="{% if selected_blog %}{{ selected_blog.url }}{% else %}{{ request.path }}{% endif %}"
+        method="get"
+        class="w-full max-w-96 lg:max-w-md"
+        data-blog-search
+      >
+        <input type="hidden" name="type" value="article">
+        <div class="relative rounded-full border border-secondary bg-white shadow-[0_2px_4px_0_rgba(0,0,0,0.15)] pl-b-lg pr-b-2xl py-b-xs" data-blog-search-wrapper>
+          <input
+            type="search"
+            name="q"
+            value="{% if request.params.q != blank %}{{ request.params.q | escape }}{% elsif is_search_page %}{{ search.terms | escape }}{% endif %}"
+            placeholder="{{ s.search_placeholder | default: 'Search' | escape }}"
+            class="w-full bg-transparent focus:outline-none h5 text-secondary font-normal placeholder:text-secondary/70 px-b-lg py-b-xs"
+            aria-label="{{ s.search_placeholder | default: 'Search' | escape }}"
+            data-blog-search-input
+          >
+          <button
+            type="submit"
+            class="cursor-pointer bg-emphasis rounded-full shrink-0 absolute right-(--px-b-sm) inset-y-0 my-auto h-9 w-9 flex items-center justify-center"
+            aria-label="{{ s.search_placeholder | default: 'Search' | escape }}"
+          >
+            {%- render 'a--icon', icon: 'search', class: 'w-6 h-6 text-primary' -%}
+          </button>
+        </div>
+        <div class="relative">
+          <div class="absolute left-0 right-0 top-b-xs z-10 hidden" data-blog-search-results>
+            <div class="rounded-2xl border border-secondary bg-white shadow-[0_2px_4px_0_rgba(0,0,0,0.15)] px-b-lg py-b-xs">
+              <div class="flex flex-col gap-y-b-xxs" data-blog-search-list></div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    {%- if selected_blog == blank and is_search_page == false -%}
+      <!-- No blog selected for s--blog-feed -->
+    {%- else -%}
+      {%- if is_search_page -%}
+        {%- paginate search.results by s.articles_per_page -%}
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-b-base gap-y-s-sm" data-blog-results>
+            {%- for item in paginate.items -%}
+              {%- if item.object_type == 'article' -%}
+                {%- render 'm--blog-card', article: item -%}
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+
+          <div class="border-t border-secondary pt-s-xs" data-blog-pagination>
+            <div class="flex items-center justify-between text-ui-base text-primary">
+              {%- if paginate.previous -%}
+                <a href="{{ paginate.previous.url }}" class="flex items-center gap-x-b-sm" data-page-link>
+                  {%- render 'a--icon', icon: 'chevron-l', class: 'w-6 h-6' -%}
+                  <span>{{ s.previous_label | default: 'Previous' | escape }}</span>
+                </a>
+              {%- else -%}
+                <span class="flex items-center gap-x-b-sm text-secondary">
+                  {%- render 'a--icon', icon: 'chevron-l', class: 'w-6 h-6' -%}
+                  <span>{{ s.previous_label | default: 'Previous' | escape }}</span>
+                </span>
+              {%- endif -%}
+
+              <div class="flex items-center gap-x-b-sm">
+                {%- for part in paginate.parts -%}
+                  {%- unless forloop.first -%}
+                    <span>/</span>
+                  {%- endunless -%}
+                  {%- if part.is_link -%}
+                    <a href="{{ part.url }}" class="text-ui-base" data-page-link>{{ part.title }}</a>
+                  {%- else -%}
+                    <span class="{% if part.title == paginate.current_page %}font-medium{% endif %}">{{ part.title }}</span>
+                  {%- endif -%}
+                {%- endfor -%}
+              </div>
+
+              {%- if paginate.next -%}
+                <a href="{{ paginate.next.url }}" class="flex items-center gap-x-b-sm" data-page-link>
+                  <span>{{ s.next_label | default: 'Next' | escape }}</span>
+                  {%- render 'a--icon', icon: 'chevron-r', class: 'w-6 h-6' -%}
+                </a>
+              {%- else -%}
+                <span class="flex items-center gap-x-b-sm text-secondary">
+                  <span>{{ s.next_label | default: 'Next' | escape }}</span>
+                  {%- render 'a--icon', icon: 'chevron-r', class: 'w-6 h-6' -%}
+                </span>
+              {%- endif -%}
+            </div>
+          </div>
+
+          {%- if paginate.next -%}
+            <div class="hidden" data-blog-sentinel data-next-url="{{ paginate.next.url }}"></div>
+          {%- endif -%}
+        {%- endpaginate -%}
+      {%- else -%}
+        {%- paginate selected_blog.articles by s.articles_per_page -%}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-b-lg gap-y-s-sm" data-blog-results>
+          {%- for article in selected_blog.articles -%}
+            {%- render 'm--blog-card', article: article -%}
+          {%- endfor -%}
+        </div>
+
+          <div class="border-t border-secondary py-s-xs lg:mt-s-sm" data-blog-pagination>
+          <div class="flex items-center justify-between text-ui-base text-primary">
+            {%- if paginate.previous -%}
+              <a href="{{ paginate.previous.url }}" class="flex items-center gap-x-b-sm" data-page-link>
+                {%- render 'a--icon', icon: 'chevron-l', class: 'w-6 h-6' -%}
+                <span>{{ s.previous_label | default: 'Previous' | escape }}</span>
+              </a>
+            {%- else -%}
+              <span class="flex items-center gap-x-b-sm text-secondary">
+                {%- render 'a--icon', icon: 'chevron-l', class: 'w-6 h-6' -%}
+                <span>{{ s.previous_label | default: 'Previous' | escape }}</span>
+              </span>
+            {%- endif -%}
+
+            <div class="flex items-center gap-x-b-sm">
+              {%- for part in paginate.parts -%}
+                {%- unless forloop.first -%}
+                  <span>/</span>
+                {%- endunless -%}
+                {%- if part.is_link -%}
+                  <a href="{{ part.url }}" class="text-ui-base" data-page-link>{{ part.title }}</a>
+                {%- else -%}
+                  <span class="{% if part.title == paginate.current_page %}font-medium{% endif %}">{{ part.title }}</span>
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+
+            {%- if paginate.next -%}
+              <a href="{{ paginate.next.url }}" class="flex items-center gap-x-b-sm" data-page-link>
+                <span>{{ s.next_label | default: 'Next' | escape }}</span>
+                {%- render 'a--icon', icon: 'chevron-r', class: 'w-6 h-6' -%}
+              </a>
+            {%- else -%}
+              <span class="flex items-center gap-x-b-sm text-secondary">
+                <span>{{ s.next_label | default: 'Next' | escape }}</span>
+                {%- render 'a--icon', icon: 'chevron-r', class: 'w-6 h-6' -%}
+              </span>
+            {%- endif -%}
+          </div>
+        </div>
+
+        {%- if paginate.next -%}
+          <div class="hidden" data-blog-sentinel data-next-url="{{ paginate.next.url }}"></div>
+        {%- endif -%}
+        {%- endpaginate -%}
+      {%- endif -%}
+    {%- endif -%}
+  </div>
+</section>
+
+{% javascript %}
+  class BlogFeed {
+    constructor(section) {
+      this.section = section;
+      this.sectionId = section.dataset.sectionId;
+      this.searchUrl = section.dataset.searchUrl || '/search';
+      this.blogUrl = section.dataset.blogUrl || window.location.pathname;
+      this.perPage = Number(section.dataset.articlesPerPage || 12);
+      this.allArticles = [];
+      this.results = section.querySelector('[data-blog-results]');
+      this.pagination = section.querySelector('[data-blog-pagination]');
+      this.sentinel = section.querySelector('[data-blog-sentinel]');
+      this.searchForm = section.querySelector('[data-blog-search]');
+      this.tags = section.querySelector('[data-blog-tags]');
+      this.searchInput = section.querySelector('[data-blog-search-input]');
+      this.searchWrapper = section.querySelector('[data-blog-search-wrapper]');
+      this.searchResults = section.querySelector('[data-blog-search-results]');
+      this.searchList = section.querySelector('[data-blog-search-list]');
+      this.iconChevronL = section.querySelector('[data-icon-chevron-l]');
+      this.iconChevronR = section.querySelector('[data-icon-chevron-r]');
+      this.tagLinks = section.querySelectorAll('[data-tag-link]');
+      this.isLoading = false;
+      this.searchTimeout = null;
+      this.currentSearchQuery = '';
+      this.currentTag = '';
+
+      this.onTagClick = this.onTagClick.bind(this);
+      this.onSearchSubmit = this.onSearchSubmit.bind(this);
+      this.onPopState = this.onPopState.bind(this);
+
+      this.initArticles();
+      this.initFromUrl();
+      this.bindEvents();
+      this.setupObserver();
+    }
+
+    initArticles() {
+      try {
+        const raw = this.section.dataset.articlesJson || '[]';
+        this.allArticles = JSON.parse(raw);
+      } catch (error) {
+        this.allArticles = [];
+      }
+    }
+
+    initFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const query = (params.get('q') || '').trim();
+      const tag = (params.get('tag') || '').trim();
+      if (!query) return;
+      this.currentSearchQuery = query;
+      this.currentTag = tag;
+      this.applyLocalSearch(1);
+    }
+    bindEvents() {
+      this.tagLinks.forEach((link) => link.addEventListener('click', this.onTagClick));
+      if (this.searchForm) {
+        this.searchForm.addEventListener('submit', this.onSearchSubmit);
+      }
+      if (this.searchInput) {
+        this.searchInput.addEventListener('input', () => this.onSearchInput());
+        this.searchInput.addEventListener('focus', () => this.onSearchInput());
+        this.searchInput.addEventListener('blur', () => {
+          setTimeout(() => this.hideSearchResults(), 150);
+        });
+      }
+      document.addEventListener('click', (event) => {
+        if (!this.searchWrapper) return;
+        if (!this.searchWrapper.contains(event.target)) {
+          this.hideSearchResults();
+        }
+      });
+      window.addEventListener('popstate', this.onPopState);
+    }
+
+    setupObserver() {
+      if (!this.sentinel) return;
+      this.observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            this.loadNextPage();
+          }
+        });
+      }, { rootMargin: '200px' });
+      this.observer.observe(this.sentinel);
+    }
+
+    async loadNextPage() {
+      if (this.isLoading || !this.sentinel) return;
+      const nextUrl = this.sentinel.dataset.nextUrl;
+      if (!nextUrl) return;
+      await this.fetchAndUpdate(nextUrl, { append: true, pushState: false });
+    }
+
+    onTagClick(event) {
+      event.preventDefault();
+      const link = event.currentTarget;
+      const tagValue = link.dataset.tagValue || '';
+      if (this.currentSearchQuery) {
+        this.currentTag = tagValue;
+        this.applyLocalSearch(1);
+        const url = tagValue
+          ? `${this.blogUrl}?q=${encodeURIComponent(this.currentSearchQuery)}&tag=${encodeURIComponent(tagValue)}`
+          : `${this.blogUrl}?q=${encodeURIComponent(this.currentSearchQuery)}`;
+        window.history.pushState({}, '', url);
+        return;
+      }
+      const url = link.getAttribute('href');
+      if (!url) return;
+      this.fetchAndUpdate(url, { append: false, pushState: true });
+    }
+
+    onSearchSubmit(event) {
+      event.preventDefault();
+      const input = this.searchForm.querySelector('input[name="q"]');
+      if (!input) return;
+      const query = input.value.trim();
+      this.currentSearchQuery = query;
+      this.currentTag = '';
+      this.applyLocalSearch(1);
+      const pushUrl = query ? `${this.blogUrl}?q=${encodeURIComponent(query)}` : this.blogUrl;
+      window.history.pushState({}, '', pushUrl);
+    }
+
+    onSearchInput() {
+      if (!this.searchInput || !this.searchList || !this.searchResults) return;
+      const query = this.searchInput.value.trim();
+      if (this.searchTimeout) {
+        clearTimeout(this.searchTimeout);
+      }
+      this.searchTimeout = setTimeout(() => {
+        if (!query) {
+          this.hideSearchResults();
+          return;
+        }
+        this.fetchSearchResults(query);
+      }, 200);
+    }
+
+    async fetchSearchResults(query) {
+      if (!this.searchList || !this.searchResults) return;
+      try {
+        const url = new URL(this.searchUrl, window.location.origin);
+        url.searchParams.set('q', query);
+        url.searchParams.set('type', 'article');
+        url.searchParams.set('section_id', 'api--blog-search');
+        const response = await fetch(url.toString());
+        const html = await response.text();
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const content = doc.querySelector('.api-blog-search');
+        if (!content) {
+          this.hideSearchResults();
+          return;
+        }
+        this.searchList.innerHTML = content.innerHTML;
+        this.showSearchResults();
+      } catch (error) {
+        console.error('BlogFeed: failed to fetch search results', error);
+        this.hideSearchResults();
+      }
+    }
+
+    showSearchResults() {
+      if (this.searchResults) {
+        this.searchResults.classList.remove('hidden');
+      }
+    }
+
+    hideSearchResults() {
+      if (this.searchResults) {
+        this.searchResults.classList.add('hidden');
+      }
+    }
+
+    onPopState() {
+      const params = new URLSearchParams(window.location.search);
+      const query = (params.get('q') || '').trim();
+      const tag = (params.get('tag') || '').trim();
+      if (query) {
+        this.currentSearchQuery = query;
+        this.currentTag = tag;
+        this.applyLocalSearch(1);
+        return;
+      }
+      this.currentSearchQuery = '';
+      this.currentTag = '';
+      this.fetchAndUpdate(this.blogUrl, { append: false, pushState: false });
+    }
+
+    applyLocalSearch(page) {
+      if (!this.results || !this.pagination) return;
+      const query = (this.currentSearchQuery || '').toLowerCase();
+      const tag = (this.currentTag || '').toLowerCase();
+      const filtered = this.allArticles.filter((item) => {
+        if (!item || !item.search) return false;
+        if (query && !item.search.includes(query)) return false;
+        if (tag) {
+          const tags = (item.tags || []).map((value) => String(value).toLowerCase());
+          if (!tags.includes(tag)) return false;
+        }
+        return true;
+      });
+
+      const totalPages = Math.max(1, Math.ceil(filtered.length / this.perPage));
+      const currentPage = Math.min(Math.max(page, 1), totalPages);
+      const start = (currentPage - 1) * this.perPage;
+      const pageItems = filtered.slice(start, start + this.perPage);
+
+      this.results.innerHTML = pageItems.map((item) => item.html).join('');
+      this.renderLocalPagination(currentPage, totalPages);
+      this.renderLocalTags(filtered);
+      if (this.sentinel) {
+        this.sentinel.removeAttribute('data-next-url');
+      }
+    }
+
+    renderLocalPagination(currentPage, totalPages) {
+      const chevronL = this.iconChevronL ? this.iconChevronL.innerHTML : '';
+      const chevronR = this.iconChevronR ? this.iconChevronR.innerHTML : '';
+      const prevDisabled = currentPage <= 1;
+      const nextDisabled = currentPage >= totalPages;
+      const parts = Array.from({ length: totalPages }, (_, idx) => idx + 1);
+      this.pagination.innerHTML = `
+        <div class="flex items-center justify-between text-ui-base text-primary">
+          ${
+            prevDisabled
+              ? `<span class="flex items-center gap-x-b-sm text-secondary">
+                  <span class="w-6 h-6 inline-flex items-center justify-center">${chevronL}</span>
+                  <span>Previous</span>
+                </span>`
+              : `<button type="button" data-local-page="${currentPage - 1}" class="flex items-center gap-x-b-sm">
+                  <span class="w-6 h-6 inline-flex items-center justify-center">${chevronL}</span>
+                  <span>Previous</span>
+                </button>`
+          }
+          <div class="flex items-center gap-x-b-sm">
+            ${parts
+              .map((page, index) => {
+                const sep = index === 0 ? '' : '<span>/</span>';
+                const label = page === currentPage ? `<span class="font-medium">${page}</span>` : `<button type="button" data-local-page="${page}" class="text-ui-base">${page}</button>`;
+                return `${sep}${label}`;
+              })
+              .join('')}
+          </div>
+          ${
+            nextDisabled
+              ? `<span class="flex items-center gap-x-b-sm text-secondary">
+                  <span>Next</span>
+                  <span class="w-6 h-6 inline-flex items-center justify-center">${chevronR}</span>
+                </span>`
+              : `<button type="button" data-local-page="${currentPage + 1}" class="flex items-center gap-x-b-sm">
+                  <span>Next</span>
+                  <span class="w-6 h-6 inline-flex items-center justify-center">${chevronR}</span>
+                </button>`
+          }
+        </div>
+      `;
+      this.pagination.querySelectorAll('[data-local-page]').forEach((button) => {
+        button.addEventListener('click', (event) => {
+          const page = Number(event.currentTarget.dataset.localPage || 1);
+          this.applyLocalSearch(page);
+        });
+      });
+    }
+
+    renderLocalTags(items) {
+      if (!this.tags) return;
+      const tagSet = new Set();
+      items.forEach((item) => {
+        (item.tags || []).forEach((tag) => tagSet.add(tag));
+      });
+      const tags = Array.from(tagSet);
+      const allActive = !this.currentTag;
+      const tagButtons = tags
+        .map((tag) => {
+          const active = this.currentTag && String(tag).toLowerCase() === this.currentTag.toLowerCase();
+          const classes = active
+            ? 'rounded-full px-b-base py-b-xs h5 font-normal border border-secondary color-schema-contrast bg-surface border-contrast'
+            : 'rounded-full px-b-base py-b-xs h5 font-normal border border-secondary text-primary';
+          return `<button type="button" class="${classes}" data-tag-link data-tag-value="${String(tag).replace(/"/g, '&quot;')}">${tag}</button>`;
+        })
+        .join('');
+      this.tags.innerHTML = `
+        <div class="w-full overflow-x-auto" data-tag-scroll>
+          <div class="flex items-center gap-x-b-base whitespace-nowrap min-w-full justify-center lg:justify-start">
+            <button type="button" class="${allActive ? 'rounded-full px-b-base py-b-xs h5 border border-secondary color-schema-contrast bg-surface border-contrast' : 'rounded-full px-b-base py-b-xs h5 border border-secondary text-primary'}" data-tag-link data-tag-value="">
+              ${this.section.querySelector('[data-tag-link]')?.textContent?.trim() || 'See all'}
+            </button>
+            ${tagButtons}
+          </div>
+        </div>
+      `;
+      this.tagLinks = this.tags.querySelectorAll('[data-tag-link]');
+      this.tagLinks.forEach((link) => link.addEventListener('click', this.onTagClick));
+      const tagRow = this.tags.querySelector('[data-tag-scroll]');
+      if (tagRow) {
+        const isScrollable = tagRow.scrollWidth > tagRow.clientWidth + 1;
+        tagRow.classList.toggle('is-scrollable', isScrollable);
+        const tagContent = tagRow.firstElementChild;
+        if (tagContent) {
+          tagContent.classList.toggle('justify-center', !isScrollable);
+          tagContent.classList.toggle('justify-start', isScrollable);
+        }
+      }
+    }
+
+
+    buildSectionUrl(url, sectionId = this.sectionId) {
+      const hasQuery = url.includes('?');
+      const joiner = hasQuery ? '&' : '?';
+      return `${url}${joiner}section_id=${sectionId}`;
+    }
+
+    async fetchAndUpdate(url, { append, pushState, sectionId, pushUrl } = {}) {
+      if (this.isLoading) return;
+      this.isLoading = true;
+      try {
+        const response = await fetch(this.buildSectionUrl(url, sectionId));
+        const html = await response.text();
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const nextSection = doc.querySelector('[data-blog-feed]');
+        if (!nextSection) return;
+
+        const nextResults = nextSection.querySelector('[data-blog-results]');
+        const nextPagination = nextSection.querySelector('[data-blog-pagination]');
+        const nextSentinel = nextSection.querySelector('[data-blog-sentinel]');
+        const nextTags = nextSection.querySelector('[data-blog-tags]');
+
+        if (append && nextResults && this.results) {
+          Array.from(nextResults.children).forEach((child) => {
+            this.results.appendChild(child);
+          });
+        } else if (nextResults && this.results) {
+          this.results.innerHTML = nextResults.innerHTML;
+        }
+
+        if (nextPagination && this.pagination) {
+          this.pagination.innerHTML = nextPagination.innerHTML;
+        }
+        if (nextTags && this.tags) {
+          this.tags.innerHTML = nextTags.innerHTML;
+          this.tagLinks = this.tags.querySelectorAll('[data-tag-link]');
+          this.tagLinks.forEach((link) => link.addEventListener('click', this.onTagClick));
+        }
+
+        if (this.sentinel) {
+          if (nextSentinel && nextSentinel.dataset.nextUrl) {
+            this.sentinel.dataset.nextUrl = nextSentinel.dataset.nextUrl;
+          } else {
+            this.sentinel.removeAttribute('data-next-url');
+          }
+        } else if (nextSentinel) {
+          this.sentinel = nextSentinel;
+          this.section.appendChild(this.sentinel);
+          this.setupObserver();
+        }
+
+        if (pushState) {
+          window.history.pushState({}, '', pushUrl || url);
+        }
+      } catch (error) {
+        console.error('BlogFeed: failed to update feed', error);
+      } finally {
+        this.isLoading = false;
+      }
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const updateTagScroll = (section) => {
+      const tagRow = section.querySelector('[data-tag-scroll]');
+      if (!tagRow) return;
+      const isScrollable = tagRow.scrollWidth > tagRow.clientWidth + 1;
+      tagRow.classList.toggle('is-scrollable', isScrollable);
+      const tagContent = tagRow.firstElementChild;
+      if (tagContent) {
+        tagContent.classList.toggle('justify-center', !isScrollable);
+        tagContent.classList.toggle('justify-start', isScrollable);
+      }
+    };
+
+    document.querySelectorAll('[data-blog-feed]').forEach((section) => {
+      if (!section.dataset.bound) {
+        section.dataset.bound = 'true';
+        new BlogFeed(section);
+      }
+      updateTagScroll(section);
+    });
+    window.addEventListener('resize', () => {
+      document.querySelectorAll('[data-blog-feed]').forEach(updateTagScroll);
+    });
+  });
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Blog feed",
+  "tag": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "tag_all_label",
+      "label": "All tag label",
+      "default": "See all"
+    },
+    {
+      "type": "text",
+      "id": "search_placeholder",
+      "label": "Search placeholder",
+      "default": "Search"
+    },
+    {
+      "type": "range",
+      "id": "articles_per_page",
+      "label": "Articles per page",
+      "min": 6,
+      "max": 24,
+      "step": 3,
+      "default": 12
+    },
+    {
+      "type": "text",
+      "id": "previous_label",
+      "label": "Previous label",
+      "default": "Previous"
+    },
+    {
+      "type": "text",
+      "id": "next_label",
+      "label": "Next label",
+      "default": "Next"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Blog feed"
+    }
+  ]
+}
+{% endschema %}

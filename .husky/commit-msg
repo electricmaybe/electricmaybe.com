@@ -1,0 +1,3 @@
+# Ensure npx is on PATH when Git/IDE run with a minimal env (e.g. Cursor, VS Code)
+export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
+npx --no-install commitlint --edit "$1"

@@ -1,0 +1,122 @@
+name: Build
+
+on:
+  workflow_call:
+    outputs:
+      build-success:
+        description: "Whether build was successful"
+        value: ${{ jobs.build.outputs.success }}
+      build_ran:
+        description: "True when npm ci and at least one build step ran (path filters matched)"
+        value: ${{ jobs.build.outputs.build_ran }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      success: ${{ steps.build.outputs.success }}
+      build_ran: ${{ steps.run.outputs.build_ran }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Detect changed paths
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            scripts:
+              - '_scripts/**/*.js'
+              - 'assets/**/*.js'
+            tailwind:
+              - '**/*.liquid'
+              - '**/*.css'
+              - '_scripts/**/*.js'
+              - 'tailwind.config.*'
+              - 'postcss.config.*'
+
+      - name: Detect build entrypoints
+        id: detect
+        run: |
+          HAS_SCRIPTS=false
+          if ls _scripts/*.js >/dev/null 2>&1; then
+            HAS_SCRIPTS=true
+          fi
+          HAS_STYLES=false
+          if [ -f "_styles/main.css" ]; then
+            HAS_STYLES=true
+          fi
+          echo "has_scripts=$HAS_SCRIPTS" >> $GITHUB_OUTPUT
+          echo "has_styles=$HAS_STYLES" >> $GITHUB_OUTPUT
+
+      - name: Decide which build steps to run
+        id: run
+        run: |
+          SCRIPTS="${{ steps.changes.outputs.scripts }}"
+          TW="${{ steps.changes.outputs.tailwind }}"
+          HAS_SCR="${{ steps.detect.outputs.has_scripts }}"
+          HAS_STY="${{ steps.detect.outputs.has_styles }}"
+          run_scripts=false
+          run_tailwind=false
+          if [ "$SCRIPTS" = "true" ] && [ "$HAS_SCR" = "true" ]; then run_scripts=true; fi
+          if [ "$TW" = "true" ] && [ "$HAS_STY" = "true" ]; then run_tailwind=true; fi
+          if [ "$run_scripts" = "true" ] || [ "$run_tailwind" = "true" ]; then
+            echo "build_ran=true" >> $GITHUB_OUTPUT
+          else
+            echo "build_ran=false" >> $GITHUB_OUTPUT
+          fi
+          echo "run_scripts=$run_scripts" >> $GITHUB_OUTPUT
+          echo "run_tailwind=$run_tailwind" >> $GITHUB_OUTPUT
+
+      - name: Set up Node.js
+        if: steps.run.outputs.build_ran == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install dependencies from lockfile
+        if: steps.run.outputs.build_ran == 'true'
+        run: |
+          if [ ! -f "package-lock.json" ]; then
+            echo "package-lock.json is required for deterministic build workflow installs."
+            exit 1
+          fi
+          npm ci
+
+      - name: Build scripts
+        if: steps.run.outputs.build_ran == 'true' && steps.run.outputs.run_scripts == 'true'
+        run: |
+          npx --no-install climaybe build-scripts
+
+      - name: Run Tailwind build
+        if: steps.run.outputs.build_ran == 'true' && steps.run.outputs.run_tailwind == 'true'
+        run: |
+          NODE_ENV=production npx --no-install climaybe build
+
+      - name: Commit and push changes
+        if: steps.run.outputs.build_ran == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          BRANCH_NAME=${{ github.head_ref || github.ref_name }}
+          git fetch origin "$BRANCH_NAME" || echo "Branch does not exist yet"
+          git checkout -B "$BRANCH_NAME" "origin/$BRANCH_NAME" 2>/dev/null || git checkout -B "$BRANCH_NAME"
+          if ls assets/*.js >/dev/null 2>&1; then
+            git add -f assets/*.js
+          fi
+          if [ -f "assets/style.css" ]; then
+            git add -f assets/style.css
+          fi
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore(assets): update compiled javascript and css"
+            git push origin "$BRANCH_NAME"
+          fi
+
+      - name: Finalize success
+        id: build
+        if: success()
+        run: echo "success=true" >> $GITHUB_OUTPUT

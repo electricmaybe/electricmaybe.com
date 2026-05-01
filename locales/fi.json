@@ -1,0 +1,41 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin language editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "general": {
+    "cart": {
+      "title": "Ostoskori"
+    }
+  },
+  "sections": {
+    "cart": {
+      "cart": "Ostoskori",
+      "title": "Ostoskorisi",
+      "caption": "Tuotteet",
+      "remove_title": "Poista {{ title }}",
+      "subtotal": "Välisumma",
+      "new_subtotal": "Uusi välisumma",
+      "total": "Yhteensä",
+      "shipping_text": "Lasketaan kassalla",
+      "shipping": "Toimitus",
+      "note": "Tilauksen kommentti",
+      "checkout": "Kassalle",
+      "empty": "Ostoskorisi on tyhjä",
+      "add_items": "Lisää tuotteita jatkaaksesi",
+      "cart_error": "Virhe ostoskorin päivityksessä. Yritä uudelleen.",
+      "cart_quantity_error_html": "Voit lisätä vain {{ quantity }} kpl",
+      "savings": "Säästö",
+      "store_credit": "Kauppahyvitys (jos käytössä)",
+      "store_credit_text_html": "Sinulla on <span class=\"text-green\">{{ amount }}</span> hyvitystä käytettävissä",
+      "add_a_gift_message": "Lisää lahjaviesti",
+      "add_a_gift_message_tooltip": "Vastaanottaja saa viestin sähköpostitse lähetyksen yhteydessä. Palautusinfo mukana. Lahjakortit lähetetään 2 tunnin sisällä.",
+      "checkout_button_usp_text": "100 päivän palautus & 3 vuoden takuu"
+    }
+  }
+}

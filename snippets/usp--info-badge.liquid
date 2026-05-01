@@ -1,0 +1,369 @@
+{%- comment -%}
+  Render a USP badge. If the USP has a description, it opens a drawer with details + optional FAQs.
+  Otherwise, render a static non-interactive badge without the info icon.
+
+  Inputs:
+  - usp: metaobject reference (single entry)
+  - drawer_id: unique drawer element id
+  - trigger_class (optional): classes for the badge trigger
+{%- endcomment -%}
+
+{%- liquid
+  assign usp_obj = usp
+  assign drawer_id = drawer_id | default: ''
+
+  assign trigger_class = trigger_class | default: 'bg-subtle rounded-full px-2.5 py-1.5 flex items-center gap-1.5 text-ui-small whitespace-nowrap cursor-pointer hover:opacity-70 transition-opacity'
+
+  assign usp_label = usp_obj.value
+  if usp_label == blank
+    assign usp_label = usp_obj.title.value | default: usp_obj.title
+  endif
+  if usp_label == blank
+    assign usp_label = usp_obj.name.value | default: usp_obj.name
+  endif
+  assign usp_label = usp_label | default: ''
+
+  assign usp_description = usp_obj.description | metafield_text
+  if usp_description == blank
+    assign usp_description = usp_obj.detail | metafield_text
+  endif
+  if usp_description == blank
+    assign usp_description = usp_obj.details | metafield_text
+  endif
+  if usp_description == blank
+    assign usp_description = usp_obj.content | metafield_text
+  endif
+  assign has_usp_description = false
+  if usp_description != blank
+    assign has_usp_description = true
+  endif
+  assign badge_class = trigger_class
+  unless has_usp_description
+    assign badge_class = badge_class | remove: 'cursor-pointer' | remove: 'hover:opacity-70' | remove: 'transition-opacity' | strip
+  endunless
+
+  assign usp_icon_ref = usp_obj.icon.value | default: usp_obj.icon
+
+  # FAQ selection: prefer a list field if present (faqs/faq/faq_list).
+  assign usp_faq_list = usp_obj.faqs.value | default: usp_obj.faqs
+  if usp_faq_list == blank
+    assign usp_faq_list = usp_obj.faq.value | default: usp_obj.faq
+  endif
+  if usp_faq_list == blank
+    assign usp_faq_list = usp_obj.faq_list.value | default: usp_obj.faq_list
+  endif
+-%}
+
+{%- if usp_obj != blank -%}
+{%- if has_usp_description and drawer_id != blank -%}
+<drawer-trigger data-target="{{ drawer_id }}" class="{{ badge_class }}">
+  {%- if usp_icon_ref != blank -%}
+    {%- if usp_icon_ref.preview_image != blank -%}
+      <img
+        src="{{ usp_icon_ref.preview_image | image_url: width: 48 }}"
+        alt=""
+        width="20"
+        height="20"
+        loading="lazy"
+        decoding="async"
+        class="w-5 h-5 object-contain shrink-0"
+      >
+    {%- elsif usp_icon_ref.width != blank and usp_icon_ref.height != blank -%}
+      <img
+        src="{{ usp_icon_ref | image_url: width: 48 }}"
+        alt=""
+        width="20"
+        height="20"
+        loading="lazy"
+        decoding="async"
+        class="w-5 h-5 object-contain shrink-0"
+      >
+    {%- else -%}
+      {%- liquid
+        assign usp_icon_str = usp_icon_ref | append: ''
+      -%}
+      {%- if usp_icon_str contains '.png' or usp_icon_str contains '.jpg' or usp_icon_str contains '.jpeg' or usp_icon_str contains '.webp' or usp_icon_str contains '.svg' -%}
+        <img
+          src="{{ usp_icon_str | asset_url }}"
+          alt=""
+          width="20"
+          height="20"
+          loading="lazy"
+          decoding="async"
+          class="w-5 h-5 object-contain shrink-0"
+        >
+      {%- endif -%}
+    {%- endif -%}
+  {%- endif -%}
+
+  <span>{{ usp_label }}</span>
+  {%- render 'a--icon', icon: 'info-fill', width: '0.75rem' -%}
+</drawer-trigger>
+{%- else -%}
+<div class="{{ badge_class }}">
+  {%- if usp_icon_ref != blank -%}
+    {%- if usp_icon_ref.preview_image != blank -%}
+      <img
+        src="{{ usp_icon_ref.preview_image | image_url: width: 48 }}"
+        alt=""
+        width="20"
+        height="20"
+        loading="lazy"
+        decoding="async"
+        class="w-5 h-5 object-contain shrink-0"
+      >
+    {%- elsif usp_icon_ref.width != blank and usp_icon_ref.height != blank -%}
+      <img
+        src="{{ usp_icon_ref | image_url: width: 48 }}"
+        alt=""
+        width="20"
+        height="20"
+        loading="lazy"
+        decoding="async"
+        class="w-5 h-5 object-contain shrink-0"
+      >
+    {%- else -%}
+      {%- liquid
+        assign usp_icon_str = usp_icon_ref | append: ''
+      -%}
+      {%- if usp_icon_str contains '.png' or usp_icon_str contains '.jpg' or usp_icon_str contains '.jpeg' or usp_icon_str contains '.webp' or usp_icon_str contains '.svg' -%}
+        <img
+          src="{{ usp_icon_str | asset_url }}"
+          alt=""
+          width="20"
+          height="20"
+          loading="lazy"
+          decoding="async"
+          class="w-5 h-5 object-contain shrink-0"
+        >
+      {%- endif -%}
+    {%- endif -%}
+  {%- endif -%}
+
+  <span>{{ usp_label }}</span>
+</div>
+{%- endif -%}
+
+{%- if has_usp_description and drawer_id != blank -%}
+{%- capture drawer_content -%}
+  <div class="p-4">
+    <div class="flex items-start gap-x-b-base">
+      {%- if usp_icon_ref != blank -%}
+        {%- if usp_icon_ref.preview_image != blank -%}
+          <img
+            src="{{ usp_icon_ref.preview_image | image_url: width: 96 }}"
+            alt=""
+            width="28"
+            height="28"
+            loading="lazy"
+            decoding="async"
+            class="w-7 h-7 object-contain shrink-0 mt-1"
+          >
+        {%- elsif usp_icon_ref.width != blank and usp_icon_ref.height != blank -%}
+          <img
+            src="{{ usp_icon_ref | image_url: width: 96 }}"
+            alt=""
+            width="28"
+            height="28"
+            loading="lazy"
+            decoding="async"
+            class="w-7 h-7 object-contain shrink-0 mt-1"
+          >
+        {%- else -%}
+          {%- liquid
+            assign usp_icon_str = usp_icon_ref | append: ''
+          -%}
+          {%- if usp_icon_str contains '.png' or usp_icon_str contains '.jpg' or usp_icon_str contains '.jpeg' or usp_icon_str contains '.webp' or usp_icon_str contains '.svg' -%}
+            <img
+              src="{{ usp_icon_str | asset_url }}"
+              alt=""
+              width="28"
+              height="28"
+              loading="lazy"
+              decoding="async"
+              class="w-7 h-7 object-contain shrink-0 mt-1"
+            >
+          {%- endif -%}
+        {%- endif -%}
+      {%- endif -%}
+
+      <div class="min-w-0">
+        <h3 class="text-ui-base text-2xl font-bold">{{ usp_label }}</h3>
+        {%- if usp_description != blank -%}
+          <div class="mt-4 text-ui-small">
+            {{ usp_description }}
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+
+    {%- liquid
+      assign seen = '||'
+      assign idx = 0
+
+      capture faq_items
+        if usp_faq_list != blank
+          for faq_obj in usp_faq_list
+            if faq_obj == blank
+              continue
+            endif
+
+            assign faq_key = faq_obj.system.handle | default: faq_obj.system.id | default: faq_obj.question | default: '' | append: ''
+            assign faq_key = '||' | append: faq_key | append: '||'
+            if seen contains faq_key
+              continue
+            endif
+            assign seen = seen | append: faq_key
+
+            assign idx = idx | plus: 1
+            assign q = faq_obj.question | default: faq_obj.question.value | default: faq_obj.question_text | default: ''
+            assign a = faq_obj.answer | metafield_tag
+            if faq_obj.system.url != blank
+              capture a
+                echo a
+                echo ' <a href="'
+                echo faq_obj.system.url
+                echo '" class="w-full inline-flex justify-end items-center gap-x-b-xs align-baseline">'
+                render 'a--icon', icon: 'arrow-right-l'
+                echo '</a>'
+              endcapture
+            endif
+            if q != blank or a != blank
+              render 'm--accordion', block: faq_obj, heading: q, body: a, title_size: 'text-ui-title', index: idx, title_height: 'py-b-base', class: 'border-t-0 border-b!'
+            endif
+          endfor
+        else
+          # Fallback: support single FAQ fields if the metaobject uses faq_1..faq_6 or faq1..faq6.
+          assign faq_obj = usp_obj.faq_1.value | default: usp_obj.faq_1
+          if faq_obj == blank
+            assign faq_obj = usp_obj.faq1.value | default: usp_obj.faq1
+          endif
+          if faq_obj != blank
+            assign faq_key = faq_obj.system.handle | default: faq_obj.system.id | default: faq_obj.question | default: '' | append: ''
+            assign faq_key = '||' | append: faq_key | append: '||'
+            unless seen contains faq_key
+              assign seen = seen | append: faq_key
+              assign idx = idx | plus: 1
+              assign q = faq_obj.question | default: faq_obj.question.value | default: faq_obj.question_text | default: ''
+              assign a = faq_obj.answer | metafield_tag
+              if q != blank or a != blank
+                render 'm--accordion', block: faq_obj, heading: q, body: a, title_size: 'text-ui-title', index: idx, title_height: 'py-b-base', class: 'border-t-0 border-b!'
+              endif
+            endunless
+          endif
+
+          assign faq_obj = usp_obj.faq_2.value | default: usp_obj.faq_2
+          if faq_obj == blank
+            assign faq_obj = usp_obj.faq2.value | default: usp_obj.faq2
+          endif
+          if faq_obj != blank
+            assign faq_key = faq_obj.system.handle | default: faq_obj.system.id | default: faq_obj.question | default: '' | append: ''
+            assign faq_key = '||' | append: faq_key | append: '||'
+            unless seen contains faq_key
+              assign seen = seen | append: faq_key
+              assign idx = idx | plus: 1
+              assign q = faq_obj.question | default: faq_obj.question.value | default: faq_obj.question_text | default: ''
+              assign a = faq_obj.answer | metafield_tag
+              if q != blank or a != blank
+                render 'm--accordion', block: faq_obj, heading: q, body: a, title_size: 'text-ui-title', index: idx, title_height: 'py-b-base', class: 'border-t-0 border-b!'
+              endif
+            endunless
+          endif
+
+          assign faq_obj = usp_obj.faq_3.value | default: usp_obj.faq_3
+          if faq_obj == blank
+            assign faq_obj = usp_obj.faq3.value | default: usp_obj.faq3
+          endif
+          if faq_obj != blank
+            assign faq_key = faq_obj.system.handle | default: faq_obj.system.id | default: faq_obj.question | default: '' | append: ''
+            assign faq_key = '||' | append: faq_key | append: '||'
+            unless seen contains faq_key
+              assign seen = seen | append: faq_key
+              assign idx = idx | plus: 1
+              assign q = faq_obj.question | default: faq_obj.question.value | default: faq_obj.question_text | default: ''
+              assign a = faq_obj.answer | metafield_tag
+              if q != blank or a != blank
+                render 'm--accordion', block: faq_obj, heading: q, body: a, title_size: 'text-ui-title', index: idx, title_height: 'py-b-base', class: 'border-t-0 border-b!'
+              endif
+            endunless
+          endif
+
+          assign faq_obj = usp_obj.faq_4.value | default: usp_obj.faq_4
+          if faq_obj == blank
+            assign faq_obj = usp_obj.faq4.value | default: usp_obj.faq4
+          endif
+          if faq_obj != blank
+            assign faq_key = faq_obj.system.handle | default: faq_obj.system.id | default: faq_obj.question | default: '' | append: ''
+            assign faq_key = '||' | append: faq_key | append: '||'
+            unless seen contains faq_key
+              assign seen = seen | append: faq_key
+              assign idx = idx | plus: 1
+              assign q = faq_obj.question | default: faq_obj.question.value | default: faq_obj.question_text | default: ''
+              assign a = faq_obj.answer | metafield_tag
+              if q != blank or a != blank
+                render 'm--accordion', block: faq_obj, heading: q, body: a, title_size: 'text-ui-title', index: idx, title_height: 'py-b-base', class: 'border-t-0 border-b!'
+              endif
+            endunless
+          endif
+
+          assign faq_obj = usp_obj.faq_5.value | default: usp_obj.faq_5
+          if faq_obj == blank
+            assign faq_obj = usp_obj.faq5.value | default: usp_obj.faq5
+          endif
+          if faq_obj != blank
+            assign faq_key = faq_obj.system.handle | default: faq_obj.system.id | default: faq_obj.question | default: '' | append: ''
+            assign faq_key = '||' | append: faq_key | append: '||'
+            unless seen contains faq_key
+              assign seen = seen | append: faq_key
+              assign idx = idx | plus: 1
+              assign q = faq_obj.question | default: faq_obj.question.value | default: faq_obj.question_text | default: ''
+              assign a = faq_obj.answer | metafield_tag
+              if q != blank or a != blank
+                render 'm--accordion', block: faq_obj, heading: q, body: a, title_size: 'text-ui-title', index: idx, title_height: 'py-b-base', class: 'border-t-0 border-b!'
+              endif
+            endunless
+          endif
+
+          assign faq_obj = usp_obj.faq_6.value | default: usp_obj.faq_6
+          if faq_obj == blank
+            assign faq_obj = usp_obj.faq6.value | default: usp_obj.faq6
+          endif
+          if faq_obj != blank
+            assign faq_key = faq_obj.system.handle | default: faq_obj.system.id | default: faq_obj.question | default: '' | append: ''
+            assign faq_key = '||' | append: faq_key | append: '||'
+            unless seen contains faq_key
+              assign seen = seen | append: faq_key
+              assign idx = idx | plus: 1
+              assign q = faq_obj.question | default: faq_obj.question.value | default: faq_obj.question_text | default: ''
+              assign a = faq_obj.answer | metafield_tag
+              if q != blank or a != blank
+                render 'm--accordion', block: faq_obj, heading: q, body: a, title_size: 'text-ui-title', index: idx, title_height: 'py-b-base', class: 'border-t-0 border-b!'
+              endif
+            endunless
+          endif
+        endif
+      endcapture
+    -%}
+
+    {%- if faq_items != blank -%}
+      <div class="mt-6">
+        <h4 class="text-ui-title font-semibold">FAQ</h4>
+        <div class="mt-2">
+          {{ faq_items }}
+        </div>
+      </div>
+    {%- endif -%}
+  </div>
+{%- endcapture -%}
+
+{%- render 'm--drawer',
+  id: drawer_id,
+  content: drawer_content,
+  positionMobile: 'right',
+  positionDesktop: 'right',
+  show_close_button: true,
+  close_button_class: 'h-auto! absolute top-3 right-3 z-10 lg:hidden'
+-%}
+{%- endif -%}
+{%- endif -%}
+

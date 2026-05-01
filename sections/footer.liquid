@@ -1,0 +1,334 @@
+{%- liquid
+  assign feature_blocks = section.blocks | where: 'type', 'feature'
+  assign block_count = feature_blocks.size
+  assign row_count = block_count | plus: 1 | divided_by: 2
+-%}
+{% for row_index in (1..row_count) %}
+  {% assign row_offset = row_index | minus: 1 | times: 2 %}
+  <div class="md:flex items-stretch md:border-t border-secondary lg:px-s-whole lg:gap-x-s-base {% if forloop.last %}border-b{% endif %}">
+    {% for block in feature_blocks offset: row_offset limit: 2 %}
+      <div class="py-b-lg gap-x-b-xl items-center flex w-full border-t md:border-t-0 border-secondary flex-col lg:flex-row" {{ block.shopify_attributes }}>
+        {%- if block.settings.icon != blank -%}
+          {%- render 'a--icon', icon: block.settings.icon, width: '8rem', stroke: 'stroke-[.5px]', class: 'w-[4rem] h-[4rem] lg:w-[8rem] lg:h-[8rem] text-secondary' -%}
+        {%- endif -%}
+        <div class="text-ui-base/copy space-y-b-xs">
+          {%- if block.settings.title != blank -%}
+            <h2 class="text-center lg:text-left">
+              {{ block.settings.title }}
+            </h2>
+          {%- endif -%}
+          {%- if block.settings.description != blank -%}
+            <div class="text-secondary text-center lg:text-left">
+              {{ block.settings.description }}
+            </div>
+          {%- endif -%}
+        </div>
+      </div>
+      {% if forloop.first and feature_blocks.size > 1 %}
+        <div class="w-px md:border-r border-secondary"></div>
+      {% endif %}
+    {% endfor %}
+  </div>
+{% endfor %}
+{%- comment -%}
+  Footer SEO text: dynamic by page type.
+  - collection: collection.description
+  - product: product custom descriptions
+  - index: shop metafield / metaobject (fallback-safe)
+  - else: section settings (theme editor)
+{%- endcomment -%}
+{%- liquid
+  assign page_type = request.page_type
+-%}
+
+{%- capture footer_seo_text_1 -%}{%- endcapture -%}
+{%- capture footer_seo_text_2 -%}{%- endcapture -%}
+
+{%- if page_type == 'collection' and collection != blank -%}
+  {%- if collection.description != blank -%}
+    {%- capture footer_seo_text_1 -%}{{ collection.description }}{%- endcapture -%}
+  {%- endif -%}
+{%- elsif page_type == 'product' and product != blank -%}
+  {%- if product.metafields.custom.product_description != blank -%}
+    {%- capture footer_seo_text_1 -%}{{ product.metafields.custom.product_description | metafield_tag }}{%- endcapture -%}
+  {%- endif -%}
+  {%- if product.metafields.custom.product_description_2 != blank -%}
+    {%- capture footer_seo_text_2 -%}{{ product.metafields.custom.product_description_2 | metafield_tag }}{%- endcapture -%}
+  {%- endif -%}
+{%- elsif page_type == 'index' -%}
+  {%- assign homepage_seo_mf = shop.metafields.custom.homepage_seo_text -%}
+  {%- if homepage_seo_mf != blank -%}
+    {%- assign homepage_seo_obj = homepage_seo_mf.value -%}
+    {%- if homepage_seo_obj != blank and homepage_seo_obj.seo_text_1 != blank -%}
+      {%- capture footer_seo_text_1 -%}{{ homepage_seo_obj.seo_text_1 | metafield_tag }}{%- endcapture -%}
+      {%- capture footer_seo_text_2 -%}{{ homepage_seo_obj.seo_text_2 | metafield_tag }}{%- endcapture -%}
+    {%- else -%}
+      {%- capture footer_seo_text_1 -%}{{ homepage_seo_mf | metafield_tag }}{%- endcapture -%}
+    {%- endif -%}
+  {%- else -%}
+    {%- if section.settings.seo_text_1 != blank -%}
+      {%- capture footer_seo_text_1 -%}{{ section.settings.seo_text_1 }}{%- endcapture -%}
+    {%- endif -%}
+    {%- if section.settings.seo_text_2 != blank -%}
+      {%- capture footer_seo_text_2 -%}{{ section.settings.seo_text_2 }}{%- endcapture -%}
+    {%- endif -%}
+  {%- endif -%}
+{%- else -%}
+  {%- if section.settings.seo_text_1 != blank -%}
+    {%- capture footer_seo_text_1 -%}{{ section.settings.seo_text_1 }}{%- endcapture -%}
+  {%- endif -%}
+  {%- if section.settings.seo_text_2 != blank -%}
+    {%- capture footer_seo_text_2 -%}{{ section.settings.seo_text_2 }}{%- endcapture -%}
+  {%- endif -%}
+{%- endif -%}
+
+{%- if footer_seo_text_1 != blank or footer_seo_text_2 != blank -%}
+  <div class="px-s-outer py-s-sm">
+    <div class="px-s-inner gap-x-s-base gap-y-s-sm text-ui-small leading-copy text-secondary flex max-lg:flex-col rte">
+      {%- if footer_seo_text_1 != blank -%}
+        <div class="w-full">
+          {{ footer_seo_text_1 }}
+        </div>
+      {%- endif -%}
+      {%- if footer_seo_text_1 != blank and footer_seo_text_2 != blank -%}
+        <hr class="max-lg:hidden w-px h-auto border-r border-secondary">
+      {%- endif -%}
+      {%- if footer_seo_text_2 != blank -%}
+        <div class="w-full">
+          {{ footer_seo_text_2 }}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+{%- endif -%}
+<footer class="px-s-outer py-s-sm flex flex-col gap-y-s-lg text-ui-base bg-surface color-schema-accent-1" role="contentinfo" aria-label="Site footer">
+  <div class="flex max-lg:flex-col gap-x-b-base gap-y-s-base px-s-inner">
+    {% # newsletter %}
+    <div class="flex flex-col w-full gap-y-s-base" aria-labelledby="newsletter-heading">
+      {% capture footer_logo %}
+        <img
+          src="{{ 'logo.png' | asset_url }}"
+          alt="{{ shop.name | escape }}"
+          class="w-35"
+          width="280"
+          height="68"
+          loading="lazy"
+        >
+      {% endcapture %}
+      {{
+        footer_logo
+        | link_to: routes.root_url,
+          class: 'shrink-0',
+          aria-label: shop.name
+      }}
+      <footer-newsletter class="max-w-full md:max-w-xs">
+        {%- form 'customer', id: 'footer-newsletter-form' -%}
+          <div class="border-b border-primary flex items-center gap-x-2 transition-colors max-w-sm">
+            <input type="hidden" name="customer[accepts_marketing]" value="true" id="accept_terms">
+            <input type="hidden" name="contact[tags]" value="newsletter">
+
+            <label for="footer-subscription" class="sr-only">Email address for newsletter</label>
+            <input
+              type="email"
+              name="contact[email]"
+              placeholder="{{ 'newsletter.email_placeholder' | t }}"
+              id="footer-subscription"
+              class="w-full h-10 focus:outline-none placeholder:text-secondary"
+              required
+              aria-describedby="newsletter-description newsletter-error"
+              aria-invalid="false"
+              autocomplete="email"
+            >
+
+            <button
+              type="submit"
+              class="focus:outline-none focus:color-schema-contrast focus:bg-surface cursor-pointer transition-all hover:color-schema-contrast hover:bg-surface px-3 py-4"
+              aria-label="{{ 'newsletter.subscribe_aria_label' | t }}"
+            >
+              <span class="sr-only">{{ 'newsletter.subscribe_sr_text' | t }}</span>
+              {%- render 'a--icon', icon: 'arrow-r-up', class: 'w-4 h-4' -%}
+            </button>
+          </div>
+
+          <div id="newsletter-description" class="text-ui-small leading-copy text-secondary pt-6 link-underline">
+            {{ 'newsletter.description_html' | t: link: routes.privacy_policy_url }}
+          </div>
+
+          <div id="newsletter-error" class="text-system-red text-sm mt-2 hidden" role="alert" aria-live="polite">
+            {{ 'newsletter.error_message' | t }}
+          </div>
+        {%- endform -%}
+      </footer-newsletter>
+    </div>
+    {% # desktop menus %}
+    {% if section.settings.main_footer_menu != blank %}
+        {% for link in linklists[section.settings.main_footer_menu].links %}
+          <nav
+            class="w-full flex flex-col gap-y-b-base mt-1.5"
+            aria-labelledby="footer-nav-{{ forloop.index }}"
+          >
+            <div id="footer-nav-{{ forloop.index }}" class="font-medium">{{ link.title }}</div>
+            <ul class="flex flex-col gap-y-b-sm" role="list">
+              {%- liquid
+                for child_link in link.links
+                  echo '<li role="listitem">'
+                  echo child_link.title | link_to: child_link.url, class: 'hover:underline focus:underline focus:outline-none transition-all'
+                  echo '</li>'
+                endfor
+              -%}
+            </ul>
+          </nav>
+        {% endfor %}
+    {% endif %}
+  <div class="w-full flex flex-col gap-y-b-base">
+    <div class="font-medium">{{ 'footer.contact' | t }}</div>
+    <div>{{ section.settings.address }}</div>
+    <div class="font-medium">{{ 'footer.follow_us' | t }}</div>
+
+    {%- render 'm--social-media-links', hide_icons: true, show_labels: true, class_list: 'flex! flex-col! gap-y-b-sm'-%}
+  </div>
+
+    {% comment %}
+    {% # back to top button (hidden on desktop)  looks like an accordion summary %}
+    <a
+      href="#top"
+      class="flex justify-between lg:hidden h-16 px-s-whole text-ui-title items-center border-b border-secondary hover:bg-emphasis focus:bg-emphasis focus:outline-none transition-colors"
+    >
+      {{ 'footer.back_to_top' | t }}
+      {%- render 'a--icon', icon: 'chevron-u' -%}
+    </a>
+    {% endcomment %}
+  </div>
+  {% if section.settings.bottom_footer_menu != blank %}
+    <div class=" border-t border-secondary py-s-xs px-s-inner flex max-lg:flex-col justify-between items-start lg:items-center gap-y-s-base">
+    {% render 'm--language-selector' %}
+    <nav aria-label="Legal links" class="">
+      <ul class="grid gap-y-b-lg lg:flex flex-wrap gap-x-s-base max-lg:justify-center" role="list">
+        {%- liquid
+          for link in linklists[section.settings.bottom_footer_menu].links
+            echo '<li role="listitem">'
+            echo link.title | link_to: link.url, class: 'hover:underline focus:underline focus:outline-none transition-all'
+            echo '</li>'
+          endfor
+        -%}
+      </ul>
+    </nav>
+    <span class="font-medium">© {{ 'now' | date: '%Y' }} {{ shop.name }}</span>
+  </div>
+  {% endif %}
+</footer>
+
+{% schema %}
+{
+  "name": "Footer",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "richtext",
+      "id": "seo_text_1",
+      "label": "SEO text 1"
+    },
+    {
+      "type": "richtext",
+      "id": "seo_text_2",
+      "label": "SEO text 2"
+    },
+    {
+      "type": "header",
+      "content": "Main Footer Menu"
+    },
+    {
+      "type": "link_list",
+      "id": "main_footer_menu",
+      "label": "Main footer menu",
+      "info": "This menu will be displayed in the main footer area with desktop grid layout and mobile accordion"
+    },
+
+    {
+      "type": "header",
+      "content": "Bottom Footer Menu"
+    },
+    {
+      "type": "link_list",
+      "id": "bottom_footer_menu",
+      "label": "Bottom footer menu",
+      "info": "This menu will be displayed in the bottom footer area with legal links"
+    },
+    {
+      "type": "header",
+      "content": "Contact"
+    },
+    {
+      "type": "richtext",
+      "id": "address",
+      "label": "Contact info",
+      "info": "Shown under the Contact heading in the footer (address, email, phone, etc.)."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "feature",
+      "name": "Feature",
+      "settings": [
+        {
+          "type": "text",
+          "id": "icon",
+          "label": "Icon",
+          "default": "check",
+          "info": "Icon name passed to a--icon (e.g. check)"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title"
+        },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Description"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Footer",
+      "blocks": [
+        {
+          "type": "feature",
+          "settings": {
+            "icon": "check",
+            "title": "Designed and built by Voldt®",
+            "description": "<p>Every cable is developed in-house by our expert team to meet the highest European standards.</p>"
+          }
+        },
+        {
+          "type": "feature",
+          "settings": {
+            "icon": "check",
+            "title": "3 year full warranty",
+            "description": "<p>We stand behind our quality — if anything goes wrong, we'll make it right.</p>"
+          }
+        },
+        {
+          "type": "feature",
+          "settings": {
+            "icon": "check",
+            "title": "100 days hassle free return",
+            "description": "<p>Not the right fit? No problem — send it back, no questions asked.</p>"
+          }
+        },
+        {
+          "type": "feature",
+          "settings": {
+            "icon": "check",
+            "title": "Engineered to perform",
+            "description": "<p>Tested in extreme conditions to deliver safe, reliable charging in any environment.</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

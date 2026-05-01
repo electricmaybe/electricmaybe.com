@@ -1,0 +1,163 @@
+# climaybe — AI Changelog Generator (Reusable Workflow)
+# Uses Gemini when available, otherwise falls back to GitHub Models.
+
+name: AI Changelog
+
+on:
+  workflow_call:
+    inputs:
+      base_ref:
+        description: 'Base ref (tag or commit) to collect commits from'
+        required: true
+        type: string
+      head_ref:
+        description: 'Head ref to collect commits to (default: HEAD)'
+        required: false
+        type: string
+        default: 'HEAD'
+    outputs:
+      changelog:
+        description: 'Generated changelog in markdown format'
+        value: ${{ jobs.generate.outputs.changelog }}
+    secrets:
+      GEMINI_API_KEY:
+        required: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      models: read
+    outputs:
+      changelog: ${{ steps.ai.outputs.changelog || steps.no_commits.outputs.changelog }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Collect commits
+        id: commits
+        run: |
+          COMMITS=$(git log --pretty=format:"%h %s" ${{ inputs.base_ref }}..${{ inputs.head_ref }} 2>/dev/null || echo "")
+          if [ -z "$COMMITS" ]; then
+            echo "No commits found between ${{ inputs.base_ref }} and ${{ inputs.head_ref }}"
+            echo "has_commits=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          # File avoids huge env vars and shell escaping; jq reads via --rawfile (never use --argjson for raw log text).
+          printf '%s\n' "$COMMITS" > commits-for-ai.txt
+          echo "has_commits=true" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog (Gemini -> GitHub Models fallback)
+        id: ai
+        if: steps.commits.outputs.has_commits == 'true'
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          COMMITS=$(cat commits-for-ai.txt)
+          PROVIDER="fallback"
+
+          PROMPT=$(cat <<'PROMPT_EOF'
+          You are a changelog generator for a Shopify theme repository.
+          Given the following git commits, classify each into one of these categories:
+          - **Features**: New functionality
+          - **Fixes**: Bug fixes
+          - **Improvements**: Enhancements to existing features
+          - **Chore**: Maintenance, refactoring, docs
+
+          Format the output as a markdown changelog. Group by category.
+          Omit empty categories. Write concise, merchant-friendly descriptions.
+          Do NOT include commit hashes in the output.
+
+          Commits:
+          PROMPT_EOF
+          )
+
+          CHANGELOG=""
+
+          # 1) Gemini path (if secret exists)
+          if [ -n "$GEMINI_API_KEY" ]; then
+            PAYLOAD=$(jq -n \
+              --arg prompt "$PROMPT" \
+              --rawfile commits commits-for-ai.txt \
+              '{
+                "contents": [{
+                  "parts": [{"text": ($prompt + "\n" + $commits)}]
+                }],
+                "generationConfig": {
+                  "temperature": 0.3,
+                  "maxOutputTokens": 2048
+                }
+              }')
+
+            RESPONSE=$(curl -s -X POST \
+              "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}" \
+              -H "Content-Type: application/json" \
+              -d "$PAYLOAD")
+
+            CHANGELOG=$(echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text // empty' 2>/dev/null || true)
+            if [ -n "$CHANGELOG" ] && [ "$CHANGELOG" != "null" ]; then
+              PROVIDER="gemini"
+            fi
+          fi
+
+          # 2) GitHub Models path (Copilot-backed models)
+          if [ -z "$CHANGELOG" ] || [ "$CHANGELOG" = "null" ]; then
+            GH_PAYLOAD=$(jq -n \
+              --arg prompt "$PROMPT" \
+              --rawfile commits commits-for-ai.txt \
+              '{
+                "model": "gpt-4o-mini",
+                "messages": [
+                  {"role":"system","content":"You are a changelog generator for Shopify theme repos. Output markdown only."},
+                  {"role":"user","content": ($prompt + "\n" + $commits)}
+                ],
+                "temperature": 0.3,
+                "max_tokens": 1200
+              }')
+
+            GH_RESPONSE=$(curl -s -X POST \
+              "https://models.inference.ai.azure.com/chat/completions" \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+              -d "$GH_PAYLOAD")
+
+            CHANGELOG=$(echo "$GH_RESPONSE" | jq -r '.choices[0].message.content // empty' 2>/dev/null || true)
+            if [ -n "$CHANGELOG" ] && [ "$CHANGELOG" != "null" ]; then
+              PROVIDER="github-models"
+            fi
+          fi
+
+          # 3) Safe fallback if both providers fail
+          if [ -z "$CHANGELOG" ] || [ "$CHANGELOG" = "null" ]; then
+            COMMIT_LINES="$COMMITS"
+            CHANGELOG=$(printf "## Chore\n")
+            while IFS= read -r line; do
+              [ -z "$line" ] && continue
+              SUBJECT="${line#* }"
+              CHANGELOG="${CHANGELOG}- ${SUBJECT}\n"
+            done <<< "$COMMIT_LINES"
+            PROVIDER="static-fallback"
+          fi
+
+          echo "Changelog provider: $PROVIDER"
+
+          # Write to output (multiline)
+          {
+            echo "changelog<<CHANGELOG_EOF"
+            printf "%b\n" "$CHANGELOG"
+            echo "CHANGELOG_EOF"
+          } >> $GITHUB_OUTPUT
+
+      - name: Fallback if no commits
+        id: no_commits
+        if: steps.commits.outputs.has_commits != 'true'
+        run: |
+          {
+            echo "changelog<<CHANGELOG_EOF"
+            echo "No changes detected."
+            echo "CHANGELOG_EOF"
+          } >> $GITHUB_OUTPUT

@@ -1,0 +1,277 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "hero_vol37_partner": {
+      "type": "partner--hero",
+      "name": "Partner hero",
+      "blocks": {
+        "mini_card_v37_1": {
+          "type": "mini_card",
+          "settings": {
+            "icon": "europe",
+            "text": "<p>{{ metaobjects.features[\"order-directly-from-european-manufacturer\"].feature_name.value }}</p>"
+          }
+        },
+        "mini_card_v37_2": {
+          "type": "mini_card",
+          "settings": {
+            "icon": "delivery",
+            "text": "<p>{{ metaobjects.features[\"always-in-stock\"].feature_name.value }}</p>"
+          }
+        },
+        "mini_card_v37_3": {
+          "type": "mini_card",
+          "settings": {
+            "icon": "secure_2",
+            "text": "<p>{{ metaobjects.features[\"3-year-full-warranty\"].feature_name.value }}</p>"
+          }
+        },
+        "mini_card_v37_4": {
+          "type": "mini_card",
+          "settings": {
+            "icon": "shipping",
+            "text": "<p>{{ metaobjects.features[\"optional-dropshipping\"].feature_name.value }}</p>"
+          }
+        },
+        "mini_card_v37_5": {
+          "type": "mini_card",
+          "settings": {
+            "icon": "newproduct",
+            "text": "<p>{{ metaobjects.features[\"we-produce-and-manufacture-your-tailored-product\"].feature_name.value }}</p>"
+          }
+        },
+        "mini_card_v37_6": {
+          "type": "mini_card",
+          "settings": {
+            "icon": "discount",
+            "text": "<p>{{ metaobjects.features[\"up-to-40-discount\"].feature_name.value }}</p>"
+          }
+        },
+        "mini_card_v37_7": {
+          "type": "mini_card",
+          "settings": {
+            "icon": "review",
+            "text": "<p>{{ metaobjects.features[\"pay-by-30-days-invoice\"].feature_name.value }}</p>"
+          }
+        }
+      },
+      "block_order": [
+        "mini_card_v37_1",
+        "mini_card_v37_2",
+        "mini_card_v37_3",
+        "mini_card_v37_4",
+        "mini_card_v37_5",
+        "mini_card_v37_6",
+        "mini_card_v37_7"
+      ],
+      "settings": {
+        "overlay_header": true,
+        "heading": "<p>{{ metaobjects.standard_title[\"become-an-official-voldt-reseller\"].title.value }}</p>",
+        "description": "<p>{{ metaobjects.standard_title[\"all-cables-and-accessories-here-are-100-compatible-with-your-car\"].title.value }}</p>",
+        "button_1_label": "{{ metaobjects.standard_title[\"why-voldt\"].title.value }}",
+        "button_1_url": "#id1",
+        "button_2_label": "{{ metaobjects.standard_title[\"become-a-partner-of-voldt\"].title.value }}",
+        "button_2_url": "#id2",
+        "height": "h-128",
+        "height_md": "md:h-128",
+        "height_lg": "lg:h-[24vw]",
+        "image_mobile": "shopify://shop_images/voldt-thank-you-card-front-lifestyle-image_1.png",
+        "image_tablet": "shopify://shop_images/voldt-thank-you-card-front-lifestyle-image_1.png",
+        "image_desktop": "shopify://shop_images/voldt-thank-you-card-front-lifestyle-image_1.png",
+        "position_mobile": "items-center justify-start text-left",
+        "position_tablet": "md:items-center md:justify-center md:text-center",
+        "position_desktop": "lg:items-start lg:justify-start lg:text-left",
+        "overlay_color": "#000000",
+        "overlay_opacity": 40,
+        "overlay_blur": 0
+      }
+    },
+    "s_page_info_wWcnbW": {
+      "type": "s--page-info",
+      "blocks": {
+        "info_item_pf7nXU": {
+          "type": "info_item",
+          "settings": {
+            "icon": "shopify://shop_images/team.svg",
+            "title": "",
+            "body": "{{ metaobjects.home_page_content[\"home-page-content-fhuf0tca\"][\"4th_block\"] | metafield_tag }}"
+          }
+        },
+        "info_item_Ltgzz9": {
+          "type": "info_item",
+          "settings": {
+            "icon": "shopify://shop_images/partnership.svg",
+            "title": "",
+            "body": "{{ metaobjects.home_page_content[\"home-page-content-fhuf0tca\"][\"5th_block\"] | metafield_tag }}"
+          }
+        },
+        "info_item_RxMR9c": {
+          "type": "info_item",
+          "settings": {
+            "icon": "shopify://shop_images/excellent.svg",
+            "title": "",
+            "body": "<p>{{ metaobjects.home_page_content[\"home-page-content-fhuf0tca\"][\"6th_block\"] | metafield_tag }}</p>"
+          }
+        }
+      },
+      "block_order": [
+        "info_item_pf7nXU",
+        "info_item_Ltgzz9",
+        "info_item_RxMR9c"
+      ],
+      "custom_css": [],
+      "name": "Page info",
+      "settings": {
+        "heading": "Why Become a\nVoldt® Partner"
+      }
+    },
+    "s_logo_marquee_zHUMw3": {
+      "type": "s--logo-marquee",
+      "blocks": {
+        "logo_hHPtAf": {
+          "type": "logo",
+          "settings": {
+            "alt": "",
+            "link": ""
+          }
+        },
+        "logo_8hjJQF": {
+          "type": "logo",
+          "settings": {
+            "alt": "",
+            "link": ""
+          }
+        },
+        "logo_zt4cgw": {
+          "type": "logo",
+          "settings": {
+            "alt": "",
+            "link": ""
+          }
+        },
+        "logo_w4qrab": {
+          "type": "logo",
+          "settings": {
+            "image": "shopify://shop_images/4.png",
+            "alt": "",
+            "link": ""
+          }
+        }
+      },
+      "block_order": [
+        "logo_hHPtAf",
+        "logo_8hjJQF",
+        "logo_zt4cgw",
+        "logo_w4qrab"
+      ],
+      "disabled": true,
+      "name": "Logo marquee",
+      "settings": {
+        "aria_label": "",
+        "rows_desktop": 1,
+        "rows_tablet": 2,
+        "rows_mobile": 2,
+        "speed": 30
+      }
+    },
+    "s_split_content_blocks_YaF6fA": {
+      "type": "s--split-content-blocks",
+      "blocks": {
+        "split_block_mrFEyN": {
+          "type": "split_block",
+          "settings": {
+            "layout": "text_left",
+            "theme": "light",
+            "title": "",
+            "description": "{{ metaobjects.home_page_content[\"home-page-content-fhuf0tca\"][\"1st_block\"] | metafield_tag }}",
+            "button_label": "{{ metaobjects.standard_title[\"contact-us-for-more-information\"].title.value }}",
+            "button_url": "#id2",
+            "image": "shopify://shop_images/voldt-lifestyle-visual-showroom.jpg"
+          }
+        },
+        "split_block_VqCyHr": {
+          "type": "split_block",
+          "settings": {
+            "layout": "image_left",
+            "theme": "dark",
+            "title": "",
+            "description": "{{ metaobjects.home_page_content[\"home-page-content-fhuf0tca\"][\"2nd_block\"] | metafield_tag }}",
+            "button_label": "",
+            "button_url": "",
+            "image": "shopify://shop_images/voldt-standard-cable-charging-pole-image-2.jpg"
+          }
+        },
+        "split_block_jWgQmw": {
+          "type": "split_block",
+          "settings": {
+            "layout": "text_left",
+            "theme": "light",
+            "title": "",
+            "description": "{{ metaobjects.home_page_content[\"home-page-content-fhuf0tca\"][\"3rd_block\"] | metafield_tag }}",
+            "button_label": "",
+            "button_url": "shopify://collections",
+            "image": "shopify://shop_images/Frame_31457223.png"
+          }
+        }
+      },
+      "block_order": [
+        "split_block_mrFEyN",
+        "split_block_VqCyHr",
+        "split_block_jWgQmw"
+      ],
+      "name": "Split content blocks",
+      "settings": {}
+    },
+    "17731332089a5f1047": {
+      "type": "apps",
+      "blocks": {
+        "easy_content_builder_custom_html_c34dN8": {
+          "type": "shopify://apps/easy-content-builder/blocks/custom-html/08c79414-ca28-4781-a647-2921b7943a0b",
+          "settings": {
+            "paragraph": "",
+            "html": "<span id=\"id2\"></span>",
+            "custom_liquid": "",
+            "margin": "medium"
+          }
+        }
+      },
+      "block_order": [
+        "easy_content_builder_custom_html_c34dN8"
+      ],
+      "settings": {
+        "include_margins": true
+      }
+    },
+    "s_contact_form_Ee78bh": {
+      "type": "s--contact-form",
+      "name": "Contact form",
+      "settings": {
+        "heading": "{{ page.title }}",
+        "image": "shopify://shop_images/voldt-lifestyle-visual-desert.jpg",
+        "body": "<p>{{ metaobjects.standard_title[\"for-questions-or-general-inquiries-please-leave-your-contact-information-below-and-we-will-get-back-to-you-as-soon-as-possible\"].title.value }}</p>"
+      }
+    },
+    "main": {
+      "type": "page--default",
+      "disabled": true,
+      "settings": {}
+    }
+  },
+  "order": [
+    "hero_vol37_partner",
+    "s_page_info_wWcnbW",
+    "s_logo_marquee_zHUMw3",
+    "s_split_content_blocks_YaF6fA",
+    "17731332089a5f1047",
+    "s_contact_form_Ee78bh",
+    "main"
+  ]
+}

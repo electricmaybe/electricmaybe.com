@@ -1,0 +1,70 @@
+{%- doc -%}
+  Collection insert card for displaying non-product content inside a collection grid.
+
+  Renders a clickable card with an image, title, and supporting text, sized to match product cards in the grid. Intended for insertion at specific positions via collection metafields.
+
+  @param {object} card - Metaobject representing the insert card (required)
+  @param {string} [class] - Additional CSS classes for the wrapper
+  @param {string} [style] - Inline style string for the wrapper (optional)
+
+  @example
+  {% render 'm--collection-insert-card', card: card_metaobject %}
+{%- enddoc -%}
+
+{%- liquid
+  assign card = card | default: null
+  unless card
+    echo '<!-- Error: card parameter required for m--collection-insert-card -->'
+    break
+  endunless
+
+  assign title = card.title.value | default: card.title | default: ''
+  assign description = card.description.value | default: card.description | default: ''
+  assign url = card.url.value | default: card.url | default: ''
+  assign image = card.image.value | default: card.image
+-%}
+
+<div class="{{ class }} block" style="{{ style }}">
+  {%- if url != blank -%}
+    <a href="{{ url }}" class="block">
+  {%- endif -%}
+
+  <div class="w-full">
+    <div class="w-full bg-subtle aspect-[372/437] overflow-hidden">
+      {%- if image != blank -%}
+        <img
+          src="{{ image | image_url: width: 900 }}"
+          srcset="{{ image | image_url: width: 450 }} 450w, {{ image | image_url: width: 900 }} 900w"
+          sizes="(min-width: 60rem) 25vw, 50vw"
+          width="900"
+          height="1057"
+          alt="{{ title | escape }}"
+          loading="lazy"
+          class="w-full h-full object-cover -mix-blend-darken"
+        >
+      {%- endif -%}
+    </div>
+
+    <div class="flex flex-col gap-y-s-xs py-b-sm">
+      <div class="flex items-center gap-x-b-base w-full">
+        <div class="flex-1 h3 text-primary">
+          {{ title }}
+        </div>
+        <div class="shrink-0">
+          {% render 'a--icon', icon: 'arrow-l-up', width: '1.5rem' %}
+        </div>
+      </div>
+
+      {%- if description != blank -%}
+        <div class="text-ui-base leading-[1.2] text-primary">
+          {{ description }}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+
+  {%- if url != blank -%}
+    </a>
+  {%- endif -%}
+</div>
+

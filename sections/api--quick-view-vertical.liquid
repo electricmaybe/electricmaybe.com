@@ -1,0 +1,5 @@
+{% # theme-check-disable UnusedAssign %}
+{% liquid
+    assign product_form_id = 'product-form-' | append: section.id | append: product.id | append: '-modal'
+%}
+{% # theme-check-enable UnusedAssign %}

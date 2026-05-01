@@ -1,0 +1,153 @@
+<nav class="max-lg:hidden header__desktop-navigation [[data-threshold-passed=true]_&]:max-lg:-translate-y-full transition-transform duration-750 ease-in-out w-full">
+  <ul
+    class="flex lg:flex-wrap h-full max-lg:overflow-x-scroll flex-nowrap justify-start hide-scroll-bar"
+    role="list"
+  >
+    {%- liquid
+      assign menu = linklists[section.settings.menu]
+      if menu == blank
+        assign menu = linklists['new-menu']
+      endif
+    -%}
+
+    {%- for link in menu.links -%}
+      <li class="group/link max-lg:first:[&_>_a]:pl-5 max-lg:last:[&_>_a]:pr-5">
+        <a
+          href="{{ link.url }}"
+          class="inline-block group/a px-2.5 lg:px-5 h-full content-center transition-opacity cursor-pointer w-fit whitespace-nowrap {% if link.current %}font-medium{% endif %} {% if link.url contains 'sale' %}text-red{% endif %}"
+          aria-label="{{ link.title | escape }}"
+          {% if link.current %}
+            aria-current="page"
+          {% endif %}
+        >
+          <span class="relative group-hover/a:before:w-full before:absolute before:-bottom-px before:left-0 before:h-px before:bg-[currentColor] before:transition-all before:duration-500 before:w-0 before:ease-in-out">
+            {{ link.title | escape }}
+          </span>
+        </a>
+        {% if link.links.size > 0 %}
+          <div
+            class="hidden group-hover/link:lg:grid absolute top-full left-0 w-full bg-surface border-y border-secondary px-s-whole py-b-base pb-0! gap-x-b-base gap-y-0 before:absolute-overlay text-ui-base grid grid-cols-3"
+          >
+            {%- liquid
+              assign card_class = 'bg-subtle relative px-b-base py-b-base flex flex-col justify-end hover:opacity-70 transition-opacity group/card overflow-hidden'
+              assign promo_img_class = 'top-0 bottom-0 right-(--px-b-base) absolute object-contain h-full mix-blend-darken'
+            -%}
+            {%- for i in (1..2) -%}
+              {%- liquid
+                case i
+                  when 1
+                    assign promo_collection = section.settings.nav_promo_1_collection
+                    assign promo_title_override = section.settings.nav_promo_1_title
+                    assign promo_desc_override = section.settings.nav_promo_1_description
+                    assign promo_image_override = section.settings.nav_promo_1_image
+                  when 2
+                    assign promo_collection = section.settings.nav_promo_2_collection
+                    assign promo_title_override = section.settings.nav_promo_2_title
+                    assign promo_desc_override = section.settings.nav_promo_2_description
+                    assign promo_image_override = section.settings.nav_promo_2_image
+                endcase
+
+                if promo_collection == blank
+                  continue
+                endif
+
+                assign promo_title = promo_title_override | default: promo_collection.title
+                assign promo_description = promo_desc_override | default: promo_collection.description | strip_html | truncate: 80
+                assign promo_image = promo_image_override | default: promo_collection.image
+              -%}
+              <a href="{{ promo_collection.url }}" class="{{ card_class }}">
+                <div class="max-w-3/5 space-y-b-xs">
+                  <div class="flex items-center gap-x-b-base h4">
+                    {{ promo_title }}
+                    {% render 'a--icon', icon: 'arrow-r-up' %}
+                  </div>
+                  {%- if promo_description != blank -%}
+                    <div class="text-ui-small text-secondary">{{ promo_description }}</div>
+                  {%- endif -%}
+                </div>
+                {%- if promo_image != blank -%}
+                  <img
+                    src="{{ promo_image | image_url: height: 350 }}"
+                    width="175"
+                    height="280"
+                    alt="{{ promo_title | escape }}"
+                    class="{{ promo_img_class }}"
+                    loading="lazy"
+                  >
+                {%- endif -%}
+              </a>
+            {%- endfor -%}
+            <ul class="flex flex-col flex-wrap w-full">
+              {%- for child_link in link.links -%}
+                <li>
+                  {%- capture child_link_content -%}
+                    {{- child_link.title -}}
+                    {% render 'a--icon', icon: 'arrow-r-up' %}
+                  {%- endcapture -%}
+                  {{-
+                    child_link_content
+                    | link_to: child_link.url,
+                      class: 'text-ui-base flex items-center justify-between py-b-sm border-b border-secondary hover:opacity-50'
+                  -}}
+                </li>
+              {%- endfor -%}
+            </ul>
+            <div class="col-span-12 grid grid-cols-12 py-b-base">
+              {%- liquid
+                assign store_level_usps = shop.metafields.custom.store_level_usps.value
+              -%}
+              {%- for usp in store_level_usps limit: 3 -%}
+                {%- liquid
+                  assign usp_icon_ref = usp.icon.value | default: usp.icon
+                  assign usp_text = usp.name.value | default: usp.name | default: ''
+                -%}
+                {%- if usp_text == blank and usp_icon_ref == blank -%}{%- continue -%}{%- endif -%}
+                <div class="flex items-center justify-start gap-x-b-sm col-span-4 h6">
+                  {%- if usp_icon_ref != blank -%}
+                    {%- if usp_icon_ref.preview_image != blank -%}
+                      <img
+                        src="{{ usp_icon_ref.preview_image | image_url: width: 48 }}"
+                        alt="{{ usp_text | escape }}"
+                        width="24"
+                        height="24"
+                        loading="lazy"
+                        decoding="async"
+                        class="w-6 h-6 object-contain"
+                      >
+                    {%- elsif usp_icon_ref.width != blank and usp_icon_ref.height != blank -%}
+                      <img
+                        src="{{ usp_icon_ref | image_url: width: 48 }}"
+                        alt="{{ usp_text | escape }}"
+                        width="24"
+                        height="24"
+                        loading="lazy"
+                        decoding="async"
+                        class="w-6 h-6 object-contain"
+                      >
+                    {%- else -%}
+                      {%- liquid
+                        assign usp_icon_str = usp_icon_ref | append: ''
+                      -%}
+                      {%- if usp_icon_str contains '.png' or usp_icon_str contains '.jpg' or usp_icon_str contains '.jpeg' or usp_icon_str contains '.webp' or usp_icon_str contains '.svg' -%}
+                        <img
+                          src="{{ usp_icon_str | asset_url }}"
+                          alt="{{ usp_text | escape }}"
+                          width="24"
+                          height="24"
+                          loading="lazy"
+                          decoding="async"
+                          class="w-6 h-6 object-contain"
+                        >
+                      {%- endif -%}
+                    {%- endif -%}
+                  {%- endif -%}
+                  {%- if usp_text != blank -%}{{ usp_text }}{%- endif -%}
+                </div>
+              {%- endfor -%}
+            </div>
+          </div>
+        {%- endif -%}
+      </li>
+    {%- endfor -%}
+  </ul>
+</nav>

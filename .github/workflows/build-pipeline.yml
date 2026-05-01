@@ -1,0 +1,83 @@
+# climaybe — Build Pipeline (Optional Build Package)
+
+name: Build Pipeline
+
+on:
+  push:
+    branches: ['**']
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - '.github/**'
+      - '.cursor/**'
+      - '.claude/**'
+      - '.eser/**'
+      - 'README*'
+      - 'LICENSE*'
+      - 'CHANGELOG*'
+      - 'CONTRIBUTING*'
+
+jobs:
+  build:
+    # Skip pure store-sync + hotfix-backport commits; those are infrastructure-only
+    # syncs from staging/live stores back to main and should not trigger heavy theme
+    # review / build pipelines.
+    # On live-<alias>, skip when the pusher is a GitHub bot (actor name contains "[bot]")
+    # so automated commits do not run script/Tailwind compilation.
+    if: >
+      !contains(github.event.head_commit.message, '[hotfix-backport]')
+      && !contains(github.event.head_commit.message, '[stores-to-root]')
+      && !contains(github.event.head_commit.message, '[root-to-stores]')
+      && !(github.actor == 'github-actions[bot]' && contains(github.event.head_commit.message, 'chore(assets): update compiled javascript and css'))
+      && !(startsWith(github.ref_name, 'live-') && contains(github.actor, '[bot]'))
+    uses: ./.github/workflows/reusable-build.yml
+
+  lighthouse-gate:
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: needs.build.outputs.build_ran == 'true'
+    outputs:
+      run_lighthouse: ${{ steps.check.outputs.run_lighthouse }}
+    env:
+      SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE_URL }}
+      SHOP_ACCESS_TOKEN: ${{ secrets.SHOP_ACCESS_TOKEN }}
+      LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+    steps:
+      - name: Check if Lighthouse CI should run
+        id: check
+        run: |
+          SKIP_REASONS=()
+          BR="${{ github.ref_name }}"
+          if [[ "$BR" == "staging" ]]; then
+            :
+          else
+            SKIP_REASONS+=("Lighthouse runs only on branch staging (current branch: $BR)")
+          fi
+          if [ -z "$SHOPIFY_STORE_URL" ] || [ -z "$SHOP_ACCESS_TOKEN" ] || [ -z "$LHCI_GITHUB_APP_TOKEN" ]; then
+            SKIP_REASONS+=("Missing required secrets: SHOPIFY_STORE_URL, SHOP_ACCESS_TOKEN, or LHCI_GITHUB_APP_TOKEN")
+          fi
+          if [ ${#SKIP_REASONS[@]} -gt 0 ]; then
+            echo "run_lighthouse=false" >> $GITHUB_OUTPUT
+            echo "Lighthouse CI skipped:"
+            for reason in "${SKIP_REASONS[@]}"; do echo "  - $reason"; done
+          else
+            echo "run_lighthouse=true" >> $GITHUB_OUTPUT
+          fi
+
+  lighthouse-ci:
+    runs-on: ubuntu-latest
+    needs: [build, lighthouse-gate]
+    if: needs.lighthouse-gate.outputs.run_lighthouse == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Lighthouse
+        uses: shopify/lighthouse-ci-action@v1
+        with:
+          store: ${{ secrets.SHOPIFY_STORE_URL }}
+          access_token: ${{ secrets.SHOP_ACCESS_TOKEN }}
+          password: ${{ secrets.SHOP_PASSWORD }}
+          lhci_github_app_token: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+          lhci_min_score_performance: 0.9
+          lhci_min_score_accessibility: 0.9

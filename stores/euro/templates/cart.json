@@ -1,0 +1,26 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "cart-main": {
+      "type": "cart--main",
+      "settings": {
+        "cart_recommendations_heading": "{{ metaobjects.standard_title[\"complete-your-charging-setup\"].title.value }}",
+        "cart_upsell_success_label": "Added!",
+        "cart_upsell_error_label": "Error",
+        "cart_trust_title": "{{ metaobjects.standard_title[\"order-with-confidence\"].title.value }}",
+        "cart_trust_subtext": "{{ metaobjects.standard_title[\"buyer-protection-available-in-the-next-steps\"].title.value }}"
+      }
+    }
+  },
+  "order": [
+    "cart-main"
+  ]
+}

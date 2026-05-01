@@ -1,0 +1,457 @@
+<section class="w-full px-s-outer py-s-base" {{ section.shopify_attributes }}>
+  <div class="px-s-inner">
+    <div class="grid grid-cols-1 lg:grid-cols-13 gap-y-s-lg lg:gap-x-s-xl">
+      {%- for block in section.blocks -%}
+        {%- assign block_wrapper_class = 'flex flex-col gap-y-s-base lg:col-span-4' -%}
+        {%- case block.type -%}
+          {%- when 'guidelines' -%}
+            <div class="{{ block_wrapper_class }}" {{ block.shopify_attributes }}>
+              {%- if block.settings.title != blank -%}
+                <h2 class="h3 text-primary">
+                  {{ block.settings.title | escape }}
+                </h2>
+              {%- endif -%}
+              <div class="flex flex-col gap-y-s-xs">
+                {%- if block.settings.guidelines_list != blank -%}
+                  <div class="rte text-body text-primary">
+                    {{ block.settings.guidelines_list }}
+                  </div>
+                {%- endif -%}
+                {%- if block.settings.info_text != blank -%}
+                  <div class="bg-emphasis flex gap-x-b-sm items-center px-b-xs py-b-xs">
+                    {%- render 'a--icon', icon: 'info-fill', width: '1.5rem', class: 'w-6 h-6 text-primary' -%}
+                    <p class="text-ui-small text-primary">
+                      {{ block.settings.info_text | escape }}
+                    </p>
+                  </div>
+                {%- endif -%}
+                {%- if block.settings.footer_text != blank -%}
+                  <p class="text-ui-small text-primary">
+                    {{ block.settings.footer_text | escape }}
+                  </p>
+                {%- endif -%}
+              </div>
+            </div>
+          {%- when 'social' -%}
+            <div class="{{ block_wrapper_class }}" {{ block.shopify_attributes }}>
+              {%- if block.settings.title != blank -%}
+                <h2 class="h3 text-primary">
+                  {{ block.settings.title | escape }}
+                </h2>
+              {%- endif -%}
+              <div class="flex flex-col gap-y-s-xs">
+                {%- if block.settings.facebook_label != blank -%}
+                  <div class="flex items-center gap-x-b-base">
+                    <div class="w-9 h-9 rounded-full border border-primary flex items-center justify-center">
+                      {%- render 'a--icon', icon: 'facebook-v2', width: '1rem', class: 'w-8 h-8 text-primary' -%}
+                    </div>
+                    <div class="flex flex-col gap-y-1">
+                      {%- if block.settings.facebook_url != blank -%}
+                        <a href="{{ block.settings.facebook_url }}" class="h5 text-primary hover:opacity-80">
+                          {{ block.settings.facebook_label | escape }}
+                        </a>
+                      {%- else -%}
+                        <p class="h5 text-primary">
+                          {{ block.settings.facebook_label | escape }}
+                        </p>
+                      {%- endif -%}
+                      {%- if block.settings.facebook_note != blank -%}
+                        <p class="text-ui-small text-secondary">
+                          {{ block.settings.facebook_note | escape }}
+                        </p>
+                      {%- endif -%}
+                    </div>
+                  </div>
+                {%- endif -%}
+                {%- if block.settings.instagram_label != blank -%}
+                  <div class="flex items-center gap-x-b-base">
+                    <div class="w-9 h-9 rounded-full border border-primary flex items-center justify-center">
+                      {%- render 'a--icon', icon: 'instagram-v2', width: '1rem', class: 'w-5 h-5 text-primary', viewBox: '0 0 18 18' -%}
+                    </div>
+                    <div class="flex flex-col gap-y-1">
+                      {%- if block.settings.instagram_url != blank -%}
+                        <a href="{{ block.settings.instagram_url }}" class="h5 text-primary hover:opacity-80">
+                          {{ block.settings.instagram_label | escape }}
+                        </a>
+                      {%- else -%}
+                        <p class="h5 text-primary">
+                          {{ block.settings.instagram_label | escape }}
+                        </p>
+                      {%- endif -%}
+                      {%- if block.settings.instagram_note != blank -%}
+                        <p class="text-ui-small text-secondary">
+                          {{ block.settings.instagram_note | escape }}
+                        </p>
+                      {%- endif -%}
+                    </div>
+                  </div>
+                {%- endif -%}
+                {%- if block.settings.youtube_label != blank -%}
+                  <div class="flex items-center gap-x-b-base">
+                    <div class="w-9 h-9 rounded-full border border-primary flex items-center justify-center">
+                      {%- render 'a--icon', icon: 'youtube-v2', width: '1rem', class: 'w-6 h-6 text-primary', viewBox: '0 0 24 24' -%}
+                    </div>
+                    <div class="flex flex-col gap-y-1">
+                      {%- if block.settings.youtube_url != blank -%}
+                        <a href="{{ block.settings.youtube_url }}" class="h5 text-primary hover:opacity-80">
+                          {{ block.settings.youtube_label | escape }}
+                        </a>
+                      {%- else -%}
+                        <p class="h5 text-primary">
+                          {{ block.settings.youtube_label | escape }}
+                        </p>
+                      {%- endif -%}
+                      {%- if block.settings.youtube_note != blank -%}
+                        <p class="text-ui-small text-secondary">
+                          {{ block.settings.youtube_note | escape }}
+                        </p>
+                      {%- endif -%}
+                    </div>
+                  </div>
+                {%- endif -%}
+                {%- if block.settings.footer_text != blank -%}
+                  <p class="text-ui-small text-primary">
+                    {{ block.settings.footer_text | escape }}
+                  </p>
+                {%- endif -%}
+              </div>
+            </div>
+          {%- when '@app' -%}
+            <div class="flex flex-col gap-y-s-base lg:col-span-5" {{ block.shopify_attributes }}>
+              {%- if section.settings.title != blank -%}
+                <h2 class="h3 text-primary">
+                  {{ section.settings.title | escape }}
+                </h2>
+              {%- endif -%}
+              {%- render block -%}
+            </div>
+          {%- when 'form' -%}
+            <div class="{{ block_wrapper_class }}" {{ block.shopify_attributes }}>
+              {%- if block.settings.title != blank -%}
+                <h2 class="h3 text-primary">
+                  {{ block.settings.title | escape }}
+                </h2>
+              {%- endif -%}
+              <div class="flex flex-col gap-y-s-xs">
+                {%- if block.settings.form_embed != blank -%}
+                  {{ block.settings.form_embed }}
+                {%- else -%}
+                  <div class="flex flex-col gap-y-s-xs">
+                    <div class="border border-secondary h-16 px-b-lg flex items-center text-ui-base text-primary">
+                      {{ block.settings.field_1_label | escape }}
+                    </div>
+                    <div class="border border-secondary h-16 px-b-lg flex items-center text-ui-base text-primary gap-x-b-base">
+                      <span class="flex-1">{{ block.settings.field_2_label | escape }}</span>
+                      <span class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-subtle text-on-accent">
+                        {%- render 'a--icon', icon: 'arrow-l-up', width: '1.5rem', class: 'w-6 h-6 text-on-accent' -%}
+                      </span>
+                    </div>
+                    <div class="border border-secondary h-16 px-b-lg flex items-center text-ui-base text-primary">
+                      {{ block.settings.field_3_label | escape }}
+                    </div>
+                    {%- if block.settings.terms_text != blank -%}
+                      <label class="flex gap-x-b-sm items-start text-ui-small text-primary">
+                        <input type="checkbox" class="mt-1" checked disabled>
+                        <span class="leading-[1.2]">{{ block.settings.terms_text | escape }}</span>
+                      </label>
+                    {%- endif -%}
+                    {%- if block.settings.submit_label != blank -%}
+                      {%- render 'a--button',
+                        tag: 'button',
+                        label: block.settings.submit_label,
+                        class: 'w-full'
+                      -%}
+                    {%- endif -%}
+                  </div>
+                {%- endif -%}
+              </div>
+            </div>
+        {%- endcase -%}
+        {%- unless forloop.last -%}
+          <hr class="w-full border-secondary lg:hidden">
+        {%- endunless -%}
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+<style>
+  #shopify-section-{{ section.id }} .formful__field-wrapper {
+    width: 100%;
+    position: relative;
+  }
+
+  #shopify-section-{{ section.id }} .formful__form {
+    padding: 0;
+  }
+
+  #shopify-section-{{ section.id }} .formful__wrapper {
+    padding: 0;
+  }
+
+  #shopify-section-{{ section.id }} .formful__label {
+    position: absolute;
+    inset-inline-start: var(--px-b-lg);
+    inset-block-start: 50%;
+    transform: translateY(-50%);
+    margin: 0;
+    color: var(--text-color-primary);
+    font-size: var(--text-size-ui-base);
+    pointer-events: none;
+  }
+
+  #shopify-section-{{ section.id }} .formful__input,
+  #shopify-section-{{ section.id }} .formful__upload,
+  #shopify-section-{{ section.id }} .formful__input.field__input {
+    width: 100%;
+    min-height: 4rem;
+    border: 1px solid var(--input-border, #E4E3DD);
+    padding-inline: var(--px-b-lg);
+    background: transparent;
+    color: var(--text-color-primary);
+    font-size: var(--text-size-ui-base);
+  }
+
+  #shopify-section-{{ section.id }} .formful__input[type='file'] {
+    padding-right: 4rem;
+    color: transparent;
+    text-shadow: 0 0 0 transparent;
+    background-color: transparent;
+    cursor: pointer;
+  }
+
+  #shopify-section-{{ section.id }} .formful__input[type='file']::file-selector-button {
+    opacity: 0;
+    width: 0;
+    padding: 0;
+    margin: 0;
+    border: 0;
+  }
+
+  #shopify-section-{{ section.id }} .formful__input[type='file']::-webkit-file-upload-button {
+    opacity: 0;
+    width: 0;
+    padding: 0;
+    margin: 0;
+    border: 0;
+  }
+
+  #shopify-section-{{ section.id }} .formful__input[type='file'] {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M12 5L12.7071 4.29289L12 3.58579L11.2929 4.29289L12 5ZM11 17C11 17.5523 11.4477 18 12 18C12.5523 18 13 17.5523 13 17L12 17L11 17ZM18 11L18.7071 10.2929L12.7071 4.29289L12 5L11.2929 5.70711L17.2929 11.7071L18 11ZM12 5L11.2929 4.29289L5.29289 10.2929L6 11L6.70711 11.7071L12.7071 5.70711L12 5ZM12 5L11 5L11 17L12 17L13 17L13 5L12 5Z' fill='%23282220'/%3E%3Cpath d='M5 21H19' stroke='%23282220' stroke-width='2'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right var(--px-b-sm) center;
+    background-size: 1.5rem 1.5rem;
+  }
+
+  #shopify-section-{{ section.id }} .formful__checkbox-label {
+    display: flex;
+    gap: var(--gap-x--block-sm, 8px);
+    align-items: flex-start;
+    color: var(--text-color-primary);
+    font-size: var(--text-size-ui-small);
+  }
+
+  #shopify-section-{{ section.id }} .formful__checkbox {
+    margin-top: 0.25rem;
+  }
+
+  #shopify-section-{{ section.id }} .formful__button.button {
+    width: 100%;
+    min-height: 4rem;
+    border-radius: 0px;
+    border: var(--button-icon-with-text-border-width, 2px) solid var(--button-border, #282220);
+    opacity: var(--button-state-opacities-default, 1);
+    background: var(--button-bg, #282220);
+    color: var(--button-text, #F4F4F2);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-size: var(--text-size-ui-base);
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Share & submit",
+  "tag": "section",
+  "class": "section-share-submit",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "guidelines",
+      "name": "Guidelines column",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "What should the video content be like?"
+        },
+        {
+          "type": "richtext",
+          "id": "guidelines_list",
+          "label": "Guidelines list"
+        },
+        {
+          "type": "text",
+          "id": "info_text",
+          "label": "Info text",
+          "default": "Once approved, you'll receive 40% of your purchase amount back."
+        },
+        {
+          "type": "text",
+          "id": "footer_text",
+          "label": "Footer text",
+          "default": "Share the video yourself on your own social account and receive the Voldt® Cable hook for free (read more below)."
+        }
+      ]
+    },
+    {
+      "type": "social",
+      "name": "Social column",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Post the video of yourself and receive the voldt cable hook for free"
+        },
+        {
+          "type": "text",
+          "id": "facebook_label",
+          "label": "Facebook label",
+          "default": "@LadenmetVoldt"
+        },
+        {
+          "type": "url",
+          "id": "facebook_url",
+          "label": "Facebook URL"
+        },
+        {
+          "type": "text",
+          "id": "facebook_note",
+          "label": "Facebook note",
+          "default": "(feed, post or reel)"
+        },
+        {
+          "type": "text",
+          "id": "instagram_label",
+          "label": "Instagram label",
+          "default": "@voldtevchargingcables"
+        },
+        {
+          "type": "url",
+          "id": "instagram_url",
+          "label": "Instagram URL"
+        },
+        {
+          "type": "text",
+          "id": "instagram_note",
+          "label": "Instagram note",
+          "default": "(feed, post or reel)"
+        },
+        {
+          "type": "text",
+          "id": "youtube_label",
+          "label": "YouTube label",
+          "default": "@Voldt-EV-charging-cables #voldt"
+        },
+        {
+          "type": "url",
+          "id": "youtube_url",
+          "label": "YouTube URL"
+        },
+        {
+          "type": "text",
+          "id": "youtube_note",
+          "label": "YouTube note",
+          "default": "(short or video)"
+        },
+        {
+          "type": "text",
+          "id": "footer_text",
+          "label": "Footer text",
+          "default": "The post must be publicly visible (i.e. not 'friends only' or 'private')."
+        }
+      ]
+    },
+    {
+      "type": "form",
+      "name": "Form column",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Send your video to us to get 40% back"
+        },
+        {
+          "type": "liquid",
+          "id": "form_embed",
+          "label": "Form embed"
+        },
+        {
+          "type": "text",
+          "id": "field_1_label",
+          "label": "Field 1 label",
+          "default": "Order number*"
+        },
+        {
+          "type": "text",
+          "id": "field_2_label",
+          "label": "Field 2 label",
+          "default": "File upload*"
+        },
+        {
+          "type": "text",
+          "id": "field_3_label",
+          "label": "Field 3 label",
+          "default": "Message"
+        },
+        {
+          "type": "text",
+          "id": "terms_text",
+          "label": "Terms text",
+          "default": "By submitting this form, you agree to the terms and conditions applying this promotion."
+        },
+        {
+          "type": "text",
+          "id": "submit_label",
+          "label": "Submit label",
+          "default": "Submit"
+        }
+      ]
+    },
+    {
+      "type": "@app"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Share & submit",
+      "blocks": [
+        {
+          "type": "guidelines"
+        },
+        {
+          "type": "social"
+        },
+        {
+          "type": "form"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

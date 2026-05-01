@@ -1,0 +1,93 @@
+{% comment %}
+  JavaScript-based script blocker
+  Intercepts script loading and blocks unwanted domains
+{% endcomment %}
+
+<script>
+(function() {
+  'use strict';
+  
+  // List of blocked domains
+  const blockedDomains = [
+    'widget.privy.com',
+    'privy.com',
+    'assets.privy.com',
+    'shopify.privy.com',
+    'static.shareasale.com',
+    'addshoppers.s3.amazonaws.com',
+    'intercom.io',
+    'hotjar.com',
+    'fullstory.com',
+    'pxucdn.com',
+    'logrocket.com'
+  ];
+  
+  // Function to check if a URL should be blocked
+  function shouldBlockScript(src) {
+    if (!src) return false;
+    return blockedDomains.some(domain => src.includes(domain));
+  }
+  
+  // Override createElement to intercept script creation
+  const originalCreateElement = document.createElement;
+  document.createElement = function(tagName) {
+    const element = originalCreateElement.call(document, tagName);
+    
+    if (tagName.toLowerCase() === 'script') {
+      // Override src setter
+      let originalSrc = '';
+      Object.defineProperty(element, 'src', {
+        get() { return originalSrc; },
+        set(value) {
+          if (shouldBlockScript(value)) {
+            console.log('🚫 Blocked script:', value);
+            originalSrc = ''; // Don't set the src
+            return;
+          }
+          originalSrc = value;
+          // Set the actual src attribute
+          element.setAttribute('src', value);
+        },
+        configurable: true
+      });
+    }
+    
+    return element;
+  };
+  
+  // Block existing scripts in content_for_header
+  function blockExistingScripts() {
+    const scripts = document.querySelectorAll('script[src]');
+    scripts.forEach(script => {
+      if (shouldBlockScript(script.src)) {
+        console.log('🚫 Removing existing script:', script.src);
+        script.remove();
+      }
+    });
+  }
+  
+  // Block scripts on DOM content loaded
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', blockExistingScripts);
+  } else {
+    blockExistingScripts();
+  }
+  
+  // Block dynamically added scripts
+  const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      mutation.addedNodes.forEach(function(node) {
+        if (node.nodeType === 1 && node.tagName === 'SCRIPT' && shouldBlockScript(node.src)) {
+          console.log('🚫 Blocked dynamically added script:', node.src);
+          node.remove();
+        }
+      });
+    });
+  });
+  
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true
+  });
+})();
+</script>

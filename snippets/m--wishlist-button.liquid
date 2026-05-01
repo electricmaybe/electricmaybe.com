@@ -1,0 +1,63 @@
+{% # theme-check-disable UnusedDocParam %}
+{%- doc -%}
+Wishlist button component for adding products to customer wishlists.
+
+This component renders an interactive wishlist button using the electric-wish web component. It displays a heart icon with proper accessibility attributes and supports customizable styling. The button automatically handles wishlist state management and provides visual feedback.
+
+@param {object} product - Product object from Shopify (required)
+@param {string} [class] - Additional CSS classes to apply to the button
+@param {string} [icon_size] - Icon size in CSS units (defaults to '1rem')
+@param {string} [stroke_width] - Icon stroke width class (defaults to 'stroke-base')
+@param {boolean} [show_text] - Display screen reader text (defaults to true)
+
+@example
+{% render 'm--wishlist-button', product: product %}
+
+@example
+{% render 'm--wishlist-button',
+  product: product,
+  class: 'hover:scale-110 transition-transform',
+  icon_size: '1.25rem',
+  stroke_width: 'stroke-lg'
+%}
+{%- enddoc -%}
+{% # theme-check-enable UnusedDocParam %}
+
+{% comment %}
+{% liquid
+  # Parameter validation and defaults
+  assign product = product | default: empty
+  assign class = class | default: ''
+  assign icon_size = icon_size | default: '1rem'
+  assign stroke_width = stroke_width | default: 'stroke-base'
+  assign show_text = show_text | default: true
+
+  # Early return if required parameters missing
+  unless product != empty
+    echo '<!-- Error: product parameter required for m--wishlist-button snippet -->'
+    break
+  endunless
+%}
+
+<electric-wish
+  class="inline-flex items-center cursor-pointer hover:brightness-95 justify-center p-1.5 {{ class }}"
+  data-target-product-id="{{ product.id }}"
+  data-target-variant-id="{{ product.selected_or_first_available_variant.id }}"
+  data-url="{{ shop.url }}{{ product.url }}"
+  data-title="{{ product.title | escape }}"
+  data-price="{{ product.price }}"
+  aria-label="Add to wishlist"
+  aria-pressed="false"
+>
+  {% render 'a--icon', 
+    icon: 'favorite', 
+    width: icon_size, 
+    height: icon_size, 
+    stroke: stroke_width 
+  %}
+  
+  {% if show_text %}
+    <span class="sr-only">Add to wishlist</span>
+  {% endif %}
+</electric-wish>
+{% endcomment %}

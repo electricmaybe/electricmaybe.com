@@ -1,0 +1,190 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "hero_vol37_faq": {
+      "type": "s--hero-with-text",
+      "name": "Hero with text",
+      "settings": {
+        "overlay_header": true,
+        "heading": "",
+        "description": "",
+        "info_text": "",
+        "button_1_label": "",
+        "button_1_url": "",
+        "button_2_label": "",
+        "button_2_url": "",
+        "height": "h-128",
+        "height_md": "md:h-128",
+        "height_lg": "lg:h-[30vw]",
+        "image_mobile": "shopify://shop_images/4f8293a8c2355e9761f99239fb230fda5008408b.png",
+        "image_tablet": "shopify://shop_images/4f8293a8c2355e9761f99239fb230fda5008408b.png",
+        "image_desktop": "shopify://shop_images/4f8293a8c2355e9761f99239fb230fda5008408b.png",
+        "position_mobile": "items-center justify-center text-center",
+        "position_tablet": "md:items-center md:justify-center md:text-center",
+        "position_desktop": "lg:items-center lg:justify-start lg:text-left",
+        "overlay_color": "#000000",
+        "overlay_opacity": 30,
+        "overlay_blur": 0
+      }
+    },
+    "faq_main_bPypf3": {
+      "type": "faq--main",
+      "blocks": {
+        "heading_RAV9rc": {
+          "type": "heading",
+          "settings": {
+            "heading": "Order & Shipping"
+          }
+        },
+        "faq_list_gHgdDm": {
+          "type": "faq_list",
+          "settings": {
+            "faq_list": [
+              "kan-man-forlenge-en-elbilladekabel",
+              "hva-er-forskjellen-mellom-han-og-hun-siden-pa-en-elbilladekabel",
+              "kan-man-forlenge-mobile-ladekabler-som-plugges-i-vanlig-stikkontakt",
+              "hvordan-skiller-en-commando-cee-stikkontakt-seg-fra-en-vanlig-stikkontakt-ved-forlengelse-av-ladekabler"
+            ]
+          }
+        },
+        "heading_ExcFBk": {
+          "type": "heading",
+          "settings": {
+            "heading": "Returns & Exchanges"
+          }
+        },
+        "faq_list_U9wUeN": {
+          "type": "faq_list",
+          "settings": {
+            "faq_list": [
+              "kan-en-mobil-elbillader-til-cee-eller-vanlig-stikkontakt-forsinke-ladingen",
+              "hvordan-skiller-en-commando-cee-stikkontakt-seg-fra-en-vanlig-stikkontakt-ved-forlengelse-av-ladekabler",
+              "hva-er-forskjellen-mellom-han-og-hun-siden-pa-en-elbilladekabel",
+              "kan-man-forlenge-en-elbilladekabel",
+              "kan-man-forlenge-mobile-ladekabler-som-plugges-i-vanlig-stikkontakt"
+            ]
+          }
+        },
+        "heading_qfKqLK": {
+          "type": "heading",
+          "settings": {
+            "heading": "Referral, Rewards & Discounts"
+          }
+        },
+        "faq_list_AA3gmV": {
+          "type": "faq_list",
+          "settings": {
+            "faq_list": [
+              "hvor-raskt-blir-pakken-min-levert",
+              "hva-er-mode-3-lading-for-elbil",
+              "er-voldt-ladekabler-egnet-for-alle-ladestasjoner-i-storbritannia",
+              "hvordan-kan-jeg-fa-informasjon-om-forsendelsen-av-pakken-min"
+            ]
+          }
+        },
+        "heading_QVc7T9": {
+          "type": "heading",
+          "settings": {
+            "heading": "Others"
+          }
+        },
+        "faq_list_B7Nmpg": {
+          "type": "faq_list",
+          "settings": {
+            "faq_list": [
+              "kan-jeg-bruke-voldt-adapter-type-2-til-schuko-stikkontakt-pa-offentlige-ladestasjoner",
+              "hva-er-underspenningsbeskyttelse",
+              "hva-er-jordingsbeskyttelse-ved-elbillading",
+              "hva-er-overspenningsvern-ved-elbillading",
+              "hva-er-overstromsbeskyttelse-ved-elbillading"
+            ]
+          }
+        },
+        "heading_yVnCtB": {
+          "type": "heading",
+          "settings": {
+            "heading": "Contact us"
+          }
+        },
+        "faq_list_7k7P9U": {
+          "type": "faq_list",
+          "settings": {
+            "faq_list": [
+              "hvilken-garanti-og-servicegarantier-folger-med-voldt-ccs2-ladekabler",
+              "hvilke-sikkerhetsfunksjoner-er-inkludert-i-voldt-ccs2-ladekabler",
+              "hvilke-strom-og-spenningsklassifiseringer-stotter-voldt-ccs2-ladekabler",
+              "hvor-vaerbestandige-er-voldt-ccs2-ladekabler",
+              "hvilken-garanti-far-jeg"
+            ]
+          }
+        }
+      },
+      "block_order": [
+        "heading_RAV9rc",
+        "faq_list_gHgdDm",
+        "heading_ExcFBk",
+        "faq_list_U9wUeN",
+        "heading_qfKqLK",
+        "faq_list_AA3gmV",
+        "heading_QVc7T9",
+        "faq_list_B7Nmpg",
+        "heading_yVnCtB",
+        "faq_list_7k7P9U"
+      ],
+      "name": "FAQ Main",
+      "settings": {
+        "heading": "FAQ",
+        "height": "h-sm",
+        "height_md": "md:h-128",
+        "height_lg": "lg:h-[40vw]",
+        "position_mobile": "items-center justify-center text-center",
+        "position_tablet": "md:items-center md:justify-center md:text-center",
+        "position_desktop": "lg:items-center lg:justify-center lg:text-center",
+        "overlay_opacity": 30,
+        "overlay_blur": 0,
+        "shrink_others": false
+      }
+    },
+    "s_featured_collection_L7TGKC": {
+      "type": "s--featured-collection",
+      "name": "Featured collection",
+      "settings": {
+        "collection": "adapters",
+        "title": "Best sellers"
+      }
+    },
+    "s_blog_articles_hiFVby": {
+      "type": "s--blog-articles",
+      "name": "Blog articles",
+      "settings": {
+        "heading": "Blog articles",
+        "view_all_label": "View all",
+        "blog": "news"
+      }
+    },
+    "s_contact_form_7X4yQp": {
+      "type": "s--contact-form",
+      "name": "Contact form",
+      "settings": {
+        "heading": "Couldn't find the right cable?",
+        "image": "shopify://shop_images/eed8131f9c4775ccf8e0242bb7661133454ebad8_1.png",
+        "body": "<p>For questions or general inquiries, please leave your contact information below and we will get back to you as soon as possible.</p>"
+      }
+    }
+  },
+  "order": [
+    "hero_vol37_faq",
+    "faq_main_bPypf3",
+    "s_featured_collection_L7TGKC",
+    "s_blog_articles_hiFVby",
+    "s_contact_form_7X4yQp"
+  ]
+}

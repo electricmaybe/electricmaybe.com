@@ -1,0 +1,69 @@
+<script>
+  /**
+   * Urgent script to check for promo banner cookie and hide banner immediately
+   * This runs before the page is fully loaded to prevent banner flash
+   */
+  (function() {
+    'use strict';
+    
+    /**
+     * Check if promo=1 query parameter is present
+     * @returns {boolean} True if promo parameter forces banner to show
+     */
+    function isPromoForced() {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('promo') === '1';
+      } catch (error) {
+        console.error('Error checking promo query parameter:', error);
+        return false;
+      }
+    }
+    
+    /**
+     * Check if promo banner was closed (cookie exists)
+     * @returns {boolean} True if banner should be hidden
+     */
+    function isBannerClosed() {
+      try {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.indexOf('promo_banner_closed=') === 0) {
+            return cookie.substring('promo_banner_closed='.length) === 'true';
+          }
+        }
+        return false;
+      } catch (error) {
+        console.error('Error checking promo banner cookie:', error);
+        return false;
+      }
+    }
+    
+    /**
+     * Hide promo banner immediately
+     */
+    function hideBanner() {
+      try {
+        // Add CSS to hide banner immediately
+        const style = document.createElement('style');
+        style.textContent = 'promo-banner { display: none !important; }';
+        document.head.appendChild(style);
+        
+        // Also try to remove any existing banner elements
+        document.addEventListener('DOMContentLoaded', function() {
+          const banners = document.querySelectorAll('promo-banner');
+          banners.forEach(banner => banner.remove());
+        });
+      } catch (error) {
+        console.error('Error hiding promo banner:', error);
+      }
+    }
+    
+    // Check cookie and query parameter, hide banner if needed
+    // Only hide if banner was closed AND promo is not forced via query parameter
+    if (isBannerClosed() && !isPromoForced()) {
+      hideBanner();
+    }
+  })();
+</script>

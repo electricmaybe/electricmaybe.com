@@ -1,0 +1,48 @@
+{%- comment -%}
+  LocalBusiness / AutoPartsStore JSON-LD from old Voldt theme.
+  Only outputs when shop has metaobject "adress" with handle "voldt" (or first entry).
+  Optional: add to _head-seo if store uses this metaobject for address/contact.
+{%- endcomment -%}
+{%- liquid
+  assign addr = shop.metaobjects.adress.voldt
+  if addr == blank
+    assign addr = shop.metaobjects.adress.values | first
+  endif
+-%}
+{%- if addr != blank and addr.name != blank -%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "AutoPartsStore",
+  "name": {{ addr.name | json }},
+  "@id": {{ shop.url | append: '/#store' | json }},
+  "url": {{ shop.url | json }}
+  {%- if addr.phone != blank -%}
+  ,
+  "telephone": {{ addr.phone | json }}
+  {%- endif -%}
+  {%- if addr.adress != blank or addr.city != blank -%}
+  ,
+  "address": {
+    "@type": "PostalAddress"
+    {%- if addr.adress != blank -%}
+    , "streetAddress": {{ addr.adress | json }}
+    {%- endif -%}
+    {%- if addr.city != blank -%}
+    , "addressLocality": {{ addr.city | json }}
+    {%- endif -%}
+    {%- if addr.postal_code != blank -%}
+    , "postalCode": {{ addr.postal_code | json }}
+    {%- endif -%}
+    {%- if addr.country != blank -%}
+    , "addressCountry": {{ addr.country | json }}
+    {%- endif -%}
+  }
+  {%- endif -%}
+  {%- if shop.brand.logo != blank -%}
+  ,
+  "image": {{ shop.brand.logo | image_url: width: 600 | prepend: 'https:' | json }}
+  {%- endif -%}
+}
+</script>
+{%- endif -%}

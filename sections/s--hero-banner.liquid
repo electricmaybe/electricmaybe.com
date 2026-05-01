@@ -1,0 +1,1729 @@
+{%- liquid
+  assign s = section.settings
+  assign overlay_header_active = false
+  if s.overlay_header and section.index == 1
+    assign overlay_header_active = true
+  endif
+
+  assign height_class = s.height | default: 'h-128'
+  assign height_md_class = s.height_md | default: 'md:h-128'
+  assign height_lg_class = s.height_lg | default: 'lg:h-[32vw]'
+  assign media_height_class = height_class | append: ' ' | append: height_md_class | append: ' ' | append: height_lg_class
+  assign media_all_auto_height = false
+  if height_class == 'h-auto' and height_md_class == 'md:h-auto' and height_lg_class == 'lg:h-auto'
+    assign media_all_auto_height = true
+  endif
+
+  assign position_mobile = s.position_mobile | default: 'items-center justify-center text-center'
+  assign position_tablet = s.position_tablet | default: 'md:items-center md:justify-center md:text-center'
+  assign position_desktop = s.position_desktop | default: 'lg:items-center lg:justify-start lg:text-left'
+
+  assign free_return_align_mobile = 'items-start text-left'
+  if position_mobile contains 'text-center'
+    assign free_return_align_mobile = 'items-center text-center'
+  elsif position_mobile contains 'text-right'
+    assign free_return_align_mobile = 'items-end text-right'
+  endif
+
+  assign free_return_self_mobile = 'self-start'
+  if position_mobile contains 'justify-center'
+    assign free_return_self_mobile = 'self-center'
+  elsif position_mobile contains 'justify-end'
+    assign free_return_self_mobile = 'self-end'
+  endif
+
+  assign free_return_align_tablet = 'md:items-start md:text-left'
+  if position_tablet contains 'md:text-center'
+    assign free_return_align_tablet = 'md:items-center md:text-center'
+  elsif position_tablet contains 'md:text-right'
+    assign free_return_align_tablet = 'md:items-end md:text-right'
+  endif
+
+  assign free_return_self_tablet = 'md:self-start'
+  if position_tablet contains 'md:justify-center'
+    assign free_return_self_tablet = 'md:self-center'
+  elsif position_tablet contains 'md:justify-end'
+    assign free_return_self_tablet = 'md:self-end'
+  endif
+
+  assign free_return_align_desktop = 'lg:items-start lg:text-left'
+  if position_desktop contains 'lg:text-center'
+    assign free_return_align_desktop = 'lg:items-center lg:text-center'
+  elsif position_desktop contains 'lg:text-right'
+    assign free_return_align_desktop = 'lg:items-end lg:text-right'
+  endif
+
+  assign free_return_self_desktop = 'lg:self-start'
+  if position_desktop contains 'lg:justify-center'
+    assign free_return_self_desktop = 'lg:self-center'
+  elsif position_desktop contains 'lg:justify-end'
+    assign free_return_self_desktop = 'lg:self-end'
+  endif
+
+  assign overlay_color = s.overlay_color | default: '#000000'
+  assign overlay_opacity = s.overlay_opacity | default: 30 | divided_by: 100.0
+  assign overlay_blur = s.overlay_blur | default: 0
+
+  assign show_sm = s.show_sm | default: true, allow_false: true
+  assign show_md = s.show_md | default: true, allow_false: true
+  assign show_lg = s.show_lg | default: true, allow_false: true
+
+  assign show_overlay_cards = false
+  if s.content_type == 'car-model'
+    if s.height_lg == 'lg:h-[48vw]' or s.height_lg == 'lg:h-screen'
+      assign show_overlay_cards = true
+    endif
+  endif
+
+
+  assign desired_brands_raw = 'Abarth||Aiways||Alfa Romeo||Alpine||Audi||BMW||BYD||Bentley||Cadillac||Chery||Chevrolet||Citroën||Cupra||DS||Dacia||Dongfeng||Ferrari||Fiat||Fisker||Ford||GWM||Genesis||Honda||Hongqi||Hyundai||JAC||Jaecoo||Jaguar||Jeep||KGM||Kia||LEVC||Lancia||Land Rover||Landrover / Range Rover||Leapmotor||Lexus||Lightyear||Lotus||Lucid||Lynk&Co||MG||Maserati||Mazda||Mercedes||Mini||Mitsubishi||NIO||Nissan||Opel||Peugeot||Polestar||Porsche||Range Rover||Renault||Rolls Royce||SEAT||SSANGYONG||Seres||Skoda||Smart||Sono||SsangYong||Subaru||Suzuki||Tesla||Toyota||Vauxhall||VinFast||Volkswagen||Volvo||Voyah||XPENG||Zeekr'
+  assign desired_brands = desired_brands_raw | split: '||'
+  assign store_brand_hits_raw = ''
+  assign brand_model_pairs_raw = ''
+  for collection in collections
+    assign title_downcase = collection.title | downcase
+    for desired_brand in desired_brands
+      assign desired_brand_downcase = desired_brand | downcase
+      if title_downcase contains desired_brand_downcase
+        if store_brand_hits_raw == ''
+          assign store_brand_hits_raw = desired_brand
+        else
+          assign store_brand_hits_raw = store_brand_hits_raw | append: '||' | append: desired_brand
+        endif
+
+        assign model_clean = collection.title
+        assign model_clean = model_clean | replace: 'Charging cable', '' | replace: 'Charging Cable', '' | strip
+        assign model_clean = model_clean | replace: 'Charging table', '' | replace: 'charging cable', '' | strip
+        assign model_clean = model_clean | replace: desired_brand, '' | strip
+        assign model_clean = model_clean | replace: '  ', ' ' | replace: '  ', ' ' | strip
+        assign model_clean = model_clean | replace_first: '-', '' | replace_first: '–', '' | strip
+        if model_clean != blank
+          if brand_model_pairs_raw == ''
+            assign brand_model_pairs_raw = desired_brand | append: '||' | append: model_clean | append: '||' | append: collection.url
+          else
+            assign brand_model_pairs_raw = brand_model_pairs_raw | append: '|||' | append: desired_brand | append: '||' | append: model_clean | append: '||' | append: collection.url
+          endif
+        endif
+      endif
+    endfor
+  endfor
+  assign filtered_brand_list = store_brand_hits_raw | split: '||' | uniq | sort
+  assign brand_model_pairs = brand_model_pairs_raw | split: '|||'
+
+-%}
+
+{%- capture mini_cards_top -%}
+  {%- for block in section.blocks -%}
+    {%- if block.type != 'mini_card' -%}
+      {%- continue -%}
+    {%- endif -%}
+    {%- if s.content_type == 'free-return' and forloop.index > 3 -%}
+      {%- continue -%}
+    {%- endif -%}
+    {%- assign mini_text = block.settings.text -%}
+    {%- assign mini_icon_image = block.settings.icon_image -%}
+    {%- assign mini_icon = block.settings.icon -%}
+    {%- assign mini_icon_viewbox = '0 0 32 32' -%}
+    {%- case mini_icon -%}
+      {%- when 'delivery' -%}
+        {%- assign mini_icon_viewbox = '0 0 25 27' -%}
+      {%- when 'secure_2' -%}
+        {%- assign mini_icon_viewbox = '0 0 22 24' -%}
+      {%- when 'shipping' -%}
+        {%- assign mini_icon_viewbox = '0 0 31 19' -%}
+      {%- when 'newproduct' -%}
+        {%- assign mini_icon_viewbox = '0 0 32 32' -%}
+      {%- when 'discount' -%}
+        {%- assign mini_icon_viewbox = '0 0 31 32' -%}
+      {%- when 'review' -%}
+        {%- assign mini_icon_viewbox = '0 0 32 32' -%}
+      {%- when 'europe' -%}
+        {%- assign mini_icon_viewbox = '0 0 32 32' -%}
+    {%- endcase -%}
+    <div class="mini-card shrink-0 flex flex-col items-center text-center gap-y-b-xxs lg:flex-row lg:text-left lg:gap-x-b-base w-auto{% if s.content_type == 'free-return' %} w-full min-w-0 px-b-xxs lg:justify-center{% elsif s.content_type == 'partner' %} lg:flex-col!{% endif %}" {{ block.shopify_attributes }}>
+      {%- if mini_icon != blank -%}
+        {%- render 'a--icon', icon: mini_icon, class: 'mini-card-icon w-6 h-6 text-current', viewBox: mini_icon_viewbox -%}
+      {%- elsif mini_icon_image != blank -%}
+        <img
+          src="{{ mini_icon_image | image_url: width: 48 }}"
+          width="24"
+          height="24"
+          alt="{{ mini_text | strip_html | escape }}"
+          class="mini-card-icon w-6 h-6 object-contain"
+          loading="lazy"
+        >
+      {%- endif -%}
+      {%- if mini_text != blank -%}
+        <div class="text-ui-base leading-[1.2] [&>p]:m-0 [&>h1]:m-0 [&>h2]:m-0 [&>h3]:m-0 [&>h4]:m-0 [&>h5]:m-0 [&>h6]:m-0{% if s.content_type == 'free-return' %} whitespace-normal text-center wrap-break-word{% endif %}">{{ mini_text }}</div>
+      {%- endif -%}
+    </div>
+  {%- endfor -%}
+{%- endcapture -%}
+
+{%- capture mini_cards_below -%}
+  {%- for block in section.blocks -%}
+    {%- if s.content_type != 'free-return' -%}
+      {%- continue -%}
+    {%- endif -%}
+    {%- if block.type != 'mini_card' -%}
+      {%- continue -%}
+    {%- endif -%}
+    {%- if forloop.index <= 3 -%}
+      {%- continue -%}
+    {%- endif -%}
+    {%- assign mini_text = block.settings.text -%}
+    {%- assign mini_icon_image = block.settings.icon_image -%}
+    {%- assign mini_icon = block.settings.icon -%}
+    {%- assign mini_icon_viewbox = '0 0 32 32' -%}
+    {%- case mini_icon -%}
+      {%- when 'delivery' -%}
+        {%- assign mini_icon_viewbox = '0 0 25 27' -%}
+      {%- when 'secure_2' -%}
+        {%- assign mini_icon_viewbox = '0 0 22 24' -%}
+      {%- when 'shipping' -%}
+        {%- assign mini_icon_viewbox = '0 0 31 19' -%}
+      {%- when 'newproduct' -%}
+        {%- assign mini_icon_viewbox = '0 0 32 32' -%}
+      {%- when 'discount' -%}
+        {%- assign mini_icon_viewbox = '0 0 31 32' -%}
+      {%- when 'review' -%}
+        {%- assign mini_icon_viewbox = '0 0 32 32' -%}
+      {%- when 'europe' -%}
+        {%- assign mini_icon_viewbox = '0 0 32 32' -%}
+    {%- endcase -%}
+    <div class="mini-card shrink-0 flex flex-col items-center text-center gap-y-b-sm w-auto md:w-full" {{ block.shopify_attributes }}>
+      {%- if mini_icon != blank -%}
+        {%- render 'a--icon', icon: mini_icon, class: 'mini-card-icon w-6 h-6 text-current', viewBox: mini_icon_viewbox -%}
+      {%- elsif mini_icon_image != blank -%}
+        <img
+          src="{{ mini_icon_image | image_url: width: 48 }}"
+          width="24"
+          height="24"
+          alt="{{ mini_text | strip_html | escape }}"
+          class="mini-card-icon w-6 h-6 object-contain"
+          loading="lazy"
+        >
+      {%- endif -%}
+      {%- if mini_text != blank -%}
+        <div class="text-ui-base leading-[1.2] [&>p]:m-0 [&>h1]:m-0 [&>h2]:m-0 [&>h3]:m-0 [&>h4]:m-0 [&>h5]:m-0 [&>h6]:m-0">{{ mini_text }}</div>
+      {%- endif -%}
+    </div>
+  {%- endfor -%}
+{%- endcapture -%}
+
+{%- capture contact_info_banner -%}
+  {%- for block in section.blocks -%}
+    {%- if block.type != 'contact_info' -%}
+      {%- continue -%}
+    {%- endif -%}
+    <div class="flex flex-col gap-y-s-sm w-full text-left" {{ block.shopify_attributes }}>
+      {%- if block.settings.contact_info_title != blank -%}
+        <p class="h3 text-on-accent">
+          {{ block.settings.contact_info_title | escape }}
+        </p>
+      {%- endif -%}
+      <div class="flex w-full items-center gap-x-s-base">
+        {%- if block.settings.contact_info_primary != blank -%}
+          <div class="flex-1 lg:flex-none lg:basis-1/3 text-ui-base leading-[1.2] text-on-accent [&_p]:m-0">
+            {{ block.settings.contact_info_primary }}
+          </div>
+        {%- endif -%}
+        <span class="w-px self-stretch bg-subtle"></span>
+        {%- if block.settings.contact_info_secondary != blank -%}
+          <div class="flex-1 text-ui-base leading-[1.2] text-on-accent [&_p]:m-0">
+            {{ block.settings.contact_info_secondary }}
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  {%- endfor -%}
+{%- endcapture -%}
+
+{%- capture contact_info_below -%}
+  {%- for block in section.blocks -%}
+    {%- if block.type != 'contact_info' -%}
+      {%- continue -%}
+    {%- endif -%}
+    <div class="flex flex-col gap-y-s-xs w-full text-left" {{ block.shopify_attributes }}>
+      {%- if block.settings.contact_info_title != blank -%}
+        <p class="h3 text-primary">
+          {{ block.settings.contact_info_title | escape }}
+        </p>
+      {%- endif -%}
+      {%- if block.settings.contact_info_primary != blank -%}
+        <div class="text-ui-base leading-[1.2] text-primary [&_p]:m-0">
+          {{ block.settings.contact_info_primary }}
+        </div>
+      {%- endif -%}
+      <span class="h-px w-full border-b border-secondary"></span>
+      {%- if block.settings.contact_info_secondary != blank -%}
+        <div class="text-ui-base leading-[1.2] text-primary [&_p]:m-0">
+          {{ block.settings.contact_info_secondary }}
+        </div>
+      {%- endif -%}
+    </div>
+  {%- endfor -%}
+{%- endcapture -%}
+
+{%- capture numbered_cards -%}
+  {%- for block in section.blocks -%}
+    {%- if block.type != 'numbered_card' -%}
+      {%- continue -%}
+    {%- endif -%}
+    <div class="flex-1 border-secondary{% if forloop.first %} border-b md:border-b-0 md:border-r{% endif %}" {{ block.shopify_attributes }}>
+      <div class="px-s-inner py-s-xs lg:py-b-xxl h-full">
+        <div class="flex flex-col gap-y-s-xs lg:flex-row items-center lg:gap-x-s-xl h-full">
+          {%- if block.settings.image != blank -%}
+            <div class="order-first lg:order-last shrink-0">
+              <img
+                src="{{ block.settings.image | image_url: width: 320 }}"
+                width="144"
+                height="144"
+                alt="{{ block.settings.title | escape }}"
+                class="w-24 h-24 lg:w-36 lg:h-36 object-contain"
+                loading="lazy"
+              >
+            </div>
+          {%- endif -%}
+          <div class="flex flex-col gap-y-s-xs text-primary">
+            {%- if block.settings.title != blank -%}
+              <p class="h2">
+                {{ block.settings.title | escape }}
+              </p>
+            {%- endif -%}
+            {%- if block.settings.description != blank -%}
+              <div class="rte text-body">
+                {{ block.settings.description }}
+              </div>
+            {%- endif -%}
+          </div>
+        </div>
+      </div>
+    </div>
+  {%- endfor -%}
+{%- endcapture -%}
+
+{%- capture content -%}
+  {%- if s.content_type == 'main_banner_content' -%}
+    {%- render 'm--hero-banner-content',
+      sub_heading: s.sub_heading,
+      heading: s.heading,
+      body: s.body,
+      search_placeholder: s.search_placeholder,
+      search_aria_label: s.search_aria_label
+    -%}
+  {%- elsif s.content_type == 'partner' -%}
+    <div class="partner-content flex flex-col gap-y-s-xs w-full lg:w-auto max-w-[448px]">
+      {%- if s.partner_title != blank -%}
+        <div class="h1 text-on-accent [&>p]:m-0 [&>h1]:m-0 [&>h2]:m-0 [&>h3]:m-0 [&>h4]:m-0 [&>h5]:m-0 [&>h6]:m-0">
+          {{ s.partner_title }}
+        </div>
+      {%- endif -%}
+      {%- if s.partner_description != blank -%}
+        <div class="text-body-lg text-on-accent">
+          {{ s.partner_description }}
+        </div>
+      {%- endif -%}
+      {%- if s.partner_button_1_label != blank or s.partner_button_2_label != blank -%}
+        <div class="partner-actions flex flex-wrap w-full gap-x-b-lg gap-y-b-sm">
+          {%- if s.partner_button_1_label != blank and s.partner_button_1_url != blank -%}
+            {%- render 'a--button',
+              tag: 'a',
+              style: 'secondary',
+              label: s.partner_button_1_label,
+              url: s.partner_button_1_url,
+              class: 'bg-transparent border border-on-accent text-on-accent'
+            -%}
+          {%- endif -%}
+          {%- if s.partner_button_2_label != blank and s.partner_button_2_url != blank -%}
+            {%- render 'a--button',
+              tag: 'a',
+              style: 'primary',
+              label: s.partner_button_2_label,
+              url: s.partner_button_2_url,
+              class: '!bg-white !text-primary !border-0'
+            -%}
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    </div>
+  {%- elsif s.content_type == 'free-return' -%}
+    <div class="free-return-content flex flex-col gap-y-s-xs w-full lg:w-auto max-w-md {{ free_return_align_mobile }} {{ free_return_align_tablet }} {{ free_return_align_desktop }} {{ free_return_self_mobile }} {{ free_return_self_tablet }} {{ free_return_self_desktop }}">
+      {%- if s.partner_title != blank -%}
+        <div class="h1 text-on-accent [&>p]:m-0 [&>h1]:m-0 [&>h2]:m-0 [&>h3]:m-0 [&>h4]:m-0 [&>h5]:m-0 [&>h6]:m-0">
+          {{ s.partner_title }}
+        </div>
+      {%- endif -%}
+      {%- if s.partner_description != blank -%}
+        <div class="text-body-lg text-on-accent">
+          {{ s.partner_description }}
+        </div>
+      {%- endif -%}
+      {%- if s.free_return_info != blank -%}
+        <div class="flex items-center gap-x-b-sm bg-white/15 backdrop-blur-[2px] px-b-sm py-b-xs">
+          {%- render 'a--icon', icon: 'info-line', class: 'w-6 h-6 text-on-accent shrink-0' -%}
+          <p class="text-ui-small text-on-accent">
+            {{ s.free_return_info | escape }}
+          </p>
+        </div>
+      {%- endif -%}
+      {%- if s.partner_button_1_label != blank and s.partner_button_1_url != blank -%}
+        {%- render 'a--button',
+          style: 'primary',
+          label: s.partner_button_1_label,
+          url: s.partner_button_1_url,
+          class: '!bg-white !text-primary !border-0'
+        -%}
+      {%- endif -%}
+    </div>
+  {%- elsif s.content_type == 'contact' -%}
+    <div class="contact-content flex flex-col gap-y-s-xs w-full">
+      {%- if s.contact_title != blank -%}
+        <h1 class="h1 text-on-accent max-w-[448px]">
+          {{ s.contact_title | escape | newline_to_br }}
+        </h1>
+      {%- endif -%}
+      {%- if s.contact_description != blank -%}
+        <div class="text-body-lg text-on-accent max-w-[448px]">
+          {{ s.contact_description }}
+        </div>
+      {%- endif -%}
+    </div>
+  {%- elsif s.content_type == 'brand-model' -%}
+    {%- capture brand_model_pairs_json -%}
+      [
+        {%- for pair in brand_model_pairs -%}
+          {%- assign pair_parts = pair | split: '||' -%}
+          {%- assign pair_brand = pair_parts[0] -%}
+          {%- assign pair_model = pair_parts[1] -%}
+          {%- assign pair_url = pair_parts[2] -%}
+          {%- if pair_brand != blank and pair_model != blank and pair_url != blank -%}
+            {%- if forloop.index0 > 0 -%},{%- endif -%}
+            {"brand":{{ pair_brand | json }},"model":{{ pair_model | json }},"url":{{ pair_url | json }}}
+          {%- endif -%}
+        {%- endfor -%}
+      ]
+    {%- endcapture -%}
+    <div class="flex flex-col gap-y-s-xs items-center text-center w-full">
+      {%- if s.heading != blank -%}
+        <h2 class="h1 text-on-accent max-w-[448px]">
+          {{ s.heading | escape | newline_to_br }}
+        </h2>
+      {%- endif -%}
+      {%- if s.body != blank -%}
+        <p class="text-body-lg text-on-accent max-w-[448px]">
+          {{ s.body }}
+        </p>
+      {%- endif -%}
+      <div
+        class="flex flex-col gap-y-b-sm w-full max-w-[480px]"
+        data-brand-model
+        data-brand-model-pairs="{{ brand_model_pairs_json | strip | escape }}"
+      >
+        <div class="flex flex-row gap-x-b-lg w-full">
+          <label class="relative flex-1">
+            <span class="sr-only">{{ s.brand_label | escape }}</span>
+            <select
+              class="w-full h-16 rounded-full bg-white text-primary text-ui-base px-b-lg pr-14 appearance-none cursor-pointer"
+              data-brand-select
+            >
+              <option value="" selected disabled>{{ s.brand_label | escape }}</option>
+              {%- for brand in filtered_brand_list -%}
+                <option value="{{ brand | escape }}">{{ brand | escape }}</option>
+              {%- endfor -%}
+            </select>
+            <span class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 overflow-hidden z-10">
+              {%- render 'a--icon', icon: 'chevron-d', width: '1.5rem', height: '1.5rem' -%}
+            </span>
+          </label>
+          <label class="relative flex-1">
+            <span class="sr-only">{{ s.model_label | escape }}</span>
+            <select
+              class="w-full h-16 rounded-full bg-white text-primary text-ui-base px-b-lg pr-14 appearance-none cursor-pointer"
+              data-model-select
+              data-placeholder="{{ s.model_label | escape }}"
+              disabled
+            >
+              <option value="" selected disabled>{{ s.model_label | escape }}</option>
+            </select>
+            <span class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 overflow-hidden z-10">
+              {%- render 'a--icon', icon: 'chevron-d', width: '1.5rem', height: '1.5rem' -%}
+            </span>
+          </label>
+        </div>
+        <button
+          type="button"
+          class="w-full h-16 rounded-full bg-[#282220] text-on-accent text-lg uppercase tracking-[0.02em] cursor-pointer"
+          data-search-button
+          disabled
+        >
+          {{ s.search_button_label | escape }}
+        </button>
+      </div>
+    </div>
+  {%- elsif s.content_type == 'car-model' -%}
+    <div class="car-model-content flex flex-col gap-y-s-xs">
+      {%- if s.sub_heading != blank -%}
+        <p class="text-caption uppercase text-on-accent">
+          {{- s.sub_heading -}}
+        </p>
+      {%- endif -%}
+      {%- if s.heading != blank -%}
+        <h1 class="h1 text-on-accent max-w-[448px]">
+          {{- s.heading -}}
+        </h1>
+      {%- endif -%}
+      {%- if s.body != blank -%}
+        <div class="text-body-lg text-on-accent max-w-[448px]">
+          {{- s.body -}}
+        </div>
+      {%- endif -%}
+    </div>
+  {%- elsif s.content_type == 'car-brand' -%}
+    <div class="car-brand-content flex flex-col items-center text-center gap-y-s-xs">
+      {%- if s.brand_logo != blank -%}
+        {%- assign brand_logo_alt = s.heading | default: shop.name | escape -%}
+        {{
+          s.brand_logo
+          | image_url: width: 256
+          | image_tag: loading: 'lazy', alt: brand_logo_alt, class: 'w-32 h-32 object-contain'
+        }}
+      {%- endif -%}
+      {%- if s.heading != blank -%}
+        <h1 class="h1 text-on-accent max-w-[448px]">
+          {{- s.heading -}}
+        </h1>
+      {%- endif -%}
+      {%- if s.body_richtext != blank -%}
+        <div class="text-body-lg text-on-accent max-w-[448px]">
+          {{ s.body_richtext }}
+        </div>
+      {%- endif -%}
+      {%- comment -%} Button removed for car brand content type {%- endcomment -%}
+    </div>
+  {%- endif -%}
+{%- endcapture -%}
+
+{%- capture overlay_cards -%}
+  {%- for block in section.blocks -%}
+    {%- if block.type != 'card' -%}
+      {%- continue -%}
+    {%- endif -%}
+    {%- liquid
+      assign card_is_clickable = false
+      assign card_tag = 'div'
+      assign card_aria_label = block.settings.heading | strip_html | strip | default: block.settings.button_label | strip
+
+      if block.settings.button_label != blank and block.settings.button_url != blank
+        assign card_is_clickable = true
+        assign card_tag = 'a'
+      endif
+    -%}
+    <{{ card_tag }}
+      class="flex-1{% if card_is_clickable %} group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent{% endif %}"
+      {% if card_is_clickable %}
+        href="{{ block.settings.button_url }}"
+        aria-label="{{ card_aria_label | escape }}"
+      {% endif %}
+      {{ block.shopify_attributes }}
+    >
+      <div class="flex flex-col lg:flex-row gap-b-base h-56 overflow-hidden {% if s.content_type == 'car-model' %}px-0{% else %}px-s-inner lg:px-s-whole{% endif %} relative">
+        <div class="flex flex-1 flex-col justify-end {% if s.content_type == 'car-model' %}py-b-base{% else %}py-b-xl{% endif %} relative z-10">
+          <div class="flex flex-col gap-y-b-base">
+            <div class="flex flex-col gap-y-b-xxs">
+              {%- if block.settings.heading != blank -%}
+                <h3 class="h4 text-on-accent flex items-center gap-x-b-sm">
+                  {{- block.settings.heading -}}
+                  <span class="w-6 h-6 md:w-6 md:h-6 lg:w-8 lg:h-8 shrink-0">
+                    {%- render 'a--icon', icon: 'arrow-r-up', width: 32, class: 'w-full h-full text-on-accent' -%}
+                  </span>
+                </h3>
+              {%- endif -%}
+              {%- if block.settings.description != blank -%}
+                <p class="text-ui-small text-on-accent/80">
+                  {{- block.settings.description -}}
+                </p>
+              {%- endif -%}
+            </div>
+            {%- if block.settings.button_label != blank and block.settings.button_url != blank -%}
+              <span
+                class="{% render 'a--button-classes', style: 'primary', size: 'base', content: 'text-only' %} pointer-events-none"
+                aria-hidden="true"
+              >
+                {{- block.settings.button_label -}}
+              </span>
+            {%- endif -%}
+          </div>
+        </div>
+        {%- if block.settings.image != blank -%}
+          <div class="relative flex-1">
+            {%- render 'a--image-responsive',
+              image: block.settings.image,
+              picture_class: 'w-full h-full',
+              image_class: 'w-full h-full object-contain',
+              object_fit: 'object-contain',
+              crop: 'right'
+            -%}
+          </div>
+        {%- endif -%}
+      </div>
+    </{{ card_tag }}>
+  {%- endfor -%}
+{%- endcapture -%}
+
+{%- if overlay_header_active -%}
+  <style>
+    /* Homepage hero: header overlays the hero, so header-group should not reserve layout height */
+    .shopify-section-group-header-group {
+      height: 0;
+      background: transparent;
+    }
+
+    /*
+      Overlay header variant:
+      - At top of page: header has no background
+      - After scroll threshold: header returns to normal background
+    */
+    header-element:not([data-threshold-passed="true"]):not(.menu-open):not([data-nav-open="true"]):not([data-menu-open="true"]):not(:hover):not(:focus-within) #Header {
+      background-color: transparent !important;
+    }
+    header-element[data-threshold-passed="true"] #Header,
+    header-element.menu-open #Header,
+    header-element[data-nav-open="true"] #Header,
+    header-element[data-menu-open="true"] #Header,
+    header-element:hover #Header,
+    header-element:focus-within #Header {
+      background-color: var(--color-dune-50) !important;
+    }
+
+    /* Contrast header (only at top) */
+    header-element:not([data-threshold-passed="true"]):not(.menu-open):not([data-nav-open="true"]):not([data-menu-open="true"]):not(:hover):not(:focus-within) #Header .header__main {
+      color: var(--color-dune-50);
+    }
+    header-element:not([data-threshold-passed="true"]):not(.menu-open):not([data-nav-open="true"]):not([data-menu-open="true"]):not(:hover):not(:focus-within) #Header .header__desktop-navigation,
+    header-element:not([data-threshold-passed="true"]):not(.menu-open):not([data-nav-open="true"]):not([data-menu-open="true"]):not(:hover):not(:focus-within) #Header .header__desktop-navigation a,
+    header-element:not([data-threshold-passed="true"]):not(.menu-open):not([data-nav-open="true"]):not([data-menu-open="true"]):not(:hover):not(:focus-within) #Header .header-action {
+      color: var(--color-dune-50) !important;
+    }
+
+    /* Logo swap (only at top) */
+    header-element:not([data-threshold-passed="true"]):not(.menu-open):not([data-nav-open="true"]):not([data-menu-open="true"]):not(:hover):not(:focus-within) #Header .logo-black {
+      display: none !important;
+    }
+    header-element:not([data-threshold-passed="true"]):not(.menu-open):not([data-nav-open="true"]):not([data-menu-open="true"]):not(:hover):not(:focus-within) #Header .logo-white {
+      display: inline-flex !important;
+    }
+    header-element[data-threshold-passed="true"] #Header .logo-black,
+    header-element.menu-open #Header .logo-black,
+    header-element[data-nav-open="true"] #Header .logo-black,
+    header-element[data-menu-open="true"] #Header .logo-black,
+    header-element:hover #Header .logo-black,
+    header-element:focus-within #Header .logo-black {
+      display: inline-flex !important;
+    }
+    header-element[data-threshold-passed="true"] #Header .logo-white,
+    header-element.menu-open #Header .logo-white,
+    header-element[data-nav-open="true"] #Header .logo-white,
+    header-element[data-menu-open="true"] #Header .logo-white,
+    header-element:hover #Header .logo-white,
+    header-element:focus-within #Header .logo-white {
+      display: none !important;
+    }
+
+    /* Keep dropdown menus readable */
+    header-element:not([data-threshold-passed="true"]):not(.menu-open):not([data-nav-open="true"]):not([data-menu-open="true"]):not(:hover):not(:focus-within) #Header .header__desktop-navigation [class*="bg-surface"] {
+      color: var(--text-color-primary);
+    }
+
+    /* Contrast action buttons (search/cart) on desktop */
+    @media (min-width: 1024px) {
+      header-element:not([data-threshold-passed="true"]):not(.menu-open):not([data-nav-open="true"]):not([data-menu-open="true"]):not(:hover):not(:focus-within) #Header .header-action {
+        background-color: var(--color-dune-900) !important;
+      }
+      header-element:not([data-threshold-passed="true"]):not(.menu-open):not([data-nav-open="true"]):not([data-menu-open="true"]):not(:hover):not(:focus-within) #Header .header-action:hover {
+        opacity: 0.8;
+      }
+    }
+
+    /* Invert logo for contrast mode (best-effort) 
+    header-element:not([data-threshold-passed="true"]) #Header img {
+      filter: invert(1) brightness(2);
+    }*/
+  </style>
+{%- endif -%}
+
+<style>
+  #shopify-section-{{ section.id }} {
+    --mobile-visibility: {% if show_sm %}block{% else %}none{% endif %};
+    --tablet-visibility: {% if show_md %}block{% else %}none{% endif %};
+    --desktop-visibility: {% if show_lg %}block{% else %}none{% endif %};
+  }
+
+  #shopify-section-{{ section.id }} .mini-cards--on-banner img.mini-card-icon {
+    filter: invert(1);
+  }
+
+  #shopify-section-{{ section.id }} .text-left .partner-actions {
+    justify-content: flex-start;
+  }
+  #shopify-section-{{ section.id }} .text-center .partner-actions {
+    justify-content: center;
+  }
+  #shopify-section-{{ section.id }} .text-right .partner-actions {
+    justify-content: flex-end;
+  }
+
+  #shopify-section-{{ section.id }} .text-left .partner-content {
+    align-items: flex-start;
+    text-align: left;
+  }
+  #shopify-section-{{ section.id }} .text-left .main-banner-content {
+    align-items: flex-start;
+    text-align: left;
+  }
+  #shopify-section-{{ section.id }} .text-left .free-return-content {
+    align-items: flex-start;
+    text-align: left;
+  }
+  #shopify-section-{{ section.id }} .text-center .partner-content {
+    align-items: center;
+    text-align: center;
+    margin-inline: auto;
+  }
+  #shopify-section-{{ section.id }} .text-center .main-banner-content {
+    align-items: center;
+    text-align: center;
+    margin-inline: auto;
+  }
+  #shopify-section-{{ section.id }} .text-center .free-return-content {
+    align-items: center;
+    text-align: center;
+    margin-inline: auto;
+  }
+  #shopify-section-{{ section.id }} .text-right .partner-content {
+    align-items: flex-end;
+    text-align: right;
+    margin-left: auto;
+  }
+  #shopify-section-{{ section.id }} .text-right .main-banner-content {
+    align-items: flex-end;
+    text-align: right;
+    margin-left: auto;
+  }
+  #shopify-section-{{ section.id }} .text-right .free-return-content {
+    align-items: flex-end;
+    text-align: right;
+    margin-left: auto;
+  }
+  #shopify-section-{{ section.id }} .text-left .car-model-content {
+    align-items: flex-start;
+    text-align: left;
+  }
+  #shopify-section-{{ section.id }} .text-center .car-model-content {
+    align-items: center;
+    text-align: center;
+    margin-inline: auto;
+  }
+  #shopify-section-{{ section.id }} .text-right .car-model-content {
+    align-items: flex-end;
+    text-align: right;
+    margin-left: auto;
+  }
+  #shopify-section-{{ section.id }} .text-left .car-brand-content {
+    align-items: flex-start;
+    text-align: left;
+  }
+  #shopify-section-{{ section.id }} .text-left .contact-content {
+    align-items: flex-start;
+    text-align: left;
+  }
+  #shopify-section-{{ section.id }} .text-center .car-brand-content {
+    align-items: center;
+    text-align: center;
+    margin-inline: auto;
+  }
+  #shopify-section-{{ section.id }} .text-center .contact-content {
+    align-items: center;
+    text-align: center;
+    margin-inline: auto;
+  }
+  #shopify-section-{{ section.id }} .text-right .car-brand-content {
+    align-items: flex-end;
+    text-align: right;
+    margin-left: auto;
+  }
+  #shopify-section-{{ section.id }} .text-right .contact-content {
+    align-items: flex-end;
+    text-align: right;
+    margin-left: auto;
+  }
+
+  @media (min-width: 768px) {
+    #shopify-section-{{ section.id }} .md\:text-left .partner-actions {
+      justify-content: flex-start;
+    }
+    #shopify-section-{{ section.id }} .md\:text-center .partner-actions {
+      justify-content: center;
+    }
+    #shopify-section-{{ section.id }} .md\:text-right .partner-actions {
+      justify-content: flex-end;
+    }
+    #shopify-section-{{ section.id }} .md\:text-left .partner-content {
+      align-items: flex-start;
+      text-align: left;
+      margin-inline: 0;
+    }
+    #shopify-section-{{ section.id }} .md\:text-left .main-banner-content {
+      align-items: flex-start;
+      text-align: left;
+      margin-inline: 0;
+    }
+    #shopify-section-{{ section.id }} .md\:text-left .free-return-content {
+      align-items: flex-start;
+      text-align: left;
+      margin-inline: 0;
+    }
+    #shopify-section-{{ section.id }} .md\:text-center .partner-content {
+      align-items: center;
+      text-align: center;
+      margin-inline: auto;
+    }
+    #shopify-section-{{ section.id }} .md\:text-center .main-banner-content {
+      align-items: center;
+      text-align: center;
+      margin-inline: auto;
+    }
+    #shopify-section-{{ section.id }} .md\:text-center .free-return-content {
+      align-items: center;
+      text-align: center;
+      margin-inline: auto;
+    }
+    #shopify-section-{{ section.id }} .md\:text-right .partner-content {
+      align-items: flex-end;
+      text-align: right;
+      margin-left: auto;
+      margin-right: 0;
+    }
+    #shopify-section-{{ section.id }} .md\:text-right .main-banner-content {
+      align-items: flex-end;
+      text-align: right;
+      margin-left: auto;
+      margin-right: 0;
+    }
+    #shopify-section-{{ section.id }} .md\:text-right .free-return-content {
+      align-items: flex-end;
+      text-align: right;
+      margin-left: auto;
+      margin-right: 0;
+    }
+    #shopify-section-{{ section.id }} .md\:text-left .car-model-content {
+      align-items: flex-start;
+      text-align: left;
+      margin-inline: 0;
+    }
+    #shopify-section-{{ section.id }} .md\:text-center .car-model-content {
+      align-items: center;
+      text-align: center;
+      margin-inline: auto;
+    }
+    #shopify-section-{{ section.id }} .md\:text-right .car-model-content {
+      align-items: flex-end;
+      text-align: right;
+      margin-left: auto;
+      margin-right: 0;
+    }
+    #shopify-section-{{ section.id }} .md\:text-left .car-brand-content {
+      align-items: flex-start;
+      text-align: left;
+      margin-inline: 0;
+    }
+    #shopify-section-{{ section.id }} .md\:text-left .contact-content {
+      align-items: flex-start;
+      text-align: left;
+      margin-inline: 0;
+    }
+    #shopify-section-{{ section.id }} .md\:text-center .car-brand-content {
+      align-items: center;
+      text-align: center;
+      margin-inline: auto;
+    }
+    #shopify-section-{{ section.id }} .md\:text-center .contact-content {
+      align-items: center;
+      text-align: center;
+      margin-inline: auto;
+    }
+    #shopify-section-{{ section.id }} .md\:text-right .car-brand-content {
+      align-items: flex-end;
+      text-align: right;
+      margin-left: auto;
+      margin-right: 0;
+    }
+    #shopify-section-{{ section.id }} .md\:text-right .contact-content {
+      align-items: flex-end;
+      text-align: right;
+      margin-left: auto;
+      margin-right: 0;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    #shopify-section-{{ section.id }} .lg\:text-left .partner-actions {
+      justify-content: flex-start;
+    }
+    #shopify-section-{{ section.id }} .lg\:text-center .partner-actions {
+      justify-content: center;
+    }
+    #shopify-section-{{ section.id }} .lg\:text-right .partner-actions {
+      justify-content: flex-end;
+    }
+    #shopify-section-{{ section.id }} .lg\:text-left .partner-content {
+      align-items: flex-start;
+      text-align: left;
+      margin-inline: 0;
+    }
+    #shopify-section-{{ section.id }} .lg\:text-left .main-banner-content {
+      align-items: flex-start;
+      text-align: left;
+      margin-inline: 0;
+    }
+    #shopify-section-{{ section.id }} .lg\:text-left .free-return-content {
+      align-items: flex-start;
+      text-align: left;
+      margin-inline: 0;
+    }
+    #shopify-section-{{ section.id }} .lg\:text-center .partner-content {
+      align-items: center;
+      text-align: center;
+      margin-inline: auto;
+    }
+    #shopify-section-{{ section.id }} .lg\:text-center .main-banner-content {
+      align-items: center;
+      text-align: center;
+      margin-inline: auto;
+    }
+    #shopify-section-{{ section.id }} .lg\:text-center .free-return-content {
+      align-items: center;
+      text-align: center;
+      margin-inline: auto;
+    }
+    #shopify-section-{{ section.id }} .lg\:text-right .partner-content {
+      align-items: flex-end;
+      text-align: right;
+      margin-left: auto;
+      margin-right: 0;
+    }
+    #shopify-section-{{ section.id }} .lg\:text-right .main-banner-content {
+      align-items: flex-end;
+      text-align: right;
+      margin-left: auto;
+      margin-right: 0;
+    }
+    #shopify-section-{{ section.id }} .lg\:text-right .free-return-content {
+      align-items: flex-end;
+      text-align: right;
+      margin-left: auto;
+      margin-right: 0;
+    }
+    #shopify-section-{{ section.id }} .lg\:text-left .car-model-content {
+      align-items: flex-start;
+      text-align: left;
+      margin-inline: 0;
+    }
+    #shopify-section-{{ section.id }} .lg\:text-center .car-model-content {
+      align-items: center;
+      text-align: center;
+      margin-inline: auto;
+    }
+    #shopify-section-{{ section.id }} .lg\:text-right .car-model-content {
+      align-items: flex-end;
+      text-align: right;
+      margin-left: auto;
+      margin-right: 0;
+    }
+    #shopify-section-{{ section.id }} .lg\:text-left .car-brand-content {
+      align-items: flex-start;
+      text-align: left;
+      margin-inline: 0;
+    }
+    #shopify-section-{{ section.id }} .lg\:text-left .contact-content {
+      align-items: flex-start;
+      text-align: left;
+      margin-inline: 0;
+    }
+    #shopify-section-{{ section.id }} .lg\:text-center .car-brand-content {
+      align-items: center;
+      text-align: center;
+      margin-inline: auto;
+    }
+    #shopify-section-{{ section.id }} .lg\:text-center .contact-content {
+      align-items: center;
+      text-align: center;
+      margin-inline: auto;
+    }
+    #shopify-section-{{ section.id }} .lg\:text-right .car-brand-content {
+      align-items: flex-end;
+      text-align: right;
+      margin-left: auto;
+      margin-right: 0;
+    }
+    #shopify-section-{{ section.id }} .lg\:text-right .contact-content {
+      align-items: flex-end;
+      text-align: right;
+      margin-left: auto;
+      margin-right: 0;
+    }
+  }
+</style>
+
+<section
+  class="relative w-full overflow-visible lg:overflow-hidden block-visibility"
+  {{ section.shopify_attributes }}
+>
+  <div class="relative w-full {{ media_height_class }} z-1">
+    {%- if media_all_auto_height -%}
+      <div aria-hidden="true">
+        {%- render 'a--image-responsive',
+          image_mobile: s.image_mobile,
+          image_tablet: s.image_tablet,
+          image_desktop: s.image_desktop,
+          picture_class: 'w-full',
+          image_class: 'w-full object-cover',
+          object_fit: 'object-cover',
+          crop: 'center',
+          fetchpriority: 'high'
+        -%}
+      </div>
+    {%- else -%}
+      <div class="absolute inset-0" aria-hidden="true">
+        {%- render 'a--image-responsive',
+          image_mobile: s.image_mobile,
+          image_tablet: s.image_tablet,
+          image_desktop: s.image_desktop,
+          picture_class: 'absolute inset-0 w-full h-full',
+          image_class: 'w-full h-full object-cover',
+          object_fit: 'object-cover',
+          crop: 'center',
+          fetchpriority: 'high'
+        -%}
+      </div>
+    {%- endif -%}
+
+    {%- if overlay_opacity > 0 -%}
+      <div
+        class="absolute inset-0 pointer-events-none"
+        style="background-color: {{ overlay_color }}; opacity: {{ overlay_opacity }};"
+        aria-hidden="true"
+      ></div>
+    {%- endif -%}
+
+    {%- if overlay_blur > 0 -%}
+      <div
+        class="absolute inset-0 pointer-events-none"
+        style="backdrop-filter: blur({{ overlay_blur }}px); -webkit-backdrop-filter: blur({{ overlay_blur }}px);"
+        aria-hidden="true"
+      ></div>
+    {%- endif -%}
+
+    <div
+      class="absolute inset-0 flex flex-col pb-0{% if overlay_header_active %} pt-15 lg:pt-28{% endif %}"
+    >
+      {%- if content != blank -%}
+        <div class="flex flex-1 w-full h-full {{ position_mobile }} {{ position_tablet }} {{ position_desktop }}">
+          <div class="px-s-outer py-s-xs w-full">
+            <div class="px-s-inner flex flex-col gap-y-s-xs w-full">
+              {{- content -}}
+            </div>
+          </div>
+        </div>
+      {%- endif -%}
+      {%- if mini_cards_top != blank -%}
+        <div class="mini-cards mini-cards--on-banner w-full text-on-accent items-center self-stretch mt-auto px-s-outer pb-0{% if s.content_type == 'partner' %} hidden lg:flex{% endif %}">
+          <div class="px-s-inner py-s-xs {% if s.content_type == 'free-return' %}grid grid-cols-3 gap-x-s-sm{% else %}flex gap-x-s-xl gap-y-b-sm items-center flex-wrap justify-center lg:flex-nowrap{% endif %}">
+            {{- mini_cards_top -}}
+          </div>
+        </div>
+      {%- endif -%}
+      {%- if s.content_type == 'contact' and contact_info_banner != blank -%}
+        <div class="contact-info contact-info--on-banner hidden lg:flex w-full text-on-accent items-center self-stretch mt-auto px-s-outer pb-0">
+          <div class="px-s-inner py-s-xs w-full">
+            {{- contact_info_banner -}}
+          </div>
+        </div>
+      {%- endif -%}
+        {%- if show_overlay_cards and overlay_cards != blank -%}
+          <div class="hero-banner__overlay-cards hidden lg:flex w-full mt-auto px-s-outer pb-s-xs">
+            <div class="px-s-inner w-full">
+              <div class="flex gap-b-base {% if s.content_type == 'car-model' %}gap-x-b-base{% else %}{% endif %}">
+                {{- overlay_cards -}}
+              </div>
+          </div>
+        </div>
+      {%- endif -%}
+  </div>
+  </div>
+
+  {%- if s.content_type == 'contact' and contact_info_below != blank -%}
+    <div class="contact-info contact-info--below w-full px-s-outer lg:hidden">
+      <div class="px-s-inner py-s-xs">
+        {{- contact_info_below -}}
+      </div>
+    </div>
+  {%- endif -%}
+  {%- if s.content_type == 'partner' and mini_cards_top != blank -%}
+    <div class="mini-cards mini-cards--below w-full px-s-outer lg:hidden">
+      <div class="px-s-inner w-full text-primary py-b-base">
+        <div class="flex w-full gap-x-s-sm items-center overflow-x-auto hide-scroll-bar flex-nowrap justify-between md:grid md:grid-cols-7 md:gap-x-s-base md:overflow-visible">
+          {{- mini_cards_top -}}
+        </div>
+      </div>
+    </div>
+  {%- endif -%}
+  {%- if numbered_cards != blank -%}
+    <div class="numbered-cards w-full px-s-outer bg-emphasis">
+      <div class="flex flex-col md:flex-row w-full">
+        {{- numbered_cards -}}
+      </div>
+    </div>
+  {%- endif -%}
+  {%- if mini_cards_below != blank -%}
+    <div class="mini-cards mini-cards--below w-full px-s-outer">
+      <div class="px-s-inner w-full text-primary py-b-base">
+        <div class="flex w-full gap-x-s-sm items-center overflow-x-auto hide-scroll-bar flex-nowrap justify-between md:grid md:grid-cols-7 md:gap-x-s-base md:overflow-visible">
+          {{- mini_cards_below -}}
+        </div>
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- comment -%} Cards section below banner {%- endcomment -%}
+  {%- if section.blocks.size > 0 -%}
+    <div class="w-full{% if show_overlay_cards %} lg:hidden{% endif %}">
+      <div class="flex flex-col md:flex-row gap-b-base lg:gap-b-base relative">
+        {%- for block in section.blocks -%}
+          {%- if block.type != 'card' -%}
+            {%- continue -%}
+          {%- endif -%}
+          <div class="flex-1" {{ block.shopify_attributes }}>
+            {%- render 'm--hero-banner-card',
+              heading: block.settings.heading,
+              description: block.settings.description,
+              button_label: block.settings.button_label,
+              button_url: block.settings.button_url,
+              image: block.settings.image,
+              icon: block.settings.icon,
+              block: block
+            -%}
+          </div>
+        {%- endfor -%}
+      </div>
+    </div>
+  {%- endif -%}
+</section>
+
+{% javascript %}
+  const brandModelWrappers = document.querySelectorAll('[data-brand-model]');
+
+  brandModelWrappers.forEach((wrapper) => {
+    const brandSelect = wrapper.querySelector('[data-brand-select]');
+    const modelSelect = wrapper.querySelector('[data-model-select]');
+    const searchButton = wrapper.querySelector('[data-search-button]');
+    if (!brandSelect || !modelSelect) return;
+
+    let pairs = [];
+    try {
+      pairs = JSON.parse(wrapper.dataset.brandModelPairs || '[]');
+    } catch (error) {
+      pairs = [];
+    }
+
+    const modelMap = pairs.reduce((acc, pair) => {
+      if (!pair || !pair.brand || !pair.model || !pair.url) return acc;
+      if (!acc[pair.brand]) acc[pair.brand] = [];
+      acc[pair.brand].push({ label: pair.model, url: pair.url });
+      return acc;
+    }, {});
+
+    const placeholder = modelSelect.dataset.placeholder || '';
+
+    const resetModels = () => {
+      modelSelect.innerHTML = '';
+      const option = document.createElement('option');
+      option.value = '';
+      option.textContent = placeholder;
+      option.disabled = true;
+      option.selected = true;
+      modelSelect.appendChild(option);
+      modelSelect.disabled = true;
+      modelSelect.classList.add('text-primary/30');
+      if (searchButton) {
+        searchButton.disabled = true;
+      }
+    };
+
+    const populateModels = (brand) => {
+      resetModels();
+      if (!brand || !modelMap[brand]) return;
+      modelMap[brand].forEach((model) => {
+        const option = document.createElement('option');
+        option.value = model.label;
+        option.textContent = model.label;
+        option.dataset.url = model.url;
+        modelSelect.appendChild(option);
+      });
+      modelSelect.disabled = false;
+      modelSelect.classList.remove('text-primary/30');
+    };
+
+    resetModels();
+    brandSelect.addEventListener('change', (event) => {
+      populateModels(event.target.value);
+    });
+    modelSelect.addEventListener('change', (event) => {
+      const selectedOption = event.target.selectedOptions[0];
+      const targetUrl = selectedOption?.dataset?.url;
+      if (!searchButton) return;
+      if (targetUrl) {
+        searchButton.disabled = false;
+        searchButton.dataset.targetUrl = targetUrl;
+      } else {
+        searchButton.disabled = true;
+      }
+    });
+    if (searchButton) {
+      searchButton.addEventListener('click', () => {
+        const targetUrl = searchButton.dataset.targetUrl;
+        if (targetUrl) window.location.href = targetUrl;
+      });
+    }
+  });
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Hero Banner",
+  "tag": "section",
+  "class": "section-hero-banner",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "header",
+      "content": "Choose content"
+    },
+    {
+      "type": "select",
+      "id": "content_type",
+      "label": "Content",
+      "default": "main_banner_content",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "main_banner_content", "label": "Main Banner Content" },
+        { "value": "partner", "label": "Partner" },
+        { "value": "free-return", "label": "Free return" },
+        { "value": "contact", "label": "Contact" },
+        { "value": "brand-model", "label": "Brand & Model" },
+        { "value": "car-model", "label": "Car Model" },
+        { "value": "car-brand", "label": "Car Brand" }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "overlay_header",
+      "label": "Overlay header",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Main Banner Content",
+      "visible_if": "{{ section.settings.content_type == 'main_banner_content' }}"
+    },
+    {
+      "type": "header",
+      "content": "Partner",
+      "visible_if": "{{ section.settings.content_type == 'partner' }}"
+    },
+    {
+      "type": "header",
+      "content": "Free return",
+      "visible_if": "{{ section.settings.content_type == 'free-return' }}"
+    },
+    {
+      "type": "header",
+      "content": "Contact",
+      "visible_if": "{{ section.settings.content_type == 'contact' }}"
+    },
+    {
+      "type": "header",
+      "content": "Brand & model",
+      "visible_if": "{{ section.settings.content_type == 'brand-model' }}"
+    },
+    {
+      "type": "header",
+      "content": "Car model",
+      "visible_if": "{{ section.settings.content_type == 'car-model' }}"
+    },
+    {
+      "type": "header",
+      "content": "Car brand",
+      "visible_if": "{{ section.settings.content_type == 'car-brand' }}"
+    },
+    {
+      "type": "image_picker",
+      "id": "brand_logo",
+      "label": "Brand logo",
+      "visible_if": "{{ section.settings.content_type == 'car-brand' }}"
+    },
+    {
+      "type": "text",
+      "id": "sub_heading",
+      "label": "Sub heading",
+      "default": "Premium European quality",
+      "visible_if": "{{ section.settings.content_type == 'main_banner_content' or section.settings.content_type == 'car-model' }}"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "European Charging Cables",
+      "visible_if": "{{ section.settings.content_type == 'main_banner_content' or section.settings.content_type == 'brand-model' or section.settings.content_type == 'car-model' or section.settings.content_type == 'car-brand' }}"
+    },
+    {
+      "type": "richtext",
+      "id": "body",
+      "label": "Body (rich text)",
+      "default": "<p>Portable, weather-resistant for hassle-free electric vehicle charging.</p>",
+      "visible_if": "{{ section.settings.content_type == 'main_banner_content' or section.settings.content_type == 'brand-model' or section.settings.content_type == 'car-model' }}"
+    },
+    {
+      "type": "richtext",
+      "id": "body_richtext",
+      "label": "Body (rich text)",
+      "visible_if": "{{ section.settings.content_type == 'car-brand' }}"
+    },
+    {
+      "type": "text",
+      "id": "contact_title",
+      "label": "Title",
+      "default": "Contact Voldt.",
+      "visible_if": "{{ section.settings.content_type == 'contact' }}"
+    },
+    {
+      "type": "richtext",
+      "id": "contact_description",
+      "label": "Description",
+      "visible_if": "{{ section.settings.content_type == 'contact' }}"
+    },
+    {
+      "type": "header",
+      "content": "Search",
+      "visible_if": "{{ section.settings.content_type == 'main_banner_content' }}"
+    },
+    {
+      "type": "text",
+      "id": "search_placeholder",
+      "label": "Search placeholder",
+      "default": "Search",
+      "visible_if": "{{ section.settings.content_type == 'main_banner_content' }}"
+    },
+    {
+      "type": "text",
+      "id": "search_aria_label",
+      "label": "Search ARIA label",
+      "default": "Search",
+      "visible_if": "{{ section.settings.content_type == 'main_banner_content' }}"
+    },
+    {
+      "type": "text",
+      "id": "brand_label",
+      "label": "Brand placeholder",
+      "default": "Any Make",
+      "visible_if": "{{ section.settings.content_type == 'brand-model' }}"
+    },
+    {
+      "type": "text",
+      "id": "model_label",
+      "label": "Model placeholder",
+      "default": "Any Model",
+      "visible_if": "{{ section.settings.content_type == 'brand-model' }}"
+    },
+    {
+      "type": "text",
+      "id": "search_button_label",
+      "label": "Search button label",
+      "default": "Search",
+      "visible_if": "{{ section.settings.content_type == 'brand-model' }}"
+    },
+    {
+      "type": "richtext",
+      "id": "partner_title",
+      "label": "Title",
+      "default": "<p>Become a partner</p>",
+      "visible_if": "{{ section.settings.content_type == 'partner' or section.settings.content_type == 'free-return' }}"
+    },
+    {
+      "type": "richtext",
+      "id": "partner_description",
+      "label": "Description",
+      "default": "<p>Work with Voldt to bring premium EV charging solutions to your customers.</p>",
+      "visible_if": "{{ section.settings.content_type == 'partner' or section.settings.content_type == 'free-return' }}"
+    },
+    {
+      "type": "text",
+      "id": "free_return_info",
+      "label": "Info description",
+      "visible_if": "{{ section.settings.content_type == 'free-return' }}"
+    },
+    {
+      "type": "header",
+      "content": "Partner buttons",
+      "visible_if": "{{ section.settings.content_type == 'partner' }}"
+    },
+    {
+      "type": "text",
+      "id": "partner_button_1_label",
+      "label": "Button 1 label",
+      "default": "Contact sales",
+      "visible_if": "{{ section.settings.content_type == 'partner' or section.settings.content_type == 'car-brand' or section.settings.content_type == 'free-return' }}"
+    },
+    {
+      "type": "url",
+      "id": "partner_button_1_url",
+      "label": "Button 1 link",
+      "visible_if": "{{ section.settings.content_type == 'partner' or section.settings.content_type == 'car-brand' or section.settings.content_type == 'free-return' }}"
+    },
+    {
+      "type": "text",
+      "id": "partner_button_2_label",
+      "label": "Button 2 label",
+      "default": "Learn more",
+      "visible_if": "{{ section.settings.content_type == 'partner' }}"
+    },
+    {
+      "type": "url",
+      "id": "partner_button_2_url",
+      "label": "Button 2 link",
+      "visible_if": "{{ section.settings.content_type == 'partner' }}"
+    },
+    {
+      "type": "header",
+      "content": "Section height",
+      "info": "Auto height will adjust the height of the section according to the aspect ratio of the media"
+    },
+    {
+      "type": "select",
+      "id": "height",
+      "label": "Mobile",
+      "default": "h-128",
+      "options": [
+        {"value": "h-auto", "label": "Auto"},
+        {"value": "h-64", "label": "XS"},
+        {"value": "h-96", "label": "S"},
+        {"value": "h-128", "label": "M"},
+        {"value": "h-160", "label": "L"},
+        {"value": "h-screen", "label": "Screen"}
+      ]
+    },
+    {
+      "type": "select",
+      "id": "height_md",
+      "label": "Tablet",
+      "default": "md:h-128",
+      "options": [
+        {"value": "md:h-auto", "label": "Auto"},
+        {"value": "md:h-64", "label": "XS"},
+        {"value": "md:h-80", "label": "S"},
+        {"value": "md:h-128", "label": "M"},
+        {"value": "md:h-160", "label": "L"},
+        {"value": "md:h-screen", "label": "Screen"}
+      ]
+    },
+    {
+      "type": "select",
+      "id": "height_lg",
+      "label": "Desktop",
+      "default": "lg:h-[32vw]",
+      "options": [
+        {"value": "lg:h-auto", "label": "Auto"},
+        {"value": "lg:h-[24vw]", "label": "S"},
+        {"value": "lg:h-[32vw]", "label": "M"},
+        {"value": "lg:h-[48vw]", "label": "L"},
+        {"value": "lg:h-screen", "label": "Screen"}
+      ]
+    },
+    {
+      "type": "header",
+      "content": "Background image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_mobile",
+      "label": "Mobile image",
+      "info": "If tablet/desktop are empty, this will be used for all sizes."
+    },
+    {
+      "type": "image_picker",
+      "id": "image_tablet",
+      "label": "Tablet image",
+      "info": "Optional"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_desktop",
+      "label": "Desktop image",
+      "info": "Optional"
+    },
+    {
+      "type": "header",
+      "content": "Content Positioning"
+    },
+    {
+      "type": "select",
+      "id": "position_mobile",
+      "label": "Position - Mobile",
+      "default": "items-center justify-center text-center",
+      "options": [
+        {"value": "items-start justify-start text-left", "label": "Top Left"},
+        {"value": "items-start justify-center text-center", "label": "Top Center"},
+        {"value": "items-start justify-end text-right", "label": "Top Right"},
+        {"value": "items-center justify-start text-left", "label": "Middle Left"},
+        {"value": "items-center justify-center text-center", "label": "Middle Center"},
+        {"value": "items-center justify-end text-right", "label": "Middle Right"},
+        {"value": "items-end justify-start text-left", "label": "Bottom Left"},
+        {"value": "items-end justify-center text-center", "label": "Bottom Center"},
+        {"value": "items-end justify-end text-right", "label": "Bottom Right"}
+      ]
+    },
+    {
+      "type": "select",
+      "id": "position_tablet",
+      "label": "Position - Tablet",
+      "default": "md:items-center md:justify-center md:text-center",
+      "options": [
+        {"value": "md:items-start md:justify-start md:text-left", "label": "Top Left"},
+        {"value": "md:items-start md:justify-center md:text-center", "label": "Top Center"},
+        {"value": "md:items-start md:justify-end md:text-right", "label": "Top Right"},
+        {"value": "md:items-center md:justify-start md:text-left", "label": "Middle Left"},
+        {"value": "md:items-center md:justify-center md:text-center", "label": "Middle Center"},
+        {"value": "md:items-center md:justify-end md:text-right", "label": "Middle Right"},
+        {"value": "md:items-end md:justify-start md:text-left", "label": "Bottom Left"},
+        {"value": "md:items-end md:justify-center md:text-center", "label": "Bottom Center"},
+        {"value": "md:items-end md:justify-end md:text-right", "label": "Bottom Right"}
+      ]
+    },
+    {
+      "type": "select",
+      "id": "position_desktop",
+      "label": "Position - Desktop",
+      "default": "lg:items-center lg:justify-start lg:text-left",
+      "options": [
+        {"value": "lg:items-start lg:justify-start lg:text-left", "label": "Top Left"},
+        {"value": "lg:items-start lg:justify-center lg:text-center", "label": "Top Center"},
+        {"value": "lg:items-start lg:justify-end lg:text-right", "label": "Top Right"},
+        {"value": "lg:items-center lg:justify-start lg:text-left", "label": "Middle Left"},
+        {"value": "lg:items-center lg:justify-center lg:text-center", "label": "Middle Center"},
+        {"value": "lg:items-center lg:justify-end lg:text-right", "label": "Middle Right"},
+        {"value": "lg:items-end lg:justify-start lg:text-left", "label": "Bottom Left"},
+        {"value": "lg:items-end lg:justify-center lg:text-center", "label": "Bottom Center"},
+        {"value": "lg:items-end lg:justify-end lg:text-right", "label": "Bottom Right"}
+      ]
+    },
+    {
+      "type": "header",
+      "content": "Overlay Settings"
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Overlay color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "default": 30,
+      "unit": "%",
+      "label": "Overlay opacity"
+    },
+    {
+      "type": "range",
+      "id": "overlay_blur",
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "default": 0,
+      "unit": "px",
+      "label": "Overlay blur"
+    },
+    {
+      "type": "header",
+      "content": "Visibility",
+      "info": "Show or hide the section on different screen sizes."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sm",
+      "label": "Mobile",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_md",
+      "label": "Tablet",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_lg",
+      "label": "Desktop",
+      "default": true
+    }
+  ],
+  "blocks": [
+    {
+      "type": "mini_card",
+      "name": "Mini card",
+      "limit": 7,
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon (design)",
+          "options": [
+            { "value": "", "label": "None" },
+            { "value": "europe", "label": "Europe" },
+            { "value": "delivery", "label": "Delivery" },
+            { "value": "secure_2", "label": "Secure" },
+            { "value": "shipping", "label": "Shipping" },
+            { "value": "newproduct", "label": "New product" },
+            { "value": "discount", "label": "Discount" },
+            { "value": "review", "label": "Review" },
+            { "value": "box", "label": "Box" },
+            { "value": "return-package", "label": "Return package" },
+            { "value": "return-arrow", "label": "Return arrow" }
+          ]
+        },
+        {
+          "type": "image_picker",
+          "id": "icon_image",
+          "label": "Icon"
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Text",
+          "default": "<p>Direct from<br>Factory</p>"
+        }
+      ]
+    },
+    {
+      "type": "contact_info",
+      "name": "Contact Info",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "contact_info_title",
+          "label": "Detail title",
+          "default": "Contact Information"
+        },
+        {
+          "type": "richtext",
+          "id": "contact_info_primary",
+          "label": "Details (left)"
+        },
+        {
+          "type": "richtext",
+          "id": "contact_info_secondary",
+          "label": "Details (right)"
+        }
+      ]
+    },
+    {
+      "type": "numbered_card",
+      "name": "Numbered card",
+      "limit": 2,
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "1. Step title"
+        },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Description"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Icon / image"
+        }
+      ]
+    },
+    {
+      "type": "card",
+      "name": "Card",
+      "limit": 2,
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading",
+          "default": "EV Charging Cable"
+        },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Description",
+          "default": "<p>Charge your car at every charging station in Europe</p>"
+        },
+        {
+          "type": "text",
+          "id": "button_label",
+          "label": "Button label",
+          "default": "Buy EV Charging Cables"
+        },
+        {
+          "type": "url",
+          "id": "button_url",
+          "label": "Button URL"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero Banner",
+      "blocks": [
+        {
+          "type": "card",
+          "settings": {
+            "heading": "EV Charging Cable",
+            "description": "<p>Charge your car at every charging station in Europe</p>",
+            "button_label": "Buy EV Charging Cables"
+          }
+        },
+        {
+          "type": "card",
+          "settings": {
+            "heading": "Portable charger",
+            "description": "<p>Charge your car at a regular wall socket</p>",
+            "button_label": "Buy Portable Chargers"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
+

@@ -1,0 +1,170 @@
+---
+description: Schema design rules and schema builder — _schemas/, partials, dynamic generation, inline markers
+globs:
+  - "sections/**/*.liquid"
+  - "**/sections/*.liquid"
+  - "blocks/**/*.liquid"
+  - "**/blocks/*.liquid"
+  - "_schemas/**/*.js"
+  - "_schemas/**/*.json"
+alwaysApply: false
+---
+# Schema Design Rules
+
+## Schema Builder (`climaybe build-schemas`)
+
+This project uses the climaybe schema builder to generate schemas from JavaScript/JSON source files. Schemas are defined in `_schemas/` and injected into `sections/*.liquid` and `blocks/*.liquid` at build time.
+
+### How it works
+
+A section or block file contains an inline-comment marker at the end:
+
+```liquid
+<section class="hero">{{ section.settings.title }}</section>
+
+{% # schema 'hero-banner' %}
+```
+
+`{% # ... %}` is a Liquid inline comment — Shopify ignores it. The builder finds the marker, resolves `_schemas/hero-banner.js` (or `.json`), and writes the generated `{% schema %}...{% endschema %}` block below it. On rebuild, only the generated block is replaced. Everything above the marker (including theme editor changes) is preserved.
+
+### Directory structure
+
+```
+_schemas/              ← schema definitions (JS or JSON)
+├── partials/          ← shared settings, fieldsets, factory functions
+│   ├── link.js
+│   ├── create-links.js
+│   └── spacing.js
+├── hero-banner.js     ← referenced by sections via marker
+├── landing-page.js
+└── page-schema.js
+```
+
+### When creating or editing schemas
+
+1. **Define schemas in `_schemas/`**, not inline in section files. The `{% schema %}...{% endschema %}` block in `sections/` is generated output — never edit it directly.
+
+2. **Use JS files** (CommonJS `module.exports`) when you need imports, computation, or comments. Use JSON for simple static schemas.
+
+3. **Extract shared settings into `_schemas/partials/`** — these are imported via `require()` and are never referenced directly by section markers.
+
+4. **Spread partials into settings arrays:**
+```js
+const linkSettings = require('./partials/link.js');
+const spacingSettings = require('./partials/spacing.js');
+
+module.exports = {
+  name: 'Featured Collection',
+  settings: [
+    { type: 'text', id: 'title', label: 'Heading' },
+    ...linkSettings,
+    ...spacingSettings,
+  ],
+};
+```
+
+5. **Use factory functions for repeated field groups:**
+```js
+const createLinks = require('./partials/create-links.js');
+
+module.exports = {
+  name: 'Hero',
+  settings: [
+    { type: 'text', id: 'heading', label: 'Heading' },
+    ...createLinks(3),
+  ],
+};
+```
+
+6. **Use function exports for per-section overrides:**
+```js
+module.exports = function (filename, content) {
+  return {
+    name: content.name || filename.replace('.liquid', ''),
+    settings: [/* ... */],
+  };
+};
+```
+
+The function receives `(filename, inlineContent)`. Inline content comes from a second inline comment in the section file:
+```liquid
+{% # schema 'page-schema' %}
+{% # { "name": "About Us" } %}
+```
+
+7. **For static exports**, inline JSON is shallow-merged on top (inline wins):
+```liquid
+{% # schema 'newsletter' %}
+{% # { "name": "Footer Newsletter" } %}
+```
+
+### Commands
+
+```bash
+npx climaybe build-schemas              # generate schemas in sections/
+npx climaybe build-schemas --dry-run    # preview without writing
+npx climaybe build-schemas --list       # list schema files and markers
+```
+
+Schemas also rebuild automatically during `climaybe serve` (watch mode, tagged `[schema]` in console).
+
+### Rules for AI assistants
+
+- When asked to create a new section or block with a schema, create the schema definition in `_schemas/` and add the `{% # schema 'name' %}` marker to the liquid file. Do not write raw `{% schema %}` JSON.
+- When asked to edit a schema, edit the file in `_schemas/`, not the generated block in `sections/` or `blocks/`.
+- When adding fields that are reused across schemas (links, spacing, colors), extract them into `_schemas/partials/` and spread them.
+- When duplicating a schema for a variant section, use a shared schema file instead. Add the same marker to both sections.
+- After editing `_schemas/` files, remind the user to run `npx climaybe build-schemas` (or note that `climaybe serve` rebuilds automatically).
+
+---
+
+## Schema Design Principles
+
+### 1. Start Simple, Expand Gradually
+- Begin with minimal, essential settings only
+- Add complexity only when there's a clear, demonstrated need
+
+### 2. Avoid Redundancy
+- If text content exists in translation files (`en.default.json`), don't duplicate it in schema
+- Use translation keys for all text content, not schema text inputs
+- Schema should focus on functionality, not content
+
+### 3. Question Every Setting
+Before adding any schema setting, ask:
+- Is this truly necessary for the user?
+- Can this be handled by translation files instead?
+- Will this setting be used by most merchants?
+- Does this add value or just complexity?
+
+### 4. Limit Settings Per Section
+- **Maximum 5 settings per section** (excluding headers)
+- If more are needed, consider splitting into multiple sections
+- Group related settings under headers
+
+## Schema Setting Guidelines
+
+### Essential Settings (Always Include)
+- Link list selectors for menus
+- Image upload fields for key visuals
+- Color scheme selectors (if theme supports multiple schemes)
+
+### Optional Settings (Add Only When Needed)
+- Layout toggles (show/hide elements)
+- Spacing adjustments
+- Text alignment options
+- Background color/image options
+
+### Avoid These Settings
+- Text content inputs (use translation files)
+- Toggle switches for every element
+- Complex layout selectors
+- Settings that duplicate existing functionality
+
+## Review Process
+
+Before committing any schema changes:
+1. **Count the settings** — keep under 5 per section
+2. **Check for redundancy** — ensure no duplicate functionality
+3. **Verify necessity** — each setting should solve a real problem
+4. **Check partials** — could this field group be extracted and shared?
+5. **Consider alternatives** — could this be handled via translations, CSS, or existing settings?

@@ -1,0 +1,122 @@
+/* Electric Trusted Reviews Component Styles */
+
+electric-trusted-reviews {
+  @apply block w-full;
+}
+
+.trusted-reviews-container {
+  @apply w-full;
+}
+
+/* Loading State */
+.trusted-reviews-loading {
+  @apply py-8 text-center text-sm opacity-50;
+}
+
+/* Error State */
+.trusted-reviews-error {
+  @apply py-8 px-4 text-center text-sm text-system-red rounded-lg;
+}
+
+/* Empty State */
+.trusted-reviews-empty {
+  @apply py-8 text-center text-sm opacity-50;
+}
+
+/* Reviews List */
+.trusted-reviews-list {
+  @apply space-y-6;
+}
+
+/* Review Item */
+.trusted-review-item {
+  @apply p-6 bg-white border border-primary rounded-lg shadow-sm;
+  @apply transition-shadow duration-200;
+}
+
+.trusted-review-item:hover {
+  @apply shadow-md;
+}
+
+/* Review Header */
+.trusted-review-header {
+  @apply flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3;
+}
+
+/* Review Rating */
+.trusted-review-rating {
+  @apply flex items-center gap-1;
+}
+
+.trusted-star {
+  @apply text-lg leading-none;
+  @apply transition-colors duration-150;
+}
+
+.trusted-star-full {
+  @apply text-alert;
+}
+
+.trusted-star-half {
+  @apply text-alert;
+}
+
+.trusted-star-empty {
+  @apply text-alert;
+}
+
+/* Review Meta */
+.trusted-review-meta {
+  @apply flex flex-col sm:flex-row sm:items-center gap-2 text-sm opacity-50;
+}
+
+.trusted-review-author {
+  @apply font-medium text-primary;
+}
+
+.trusted-review-date {
+  @apply opacity-50;
+}
+
+/* Review Comment */
+.trusted-review-comment {
+  @apply text-primary leading-relaxed;
+  @apply whitespace-pre-wrap;
+}
+
+/* Screen Reader Only */
+.sr-only {
+  @apply absolute w-px h-px p-0 -m-px overflow-hidden;
+  @apply whitespace-nowrap border-0;
+  clip: rect(0, 0, 0, 0);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 640px) {
+  .trusted-review-item {
+    @apply p-4;
+  }
+  
+  .trusted-review-header {
+    @apply gap-2;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

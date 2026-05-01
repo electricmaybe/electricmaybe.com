@@ -1,0 +1,313 @@
+{%- liquid
+  assign hide_radios = false | default: product.has_only_default_variant
+
+  assign name = name | default: 'name'
+  assign quick_atc_mode = quickAtcMode | default: false
+
+  if quick_atc_mode
+    assign section_id = 'api--product-details'
+  else
+    assign section_id = section.id
+  endif
+
+  assign product_form_id = 'product-form-' | append: section.id | append: block.id | append: product.id
+-%}
+{%- capture length_aliases -%}{%- render 'product--length-option-aliases' -%}{%- endcapture -%}
+{%- assign length_aliases = length_aliases | strip_newlines | strip -%}
+<variant-radios
+  data-url="{{ product.url }}"
+  name="{{ name }}"
+  data-section="{{ section_id }}"
+  class="relative flex flex-wrap gap-4 lg:flex-col {% if hide_radios %}hidden!{% endif %} {{ class_variant_radios }}"
+  data-variant-dynamic="variant-radios"
+  data-quick-view-mode="{{ quickViewMode }}"
+>
+  {%- for option in product.options_with_values -%}
+    {%- liquid
+      assign option_handle = option.name | handleize
+      assign option_key = blank
+      assign option_metaobject = blank
+      assign option_handle_token = ',' | append: option_handle | append: ','
+      # Match by stable option handles only (no translation keys). length_aliases from product--length-option-aliases above.
+      assign type_aliases = ',type,plug,connector,'
+      assign power_aliases = ',power,charging-capacity,capacity,kw,'
+      assign cable_aliases = ',cable,electric-range,range,'
+
+      if type_aliases contains option_handle_token
+        assign option_key = 'type'
+      elsif power_aliases contains option_handle_token
+        assign option_key = 'power'
+      elsif cable_aliases contains option_handle_token
+        assign option_key = 'cable'
+      elsif length_aliases contains option_handle_token
+        assign option_key = 'length'
+      endif
+
+      case option_key
+        when 'type'
+          assign option_metaobject = shop.metafields.custom.type.value
+        when 'power'
+          assign option_metaobject = shop.metafields.custom.power.value
+        when 'cable'
+          assign option_metaobject = shop.metafields.custom.cable.value
+        when 'length'
+          assign option_metaobject = shop.metafields.custom.length.value
+      endcase
+
+      assign option_faq_list = blank
+      if option_metaobject != blank
+        assign option_faq_list = option_metaobject.faq_list.value | default: option_metaobject.faq_list
+        if option_faq_list == blank
+          assign option_faq_list = option_metaobject.faqs.value | default: option_metaobject.faqs
+        endif
+        if option_faq_list == blank
+          assign option_faq_list = option_metaobject.faq.value | default: option_metaobject.faq
+        endif
+        if option_faq_list == blank
+          assign option_faq_list = option_metaobject.faq_1.value | default: option_metaobject.faq_1
+        endif
+        if option_faq_list == blank
+          assign option_faq_list = option_metaobject
+        endif
+      endif
+    -%}
+    {%- if option_key == 'length' -%}
+      <div data-variant-dynamic="length-slider" class="w-full">
+        {% render 'product--length-slider',
+          option: option,
+          name: name,
+          section_id: section.id,
+          product_id: product.id,
+          product_form_id: product_form_id,
+          faq_list: option_faq_list
+        %}
+      </div>
+    {% else %}
+      <fieldset name="{{ option.name }}{{ name }}" class="w-fit cursor-default first:mt-0 text-solid-sm flex lg:items-center gap-x-b-sm flex-col lg:flex-row">
+        <div class="flex items-center gap-1.5 relative">
+          <drawer-trigger data-target="{{ option.name }}-info" class="flex items-center gap-x-b-sm cursor-pointer min-w-16">
+            {{- option.name -}}
+            {% render 'a--icon', icon: 'info-fill', width: '0.75rem', class: 'lg:absolute lg:top-1/2 lg:-translate-y-1/2 lg:-translate-x-full lg:-ml-1' %}
+          </drawer-trigger>
+          {% capture option_info %}
+            <div class="option-info p-4">
+            <h3 class="text-ui-base text-2xl font-bold">
+              {{- option.name -}}
+            </h3>
+            {%- assign drawer_text = blank -%}
+            {%- if option_metaobject != blank -%}
+              {%- assign drawer_text = option_metaobject.description | metafield_tag -%}
+              {%- if drawer_text == blank -%}
+                {%- assign drawer_text = option_metaobject.description | metafield_text -%}
+              {%- endif -%}
+              {%- if drawer_text == blank -%}
+                {%- assign drawer_text = option_metaobject.detail | metafield_text -%}
+              {%- endif -%}
+              {%- if drawer_text == blank -%}
+                {%- assign drawer_text = option_metaobject.details | metafield_text -%}
+              {%- endif -%}
+              {%- if drawer_text == blank -%}
+                {%- assign drawer_text = option_metaobject.content | metafield_text -%}
+              {%- endif -%}
+            {%- endif -%}
+            <div class="mt-6 text-ui-small">
+              {{ drawer_text }}
+            </div>
+            {% if option_faq_list != blank %}
+              <div class="mt-4 space-y-b-base">
+                {%- for faq in option_faq_list -%}
+                  {%- liquid
+                    assign question = faq.question | default: faq.question.value | default: faq.question_text | default: ''
+                    assign answer = faq.answer | metafield_text
+                    if answer == blank and faq.answer.value
+                      assign answer = faq.answer.value
+                    elsif answer == blank and faq.answer != blank
+                      assign answer = faq.answer
+                    endif
+                  -%}
+                  {% if question != blank or answer != blank %}
+                    {% render 'm--accordion',
+                      heading: question,
+                      body: answer,
+                    title_size: 'text-base',
+                    title_height: 'py-b-base',
+                    class: 'border-t-0 border-b!'
+                    accordion_class: "mb-0!"
+                    %}
+                  {% endif %}
+                {%- endfor -%}
+              </div>
+            {% endif %}
+          </div>
+        {% endcapture %}
+        {% assign option_info_id = option.name | append: '-info' %}
+        {% render 'm--drawer', id: option_info_id, content: option_info, positionMobile: 'right', positionDesktop: 'right', show_close_button: true, close_button_class: 'h-auto! absolute top-3 right-3 z-10 lg:hidden' %}
+        </div>
+        <div class="flex flex-row items-center mt-1.5 justify-start w-fit gap-2 flex-wrap">
+          {%- for value in option.values -%}
+            {%- liquid
+              assign linked_product_url = value.product_url | default: ''
+              assign linked_target_variant_id = blank
+
+              if value.variant
+                assign linked_target_variant_id = value.variant.id
+                if linked_product_url == blank and value.variant.product
+                  assign linked_product_url = value.variant.product.url
+                endif
+              elsif value.product_url != blank
+                assign linked_product_url = value.product_url
+              endif
+            -%}
+            <span class="contents items-center justify-center leading-solid">
+              <input
+                id="form-{{ section.id }}-{{ product.id }}-{{ option.position }}-{{ forloop.index0 }}-{{ name }}"
+                type="radio"
+                name="{{ option.name }}-{{ option.position }}-{{ name }}"
+                form="{{ product_form_id }}"
+                value="{{ value | escape }}"
+                data-option-value-id="{{ value.id }}"
+                {% if linked_product_url != blank %}
+                  data-product-url="{{ linked_product_url }}"
+                {% endif %}
+                {% if linked_target_variant_id != blank %}
+                  data-target-variant-id="{{ linked_target_variant_id }}"
+                {% endif %}
+                class="hidden peer"
+                {% if option.selected_value == value %}
+                  checked="true"
+                {% endif %}
+              >
+              <label
+                for="form-{{ section.id }}-{{ product.id }}-{{ option.position }}-{{ forloop.index0 }}-{{ name }}"
+                class="rounded-full peer-checked:bg-blue-700 peer-checked:text-on-accent peer-checked:border-blue-700 border-secondary border px-3 py-2 whitespace-nowrap cursor-pointer peer-disabled:opacity-50 peer-disabled:cursor-not-allowed [.disabled+&]:opacity-50"
+              >
+                {{- value -}}
+              </label>
+            </span>
+          {%- endfor -%}
+        </div>
+      </fieldset>
+    {% endif %}
+  {%- endfor -%}
+
+  {%- comment -%}
+    Current selected variant (single object).
+    This is consumed by `variant-radios` JS to update `input[name="id"]`, availability, etc.
+  {%- endcomment -%}
+  <script type="application/json" class="current-variant-json">
+    {{ product.selected_or_first_available_variant | json }}
+  </script>
+
+  {%- comment -%}
+    For combined listings, generate mappings for ALL options (not just Color).
+    Each option value can point to a different product with its own URL and variants.
+  {%- endcomment -%}
+  {%- liquid
+    assign has_combined_listings = false
+    for option in product.options_with_values
+      for value in option.values
+        if value.variant and value.variant.product
+          assign has_combined_listings = true
+          break
+        endif
+        if value.product_url != blank
+          assign has_combined_listings = true
+          break
+        endif
+      endfor
+      if has_combined_listings
+        break
+      endif
+    endfor
+  -%}
+  {% if has_combined_listings %}
+    {%- comment -%}
+      Generate option variants and URLs arrays for each option group.
+      Structure: optionVariants[optionIndex] = array of variants, optionUrls[optionIndex] = array of URLs
+    {%- endcomment -%}
+    <script type="application/json" class="variant-option-variants-json">
+      [
+      {%- for option in product.options_with_values -%}
+        {%- unless forloop.first -%},{%- endunless -%}
+        {%- assign option_variants = option.values | map: 'variant' | map: 'product' | map: 'selected_or_first_available_variant' -%}
+        {{ option_variants | json }}
+      {%- endfor -%}
+      ]
+    </script>
+    <script type="application/json" class="variant-option-urls-json">
+      [
+      {%- for option in product.options_with_values -%}
+        {%- unless forloop.first -%},{%- endunless -%}
+        {%- assign option_urls = option.values | map: 'product_url' -%}
+        {{ option_urls | json }}
+      {%- endfor -%}
+      ]
+    </script>
+    {%- comment -%}
+      For combined listings, we need all variants from all products referenced by option values.
+      Loop through all option values to collect variants from all related products.
+    {%- endcomment -%}
+    {%- liquid
+      assign all_variants_array = blank | split: ','
+      assign collected_product_ids = blank | split: ','
+      
+      # Start with current product's variants
+      if product.variants.size > 0
+        assign all_variants_array = product.variants
+        assign collected_product_ids = collected_product_ids | concat: product.id | split: ','
+      endif
+      
+      # Loop through ALL option groups and their values to get all related products
+      for option_group in product.options_with_values
+        for option_value in option_group.values
+          if option_value.variant and option_value.variant.product
+            assign related_product = option_value.variant.product
+            assign product_id_string = related_product.id | append: ''
+            
+            unless collected_product_ids contains product_id_string
+              if related_product.variants.size > 0
+                assign all_variants_array = all_variants_array | concat: related_product.variants
+                assign collected_product_ids = collected_product_ids | concat: product_id_string | split: ','
+              endif
+            endunless
+          elsif option_value.product_url != blank
+            assign linked_handle = option_value.product_url | split: '/products/' | last | split: '?' | first | url_decode | handleize
+            assign linked_product = all_products[linked_handle]
+            if linked_product and linked_product.id
+              assign product_id_string = linked_product.id | append: ''
+              unless collected_product_ids contains product_id_string
+                if linked_product.variants.size > 0
+                  assign all_variants_array = all_variants_array | concat: linked_product.variants
+                  assign collected_product_ids = collected_product_ids | concat: product_id_string | split: ','
+                endif
+              endunless
+            endif
+          endif
+        endfor
+      endfor
+      
+      # Remove duplicates using uniq
+      assign all_variants_array = all_variants_array | uniq
+    -%}
+    <script type="application/json" class="combined-listings-map">
+      [
+      {%- for variant in all_variants_array -%}
+        {%- unless forloop.first -%},{%- endunless -%}
+        {
+          "options": {{ variant.options | json }},
+          "variantId": {{ variant.id | json }},
+          "available": {{ variant.available | json }},
+          "url": {{ variant.url | default: variant.product.url | json }}
+        }
+      {%- endfor -%}
+      ]
+    </script>
+    <script type="application/json" class="variant-json">
+      {{ all_variants_array | json }}
+    </script>
+  {% else %}
+    <script type="application/json" class="variant-json">
+      {{ product.variants | json }}
+    </script>
+  {% endif %}
+</variant-radios>

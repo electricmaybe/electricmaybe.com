@@ -1,0 +1,85 @@
+{%- comment -%}
+  Hero banner card component
+  
+  @param {string} heading - Card heading
+  @param {string} description - Card description text
+  @param {string} button_label - Button label
+  @param {string} button_url - Button URL
+  @param {object} image - Card image object
+{%- endcomment -%}
+
+{%- liquid
+  assign heading = heading | default: block.settings.heading | default: ''
+  assign description = description | default: block.settings.description | default: ''
+  assign button_label = button_label | default: block.settings.button_label | default: ''
+  assign button_url = button_url | default: block.settings.button_url | default: ''
+  assign image = image | default: block.settings.image
+  assign card_is_clickable = false
+  assign card_tag = 'div'
+  assign card_aria_label = heading | strip_html | strip | default: button_label | strip
+
+  if button_label != blank and button_url != blank
+    assign card_is_clickable = true
+    assign card_tag = 'a'
+  endif
+-%}
+
+{%- comment -%} Desktop: horizontal layout (text left, image right) {%- endcomment -%}
+<{{ card_tag }}
+  class="color-schema-secondary bg-surface flex flex-col lg:flex-row gap-b-base h-[320px] md:h-[320px] lg:h-full overflow-hidden px-s-inner lg:px-s-whole relative isolate z-(--layer-base){% if card_is_clickable %} group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2{% endif %}"
+  {% if card_is_clickable %}
+    href="{{ button_url }}"
+    aria-label="{{ card_aria_label | escape }}"
+  {% endif %}
+>
+  {%- comment -%} Content section {%- endcomment -%}
+  <div class="flex flex-1 flex-col justify-end py-b-xl lg:py-b-xl relative z-2">
+    <div class="flex flex-col gap-y-b-base relative z-2">
+      <div class="flex flex-col gap-y-b-xxs">
+        {%- if heading != blank -%}
+          <h2 class="h2 text-primary text-size-h2 flex items-center gap-x-b-sm ">
+            {{- heading -}}
+            <span class="w-6 h-6 md:w-6 md:h-6 lg:w-8 lg:h-8 shrink-0">
+              {%- render 'a--icon', icon: 'arrow-r-up', width: 32, class: 'w-full h-full' -%}
+            </span>
+          </h2>
+        {%- endif -%}
+        {%- if description != blank -%}
+          <div class="text-ui-base text-secondary lg:text-base [&>p]:m-0 [&>h1]:m-0 [&>h2]:m-0 [&>h3]:m-0 [&>h4]:m-0 [&>h5]:m-0 [&>h6]:m-0">
+            {{- description -}}
+          </div>
+        {%- endif -%}
+      </div>
+      {%- if button_label != blank and button_url != blank -%}
+        <div>
+          <span
+            class="{% render 'a--button-classes', style: 'primary', size: 'base', content: 'text-only' %} pointer-events-none text-center"
+            aria-hidden="true"
+          >
+            {{- button_label -}}
+          </span>
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+
+  {%- comment -%} Image section {%- endcomment -%}
+  {%- if image != blank -%}
+    {%- comment -%} Mobile/Tablet: absolute positioned (background) {%- endcomment -%}
+    {%- comment -%} Desktop: relative, flex-1, fills available space {%- endcomment -%}
+    <div class="absolute inset-0 lg:relative lg:flex-1 lg:inset-auto z-0">
+      {%- render 'a--image-responsive',
+        image: image,
+        picture_class: 'absolute inset-0 lg:relative lg:inset-auto w-full h-full',
+        image_class: 'w-full h-full object-contain object-right lg:object-contain lg:object-center',
+        object_fit: 'object-contain',
+        crop: 'right'
+      -%}
+    </div>
+    {%- comment -%} Mobile/Tablet overlay: blur only on bottom half, gradient on full height {%- endcomment -%}
+    {%- comment -%} Full height gradient (no blur) {%- endcomment -%}
+    <div class="absolute inset-0 lg:hidden bg-gradient-surface pointer-events-none z-0"></div>
+    {%- comment -%} Bottom half blur overlay: starts from bottom at full opacity, gradually fades to transparent at middle (50%) {%- endcomment -%}
+    <div class="absolute bottom-0 left-0 right-0 h-1/2 lg:hidden backdrop-blur-[5px] pointer-events-none z-1" style="mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.9) 20%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0) 50%); -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.9) 20%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0) 50%);"></div>
+  {%- endif -%}
+</{{ card_tag }}>

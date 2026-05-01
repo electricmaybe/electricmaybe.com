@@ -1,0 +1,165 @@
+{%- doc -%}
+Electric slider: responsive, touch-friendly carousel with optional nav and progress bar.
+
+Renders an <electric-slider> with a scrollable feed and optional prev/next buttons and progress bar. Columns and gap are set via CSS vars (per_row_*, gap). Navigation is hidden when type is 'none'. Feed uses snap scroll; bar and buttons are max-lg:hidden.
+
+@param {string} [id] - Slider id for data-slider and data-slider-target (default: section.id)
+@param {string} [type] - Nav layout: 'none' (no nav), 'on-sides' (floating left/right), or default (bar + buttons in a row). Defaults to section.settings.navigation_position.
+@param {boolean} [bar] - Show progress bar (default: section.settings.show_slider_bar)
+@param {string} [gap] - Gap between slides; used as CSS var name, e.g. 'gap-x-b-base' (default: 'gap-x-b-base')
+@param {number} per_row_mobile - Columns on mobile (required)
+@param {number} per_row_tablet - Columns on tablet (required)
+@param {number} per_row_desktop - Columns on desktop (required)
+@param {string} [slider_class] - Extra classes for the slider wrapper
+@param {string} [slider_navigation_wrapper_class] - Extra classes for nav wrapper (prefixed with px-s-whole)
+@param {string} [feed] - Content inside the scrollable feed (required)
+@param {string} [feed_class] - Extra classes for the feed element
+@param {string} [properties] - Extra HTML attributes on the <electric-slider> element
+@param {string} [tag] - Tag for the feed container (default: 'div')
+@param {string} [feed_properties] - Extra HTML attributes on the feed element
+@param {boolean} [nav] - Show navigation controls (default: true unless type is 'none')
+@param {boolean} [gradient_finish] - Reserved flag for gradient-end treatments
+@param {object} [section] - Optional parent section context for fallback settings
+@param {boolean} [show_dots] - Show dot indicators (default: false)
+@param {number} [array_size] - Number of slides (for dots or bar)
+@param {string} [dots_class] - Extra classes for the dots container
+@param {boolean} [small] - Use smaller nav button icons (default: false)
+
+@example
+{% render 'm--electric-slider',
+  id: 'featured-collection-' | append: section.id,
+  feed: feed,
+  per_row_mobile: 2.1,
+  per_row_tablet: 4,
+  per_row_desktop: 4.3,
+  gap: 'grid-gutter-base',
+  bar: true,
+  type: 'bottom',
+  slider_navigation_wrapper_class: 'order-2 px-s-whole!',
+  small: true
+%}
+
+@example
+{% render 'm--electric-slider',
+  id: 'product-main-slider',
+  feed: feed,
+  bar: false,
+  per_row_mobile: 1,
+  per_row_tablet: 1,
+  per_row_desktop: 1,
+  show_dots: true,
+  array_size: product.media.size,
+  dots_class: 'absolute right-2 -bottom-4'
+%}
+{%- enddoc -%}
+
+{% # theme-check-disable UndefinedObject %}
+{%- liquid
+  assign id = id | default: section.id
+  assign type = type | default: section.settings.navigation_position
+  assign bar = bar | default: section.settings.show_slider_bar, allow_false: true
+  assign nav = nav | default: true, allow_false: true
+  assign gradient_finish = gradient_finish | default: true, allow_false: true
+  assign gap = gap | default: 'gap-x-b-base'
+  assign tag = tag | default: 'div'
+
+  if type == 'none'
+    assign nav = false
+  endif
+
+  assign slider_navigation_wrapper_class = 'px-s-whole ' | append: slider_navigation_wrapper_class
+-%}
+<style>
+  [data-slider="{{ id }}"] {
+    --columns: {{ per_row_mobile }};
+    --md-columns: {{ per_row_tablet }};
+    --lg-columns: {{ per_row_desktop }};
+    --gap: var(--{{ gap | replace: 'gap-', 'gaps-' }});
+  }
+</style>
+<electric-slider
+  data-id="{{ id }}"
+  class="electric-slider group/snap relative w-full min-w-0 max-w-full overflow-x-hidden overflow-y-hidden mr-auto flex flex-col gap-y-b-base {{ slider_class }}"
+  data-slider-step-by="page"
+  {{ properties }}
+>
+  {%- if nav -%}
+    {%- liquid
+      assign icon_size = 'base'
+      if small
+        assign icon_size = 'sm'
+      endif
+
+      assign bar = bar | default: true, allow_false: true
+
+      if type == 'on-sides'
+        assign style_button = 'primary'
+        assign class_button_left = 'absolute left-2 top-1/2 -translate-y-1/2 z-10 pointer-events-auto max-lg:hidden'
+        assign class_button_right = 'absolute right-2 top-1/2 -translate-y-1/2 z-10 pointer-events-auto max-lg:hidden'
+      else
+        assign style_button = 'secondary'
+      endif
+
+      capture properties
+        echo ' data-slider-target="' | append: id | append: '"'
+      endcapture
+
+      capture buttons_html
+        render 'a--button', icon: 'chevron-l', style: style_button, size: icon_size, class: class_button_left, properties: properties, name: 'previous'
+        render 'a--button', icon: 'chevron-r', style: style_button, size: icon_size, class: class_button_right, properties: properties, name: 'next'
+      endcapture
+    -%}
+    {%- capture bar_html -%}
+      {%- if bar -%}
+      <div class="overflow-hidden relative w-full h-0.25 bg-subtle">
+        <div
+          class="h-0.25 electric-slider__bar bg-accent origin-left transition-transform duration-200 ease-out"
+          style="transform: scaleX(var(--slider-bar-progress, 0.1))"
+          data-slider-target="{{ id }}"
+        ></div>
+      </div>
+      {%- endif -%}
+    {%- endcapture -%}
+
+    {%- if type == 'on-sides' -%}
+      {{- buttons_html -}}
+      {%- if bar -%}
+        <div class="max-lg:hidden w-full {{ slider_navigation_wrapper_class }}">
+          {{- bar_html -}}
+        </div>
+      {%- endif -%}
+    {%- else -%}
+      <div class="max-lg:hidden w-full grid grid-cols-[1fr_auto] items-center gap-x-b-xl {{ slider_navigation_wrapper_class }}">
+        {{- bar_html -}}
+        <div class="flex gap-x-b-base col-start-2">
+          {{- buttons_html -}}
+        </div>
+      </div>
+    {%- endif -%}
+  {%- endif -%}
+  <{{ tag }}
+    data-slider="{{ id }}"
+    class="flex max-w-full min-w-0 box-border overflow-y-hidden overflow-x-scroll justify-start electric-slider__feed hide-scroll-bar snap-x snap-mandatory scroll-smooth [&_>_*]:w-column-basis [&_>_*]:shrink-0 gap-y-b-base {{ gap }} {{ feed_class }}"
+    {% if section.settings.height %}
+      style="--height: {{ section.settings.height }}px"
+    {% endif %}
+    tabindex="0"
+    {{ feed_properties }}
+  >
+    {{ feed }}
+  </{{ tag }}>
+ 
+  {% if show_dots and array_size %}
+    <div class="electric-slider__dots flex justify-center gap-2 {{ dots_class }}">
+      {% for i in (1..array_size) %}
+        <button
+          type="button"
+          class="w-1 h-1 rounded-full cursor-pointer bg-accent opacity-30 transition-all duration-500 ease-in-out [[data-active=true]]:w-12 [[data-active=true]]:opacity-100"
+          data-active="{% if forloop.first %}true{% else %}false{% endif %}"
+          aria-label="Go to slide {{ forloop.index }}"
+        ></button>
+      {% endfor %}
+    </div>
+  {% endif %}
+</electric-slider>
+{% # theme-check-enable UndefinedObject %}

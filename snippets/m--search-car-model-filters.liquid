@@ -1,0 +1,390 @@
+{%- doc -%}
+  Car model filters UI for Search page.
+
+  Renders quick-filter style pill filters (matching collection quick filters UI) and an "All Filters" drawer.
+
+  @param {object} type_options - Array of unique "Type" values (plug) (optional)
+  @param {object} power_options - Array of unique "Power" values (charging_capacity) (optional)
+  @param {object} cable_options - Array of unique "Cable" values (electric_range) (optional)
+  @param {object} portable_options - Array of unique "Portable" values (charging_time) (optional)
+  @param {string} [id_base] - Unique id base used to generate element ids (optional)
+
+  @example
+  {% render 'm--search-car-model-filters', type_options: type_options, power_options: power_options %}
+{%- enddoc -%}
+
+{%- liquid
+  assign type_options = type_options | default: blank
+  assign power_options = power_options | default: blank
+  assign cable_options = cable_options | default: blank
+  assign portable_options = portable_options | default: blank
+
+  assign filters_id_base = id_base | default: 'car-model-filters'
+  assign drawer_id = 'carModelFiltersDrawer-' | append: filters_id_base
+  assign panel_id = 'car-model-quick-filter-panel-' | append: filters_id_base
+
+  assign close_filters_label = 'general.search.car_filters.close_filters' | t
+  assign filter_by_label = 'general.search.car_filters.filter_by' | t
+  assign quick_filter_label = 'general.search.car_filters.quick_filter' | t
+  assign all_filters_label = 'general.search.car_filters.all_filters' | t
+  assign sort_label = 'general.search.car_filters.sort' | t
+
+  # For Search car-model quick filters:
+  # scan the full shop metafield list and keep first 4 matched groups.
+  assign selected_filter_keys_csv = ''
+  assign selected_filter_keys_count = 0
+  assign selected_filter_tokens = ','
+  assign selected_label_portable = ''
+  assign selected_label_type = ''
+  assign selected_label_power = ''
+  assign selected_label_cable = ''
+  assign selected_entry_portable = blank
+  assign selected_entry_type = blank
+  assign selected_entry_power = blank
+  assign selected_entry_cable = blank
+  assign selected_description_portable = ''
+  assign selected_description_type = ''
+  assign selected_description_power = ''
+  assign selected_description_cable = ''
+  assign selected_faqs_portable = blank
+  assign selected_faqs_type = blank
+  assign selected_faqs_power = blank
+  assign selected_faqs_cable = blank
+  assign search_quick_filter_entries = shop.metafields.custom.search_quick_filters.value | default: shop.metafields.custom.search_quick_filters
+
+  if search_quick_filter_entries != blank
+    for entry in search_quick_filter_entries
+      assign entry_name_label = entry.filter_name.value | default: entry.filter_name | default: entry.name.value | default: entry.name | default: entry.title.value | default: entry.title | default: entry | default: ''
+      assign entry_name_label = entry_name_label | strip
+      assign entry_name = entry_name_label | downcase
+      if entry_name == blank
+        continue
+      endif
+
+      assign entry_param = entry.param_name | metafield_text
+      if entry_param == blank
+        assign entry_param = entry.param_name.value | default: entry.param_name | default: entry.filter_param.value | default: entry.filter_param | default: entry.param.value | default: entry.param | default: entry.key.value | default: entry.key | default: ''
+      endif
+      assign entry_param_handle = entry_param | downcase | strip | handleize
+      assign mapped_key = ''
+      assign entry_info_description = entry.description | metafield_tag
+      if entry_info_description == blank
+        assign entry_info_description = entry.description | metafield_text
+      endif
+      if entry_info_description == blank
+        assign entry_info_description = entry.detail | metafield_text
+      endif
+      if entry_info_description == blank
+        assign entry_info_description = entry.details | metafield_text
+      endif
+      if entry_info_description == blank
+        assign entry_info_description = entry.content | metafield_text
+      endif
+      assign entry_info_faqs = entry.faqs.value | default: entry.faqs
+      if entry_info_faqs == blank
+        assign entry_info_faqs = entry.faq.value | default: entry.faq
+      endif
+      if entry_info_faqs == blank
+        assign entry_info_faqs = entry.faq_list.value | default: entry.faq_list
+      endif
+
+      if entry_param_handle == 'portable'
+        assign mapped_key = 'portable'
+      elsif entry_param_handle == 'type'
+        assign mapped_key = 'type'
+      elsif entry_param_handle == 'power'
+        assign mapped_key = 'power'
+      elsif entry_param_handle == 'cable'
+        assign mapped_key = 'cable'
+      endif
+
+      if mapped_key == blank
+        continue
+      endif
+
+      assign mapped_token = ',' | append: mapped_key | append: ','
+      if selected_filter_tokens contains mapped_token
+        continue
+      endif
+
+      assign selected_filter_tokens = selected_filter_tokens | append: mapped_key | append: ','
+      if selected_filter_keys_count > 0
+        assign selected_filter_keys_csv = selected_filter_keys_csv | append: ','
+      endif
+      assign selected_filter_keys_csv = selected_filter_keys_csv | append: mapped_key
+
+      case mapped_key
+        when 'portable'
+          if selected_label_portable == blank
+            assign selected_label_portable = entry_name_label
+            assign selected_entry_portable = entry
+            assign selected_description_portable = entry_info_description
+            assign selected_faqs_portable = entry_info_faqs
+          endif
+        when 'type'
+          if selected_label_type == blank
+            assign selected_label_type = entry_name_label
+            assign selected_entry_type = entry
+            assign selected_description_type = entry_info_description
+            assign selected_faqs_type = entry_info_faqs
+          endif
+        when 'power'
+          if selected_label_power == blank
+            assign selected_label_power = entry_name_label
+            assign selected_entry_power = entry
+            assign selected_description_power = entry_info_description
+            assign selected_faqs_power = entry_info_faqs
+          endif
+        when 'cable'
+          if selected_label_cable == blank
+            assign selected_label_cable = entry_name_label
+            assign selected_entry_cable = entry
+            assign selected_description_cable = entry_info_description
+            assign selected_faqs_cable = entry_info_faqs
+          endif
+      endcase
+
+      assign selected_filter_keys_count = selected_filter_keys_count | plus: 1
+      if selected_filter_keys_count == 4
+        break
+      endif
+    endfor
+  endif
+
+  # Complete to 4 groups with default car-model filter keys when metafield matches are fewer.
+  if selected_filter_keys_count < 4
+    assign default_filter_keys = 'portable,type,power,cable' | split: ','
+    for fallback_key in default_filter_keys
+      if selected_filter_keys_count == 4
+        break
+      endif
+      assign fallback_token = ',' | append: fallback_key | append: ','
+      if selected_filter_tokens contains fallback_token
+        continue
+      endif
+      assign selected_filter_tokens = selected_filter_tokens | append: fallback_key | append: ','
+      if selected_filter_keys_count > 0
+        assign selected_filter_keys_csv = selected_filter_keys_csv | append: ','
+      endif
+      assign selected_filter_keys_csv = selected_filter_keys_csv | append: fallback_key
+      assign selected_filter_keys_count = selected_filter_keys_count | plus: 1
+    endfor
+  endif
+
+  if selected_filter_keys_csv == blank
+    assign selected_filter_keys_csv = 'portable,type,power,cable'
+  endif
+  assign selected_filter_keys = selected_filter_keys_csv | split: ','
+-%}
+
+{%- capture filters_panel -%}
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-s-sm gap-y-s-base items-start w-full">
+    {%- for filter_key in selected_filter_keys -%}
+      {%- assign filter_key = filter_key | strip -%}
+      {%- if filter_key == blank -%}{%- continue -%}{%- endif -%}
+      {%- liquid
+        assign option_values = blank
+        assign heading_label = ''
+        assign heading_entry = blank
+        assign heading_description = ''
+        assign heading_faqs = blank
+        case filter_key
+          when 'portable'
+            assign option_values = portable_options
+            assign heading_label = selected_label_portable
+            assign heading_entry = selected_entry_portable
+            assign heading_description = selected_description_portable
+            assign heading_faqs = selected_faqs_portable
+          when 'type'
+            assign option_values = type_options
+            assign heading_label = selected_label_type
+            assign heading_entry = selected_entry_type
+            assign heading_description = selected_description_type
+            assign heading_faqs = selected_faqs_type
+          when 'power'
+            assign option_values = power_options
+            assign heading_label = selected_label_power
+            assign heading_entry = selected_entry_power
+            assign heading_description = selected_description_power
+            assign heading_faqs = selected_faqs_power
+          when 'cable'
+            assign option_values = cable_options
+            assign heading_label = selected_label_cable
+            assign heading_entry = selected_entry_cable
+            assign heading_description = selected_description_cable
+            assign heading_faqs = selected_faqs_cable
+        endcase
+      -%}
+      <div class="flex flex-col gap-y-b-base items-start justify-center">
+        <div class="flex items-center gap-x-b-sm">
+          {% render 'quick-filter--info-heading',
+            entry: heading_entry,
+            info_description: heading_description,
+            info_faqs: heading_faqs,
+            label: heading_label,
+            lookup_key: filter_key,
+            context_id: filters_id_base | append: '-' | append: filter_key | append: '-desktop',
+            label_class: 'text-ui-base text-primary leading-[1.2]'
+          %}
+        </div>
+        <div class="flex flex-wrap items-start gap-x-b-base gap-y-b-sm">
+          {%- if option_values == blank -%}
+            <div class="flex flex-wrap items-start gap-x-b-base gap-y-b-sm" data-car-filter-options="{{ filter_key }}"></div>
+          {%- else -%}
+            {%- for v in option_values -%}
+              {%- assign label = v | strip -%}
+              {%- if label == blank -%}{%- continue -%}{%- endif -%}
+              {%- assign value = label | handleize -%}
+              <label class="cursor-pointer">
+                <input type="checkbox" class="sr-only peer" data-car-filter="{{ filter_key }}" value="{{ value }}">
+                <span class="inline-flex items-center justify-center h-[35px] px-b-xs rounded-full border border-secondary bg-surface text-ui-base leading-[1.2] peer-checked:color-schema-contrast">
+                  {{ label }}
+                </span>
+              </label>
+            {%- endfor -%}
+          {%- endif -%}
+        </div>
+      </div>
+    {%- endfor -%}
+  </div>
+{%- endcapture -%}
+
+{%- capture drawer_filters_panel -%}
+  <div class="flex flex-col gap-y-s-base items-start w-full">
+    {%- for filter_key in selected_filter_keys -%}
+      {%- assign filter_key = filter_key | strip -%}
+      {%- if filter_key == blank -%}{%- continue -%}{%- endif -%}
+      {%- liquid
+        assign option_values = blank
+        assign heading_label = ''
+        assign heading_entry = blank
+        assign heading_description = ''
+        assign heading_faqs = blank
+        case filter_key
+          when 'portable'
+            assign option_values = portable_options
+            assign heading_label = selected_label_portable
+            assign heading_entry = selected_entry_portable
+            assign heading_description = selected_description_portable
+            assign heading_faqs = selected_faqs_portable
+          when 'type'
+            assign option_values = type_options
+            assign heading_label = selected_label_type
+            assign heading_entry = selected_entry_type
+            assign heading_description = selected_description_type
+            assign heading_faqs = selected_faqs_type
+          when 'power'
+            assign option_values = power_options
+            assign heading_label = selected_label_power
+            assign heading_entry = selected_entry_power
+            assign heading_description = selected_description_power
+            assign heading_faqs = selected_faqs_power
+          when 'cable'
+            assign option_values = cable_options
+            assign heading_label = selected_label_cable
+            assign heading_entry = selected_entry_cable
+            assign heading_description = selected_description_cable
+            assign heading_faqs = selected_faqs_cable
+        endcase
+      -%}
+      <div class="flex flex-col gap-y-s-xs items-start w-full">
+        <div class="flex items-center gap-x-b-sm">
+          {% render 'quick-filter--info-heading',
+            entry: heading_entry,
+            info_description: heading_description,
+            info_faqs: heading_faqs,
+            label: heading_label,
+            lookup_key: filter_key,
+            context_id: filters_id_base | append: '-' | append: filter_key | append: '-drawer',
+            label_class: 'text-ui-base text-primary leading-[1.2]'
+          %}
+        </div>
+        <div class="flex flex-wrap items-start gap-x-b-base gap-y-b-sm">
+          {%- if option_values == blank -%}
+            <div class="flex flex-wrap items-start gap-x-b-base gap-y-b-sm" data-car-filter-options="{{ filter_key }}"></div>
+          {%- else -%}
+            {%- for v in option_values -%}
+              {%- assign label = v | strip -%}
+              {%- if label == blank -%}{%- continue -%}{%- endif -%}
+              {%- assign value = label | handleize -%}
+              <label class="cursor-pointer">
+                <input type="checkbox" class="sr-only peer" data-car-filter="{{ filter_key }}" value="{{ value }}">
+                <span class="inline-flex items-center justify-center h-[35px] px-b-xs rounded-full border border-secondary bg-surface text-ui-base leading-[1.2] peer-checked:color-schema-contrast">
+                  {{ label }}
+                </span>
+              </label>
+            {%- endfor -%}
+          {%- endif -%}
+        </div>
+      </div>
+    {%- endfor -%}
+  </div>
+{%- endcapture -%}
+
+{%- capture drawer_filters -%}
+  <div class="text-left flex flex-col h-full bg-surface px-s-inner lg:px-0">
+    <div class="px-s-outer py-s-xs flex items-center gap-x-s-xs">
+      {%- liquid
+        assign properties = 'data-target="' | append: drawer_id | append: '"'
+        render 'a--button', tag: 'drawer-trigger', type: 'button', properties: properties, icon: 'arrow-left-l', content: 'icon-only', label: close_filters_label, aria_label: close_filters_label
+      -%}
+      <div class="h3 text-primary">
+        {{ filter_by_label }}
+      </div>
+    </div>
+
+    <div class="flex-1 px-s-outer pb-s-xs">
+      {{ drawer_filters_panel }}
+    </div>
+  </div>
+{%- endcapture -%}
+
+<div class="w-full" data-car-model-filters>
+  <collection-quick-filter class="flex flex-col gap-y-s-xs w-full py-s-xs">
+    <div class="flex items-center justify-between w-full">
+      <div class="flex items-center gap-x-b-sm">
+        <button
+          type="button"
+          class="inline-flex items-center gap-x-b-sm cursor-pointer"
+          aria-expanded="false"
+          aria-controls="{{ panel_id }}"
+          data-quick-filter-toggle
+        >
+          <span class="text-ui-base text-primary leading-[1.2]">{{ quick_filter_label }}</span>
+          <span data-quick-filter-icon-plus aria-hidden="true">
+            {% render 'a--icon', icon: 'plus', width: '1.5rem' %}
+          </span>
+          <span class="hidden" data-quick-filter-icon-minus aria-hidden="true">
+            {% render 'a--icon', icon: 'minus', width: '1.5rem' %}
+          </span>
+        </button>
+      </div>
+
+      <div class="flex items-center justify-end gap-x-s-xs">
+        <drawer-trigger data-target="{{ drawer_id }}" class="inline-flex items-center gap-x-b-sm">
+          <span class="text-ui-base text-primary leading-[1.2]">{{ all_filters_label }}</span>
+          {% render 'a--icon', icon: 'filter', width: '1.5rem' %}
+        </drawer-trigger>
+
+        <button type="button" class="hidden items-center gap-x-b-sm" aria-label="{{ sort_label }}" data-car-model-sort>
+          <span class="text-ui-base text-primary leading-[1.2]">{{ sort_label }}</span>
+          {% render 'a--icon', icon: 'sort-new', width: '1.5rem' %}
+        </button>
+      </div>
+    </div>
+
+    <div id="{{ panel_id }}" class="hidden w-full" data-quick-filter-panel>
+      <div class="w-full flex gap-x-s-sm items-center">
+        {{ filters_panel }}
+      </div>
+    </div>
+  </collection-quick-filter>
+
+  {% render 'm--drawer',
+    content: drawer_filters,
+    id: drawer_id,
+    positionMobile: 'right',
+    positionDesktop: 'right'
+  %}
+</div>
+

@@ -1,0 +1,249 @@
+{%- liquid
+  # Use mobile-specific menu if set, otherwise fall back to main menu
+  assign mobile_menu = section.settings.mobile_menu
+  if mobile_menu == blank
+    assign mobile_menu = 'main-menu-v3'
+  endif
+-%}
+
+{%- assign main_link_class = 'cursor-pointer flex justify-between items-center block transition-colors border-t [li:first-of-type_&]:border-t-0 border-secondary h-14' -%}
+{% capture content %}
+  <div class="space-y-b-base">
+    <div>
+  {%- liquid
+    assign card_class = 'bg-subtle relative px-b-base py-b-xxl flex flex-col justify-end hover:opacity-70 transition-opacity group/card overflow-hidden border-t border-secondary'
+    assign promo_img_class = 'top-0 bottom-0 right-(--px-b-base) absolute object-cover h-full mix-blend-darken'
+  -%}
+  {%- for i in (1..2) -%}
+    {%- liquid
+      case i
+        when 1
+          assign promo_collection = section.settings.nav_promo_1_collection
+          assign promo_title_override = section.settings.nav_promo_1_title
+          assign promo_desc_override = section.settings.nav_promo_1_description
+          assign promo_image_override = section.settings.nav_promo_1_image
+        when 2
+          assign promo_collection = section.settings.nav_promo_2_collection
+          assign promo_title_override = section.settings.nav_promo_2_title
+          assign promo_desc_override = section.settings.nav_promo_2_description
+          assign promo_image_override = section.settings.nav_promo_2_image
+      endcase
+      
+      if promo_collection == blank
+        continue
+      endif
+      
+      assign promo_title = promo_title_override | default: promo_collection.title
+      assign promo_description = promo_desc_override | default: promo_collection.description | strip_html | truncate: 80
+      assign promo_image = promo_image_override | default: promo_collection.image
+    -%}
+    <a href="{{ promo_collection.url }}" class="{{ card_class }}">
+      <div class="max-w-3/5 space-y-b-xs">
+        <div class="flex items-center gap-x-b-base h4">
+          {{ promo_title }}
+          {% render 'a--icon', icon: 'arrow-r-up', width: '24px', height: '24px' %}
+        </div>
+        {%- if promo_description != blank -%}
+          <div class="text-ui-small text-secondary">{{ promo_description }}</div>
+        {%- endif -%}
+      </div>
+      {%- if promo_image != blank -%}
+        <img src="{{ promo_image | image_url: height: 350 }}" width="175" height="280" alt="{{ promo_title | escape }}" class="{{ promo_img_class }}" loading="lazy">
+      {%- endif -%}
+    </a>
+  {%- endfor -%}
+</div>
+  <nav class="relative flex-1 text-ui-base px-b-base">
+    <ul class="{{ mainListClass }} h-full" role="list">
+      {%- for link in linklists[mobile_menu].links -%}
+        <li class="slide-up-sm-cancel" style="--nth-child: {{ forloop.index }};">
+          {%- if link.links != blank -%}
+            {% assign id = 'menu-drawer-' | append: link.handle | append: '-' | append: forloop.index %}
+            <drawer-trigger data-target="{{ id }}" class="{{ main_link_class }} focus-inset">
+                {{ link.title | escape }}
+                {% render 'a--icon', icon: 'chevron-r', width: '1.5rem' %}
+            </drawer-trigger>
+            {% capture content %}
+              <div class="menu-drawer__inner-submenu h-auto min-h-full">
+                <drawer-trigger data-target="{{ id }}" class="{{ main_link_class }} w-full justify-between gap-2 border-t-0!" aria-expanded="true">
+                  {% render 'a--icon', icon: 'chevron-l', width: '1.5rem' %}
+                  {{ link.title | escape }}
+                  <div class="w-6"></div>
+                </drawer-trigger>
+                <ul role="list" tabindex="-1">
+                  {% comment %} INSERT_YOUR_CODE {% endcomment %}
+                  <li>
+                    <a
+                      id="HeaderDrawer-{{ link.handle }}-viewall"
+                      href="{{ link.url }}"
+                      class="{{ main_link_class }} focus-inset border-t! border-secondary bg-emphasis"
+                    >
+                      {{ 'sections.header.view_all' | t }}
+                    </a>
+                  </li>
+
+                  {%- for childlink in link.links -%}
+                    <li>
+                      {%- if childlink.links == blank -%}
+                        <a
+                          id="HeaderDrawer-{{ link.handle }}-{{ childlink.handle }}"
+                          href="{{ childlink.url }}"
+                          class="{{ main_link_class }} bg-emphasis focus-inset{% if childlink.current %} font-bold{% endif %}"
+                          {% if childlink.current %}
+                            aria-current="page"
+                          {% endif %}
+                        >
+                          {{ childlink.title | escape }}
+                        </a>
+                      {%- else -%}
+                        {% # theme-check-disable UnusedAssign %}
+                        {% capture accordion_body %}
+                        <ul class="bg-emphasis" role="list">
+                            <li class="slide-up-sm-cancel" style="--nth-child: 1;">
+                              {%- liquid
+                                assign all_childlink = 'sections.header.all_collection' | t: collection: childlink.title
+                                echo all_childlink | link_to: childlink.url, class: 'py-2.5 inline-block'
+                              -%}
+                            </li>
+                          {%- for grandchildlink in childlink.links -%}
+                            <li class="slide-up-sm-cancel" style="--nth-child: {{ forloop.index | plus: 1 }};">
+                              {{ grandchildlink.title | link_to: grandchildlink.url, class: 'py-2.5 inline-block' }}
+                            </li>
+                          {%- endfor -%}
+                        </ul>
+                      {% endcapture %}
+                        {%- assign accordion_title_class = main_link_class | append: ' bg-emphasis' -%}
+                        {%- render 'm--accordion', heading: childlink.title, body: accordion_body, icon: 'plus', title_class: accordion_title_class, title_size: 'text-base', title_height: 'h-14', id: 'menu-drawer-' | append: link.handle | append: '-' | append: childlink.handle, shrink_others: true, background_colors: 'bg-emphasis' -%}
+                        {% # theme-check-enable UnusedAssign %}
+                      {%- endif -%}
+                    </li>
+                  {%- endfor -%}
+                </ul>
+              </div>
+                {{ bottom_bar }}
+            {% endcapture %}
+            {% render 'm--drawer', content: content, id: id, positionMobile: 'right', positionDesktop: 'right' %}
+          {%- else -%}
+            <a
+              id="HeaderDrawer-{{ link.handle }}"
+              href="{{ link.url }}"
+              class="{{ main_link_class }} focus-inset{% if link.current %} focus-bold{% endif %} flex items-center justify-between"
+              {% if link.current %}
+                aria-current="page"
+              {% endif %}
+            >
+              {{ link.title | escape }}
+              {% render 'a--icon', icon: 'arrow-r-up', width: '24px', height: '24px' %}
+            </a>
+          {%- endif -%}
+        </li>
+      {%- endfor -%}
+    </ul>
+  </nav>
+  {%- liquid
+    assign drawer_cta_primary_text = section.settings.drawer_cta_primary_text | default: 'Bulk orders'
+    assign drawer_cta_primary_url = section.settings.drawer_cta_primary_url | default: routes.root_url
+    assign drawer_cta_secondary_text = section.settings.drawer_cta_secondary_text | default: 'Become a partner'
+    assign drawer_cta_secondary_url = section.settings.drawer_cta_secondary_url | default: routes.root_url
+    assign drawer_cta_tertiary_text = section.settings.drawer_cta_tertiary_text | default: 'Shop for my car'
+    assign drawer_cta_tertiary_url = section.settings.drawer_cta_tertiary_url | default: routes.root_url
+  -%}
+  <div class="grid grid-cols-2 gap-x-b-base gap-y-b-base px-b-base">
+    <a href="{{ drawer_cta_primary_url }}" class="h-12 border px-b-base rounded-full flex items-center justify-between w-full">
+      {{ drawer_cta_primary_text }}
+      {% render 'a--icon', icon: 'arrow-r-up', width: '1.25rem' %}
+    </a>
+    <a href="{{ drawer_cta_secondary_url }}" class="h-12 border px-b-base rounded-full flex items-center justify-between w-full">
+      {{ drawer_cta_secondary_text }}
+      {% render 'a--icon', icon: 'arrow-r-up', width: '1.25rem' %}
+    </a>
+    <a href="{{ drawer_cta_tertiary_url }}" class="h-12 border px-b-base rounded-full flex items-center justify-center gap-2 w-full col-span-2">
+      {% render 'a--icon', icon: 'car', width: '1.25rem' %}
+      {{ drawer_cta_tertiary_text }}
+    </a>
+
+  </div>
+  {%- style -%}
+    .scrolling-usp--{{ section.id }} {
+      --move-speed: 30s;
+    }
+
+    .scrolling-usp--{{ section.id }} .scrolling-usp__inner {
+      animation: scrolling-usp-{{ section.id }} var(--move-speed) linear infinite;
+      animation-play-state: running;
+    }
+
+    .scrolling-usp--{{ section.id }}:focus .scrolling-usp__inner,
+    .scrolling-usp--{{ section.id }}:hover .scrolling-usp__inner {
+      animation-play-state: paused;
+    }
+
+    @keyframes scrolling-usp-{{ section.id }} {
+      0% {
+        transform: translateX(0);
+        -webkit-transform: translateX(0);
+      }
+      to {
+        transform: translateX(-50%);
+        -webkit-transform: translateX(-50%);
+      }
+    }
+  {%- endstyle -%}
+  <div class="scrolling-usp--{{ section.id }} overflow-hidden border-t border-secondary">
+    <div class="inline-flex gap-x-b-xl py-b-base scrolling-usp__inner whitespace-nowrap" aria-hidden="true" tabindex="-1">
+      {%- comment -%} First set of USPs {%- endcomment -%}
+      {%- for i in (1..4) -%}
+        {%- liquid
+          case i
+            when 1
+              assign usp = section.settings.usp_1
+            when 2
+              assign usp = section.settings.usp_2
+            when 3
+              assign usp = section.settings.usp_3
+            when 4
+              assign usp = section.settings.usp_4
+          endcase
+        -%}
+
+        {% if usp != blank %}
+          <div class="flex items-center justify-start gap-x-b-sm h6 px-b-sm shrink-0">
+            {% render 'a--icon', icon: 'check-fill' , width: '24px', height: '24px' %}
+            {{ usp }}
+          </div>
+        {% endif %}
+      {%- endfor -%}
+      {%- comment -%} Duplicate set for seamless loop {%- endcomment -%}
+      {%- for i in (1..4) -%}
+        {%- liquid
+          case i
+            when 1
+              assign usp = section.settings.usp_1
+            when 2
+              assign usp = section.settings.usp_2
+            when 3
+              assign usp = section.settings.usp_3
+            when 4
+              assign usp = section.settings.usp_4
+          endcase
+        -%}
+
+        {% if usp != blank %}
+          <div class="flex items-center justify-start gap-x-b-sm h6 px-b-sm shrink-0">
+            {% render 'a--icon', icon: 'check-fill' , width: '24px', height: '24px' %}
+            {{ usp }}
+          </div>
+        {% endif %}
+      {%- endfor -%}
+    </div>
+  </div>
+  </div>
+{% endcapture %}
+{% render 'm--drawer',
+  content: content,
+  id: 'menu-drawer',
+  positionMobile: 'left',
+  positionDesktop: 'left',
+  wrapper_class: 'top-(--header-sticky-offset)!',
+  class: ' flex flex-col'
+%}

@@ -1,0 +1,35 @@
+name: Extract PR Number
+
+on:
+  workflow_call:
+    outputs:
+      pr_number:
+        description: "The PR number (padded: 01, 02, etc.)"
+        value: ${{ jobs.extract.outputs.pr_number }}
+      pr_number_unpadded:
+        description: "The PR number (unpadded: 1, 2, etc.)"
+        value: ${{ jobs.extract.outputs.pr_number_unpadded }}
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    outputs:
+      pr_number: ${{ steps.extract.outputs.pr_number }}
+      pr_number_unpadded: ${{ steps.extract.outputs.pr_number_unpadded }}
+    steps:
+      - name: Extract PR number
+        id: extract
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          if [ -z "$PR_NUMBER" ] || [ "$PR_NUMBER" = "" ]; then
+            PR_NUMBER="${{ github.event.number }}"
+          fi
+
+          if [ -z "$PR_NUMBER" ] || [ "$PR_NUMBER" = "" ]; then
+            echo "Could not extract PR number from event."
+            exit 1
+          fi
+
+          PADDED_PR_NUMBER=$(printf "%02d" "$PR_NUMBER")
+          echo "pr_number=$PADDED_PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "pr_number_unpadded=$PR_NUMBER" >> $GITHUB_OUTPUT

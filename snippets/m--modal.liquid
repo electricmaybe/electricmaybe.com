@@ -1,0 +1,179 @@
+{%- doc -%}
+Simple Modal component for displaying modal dialogs with customizable content and behavior.
+
+This component creates template content for the SimpleModal system. It supports multiple variants (default, alert, confirm, custom), various sizes, and rich interaction patterns. The modal includes focus management, keyboard navigation, and smooth animations using Tailwind classes.
+
+@param {string} id - Unique identifier for the modal instance (required)
+@param {string} [size] - Modal size: 'small', 'medium', 'large', 'full' (default: 'medium')
+@param {string} [modal_class] - Additional CSS classes for the modal content
+@param {string} [variant] - Modal variant: 'default', 'alert', 'confirm', 'custom' (default: 'default')
+@param {string} [heading] - Modal heading text for alert/confirm variants
+@param {string} [body] - Modal body text for alert/confirm variants
+@param {string} [icon] - Icon name to display for alert/confirm variants
+@param {string} [primary_label] - Primary button label text
+@param {string} [primary_class] - Additional CSS classes for primary button
+@param {string} [primary_action] - Custom HTML for primary button action
+@param {string} [secondary_label] - Secondary button label text
+@param {string} [secondary_class] - Additional CSS classes for secondary button
+@param {string} [content] - Custom HTML content (overrides default layout)
+@param {boolean} [hide_close_button] - Hide the close button (default: false)
+
+@example
+{% render 'm--modal', id: 'my-modal', heading: 'Confirm Action', body: 'Are you sure?', primary_label: 'Yes', secondary_label: 'Cancel' %}
+
+@example
+{% render 'm--modal',
+  id: 'alert-modal',
+  variant: 'alert',
+  icon: 'warning',
+  heading: 'Important Notice',
+  body: 'This action cannot be undone.',
+  primary_label: 'I Understand',
+  size: 'small'
+%}
+{%- enddoc -%}
+
+{%- liquid
+  assign size = size | default: 'medium'
+  assign variant = variant | default: 'default'
+  
+  # Size classes for the modal container
+  case size
+    when 'small'
+      assign size_class = 'max-w-2xl'
+    when 'medium' 
+      assign size_class = 'max-w-5xl'
+    when 'large'
+      assign size_class = 'max-w-7xl'
+    when 'full'
+      assign size_class = 'max-w-full mx-4'
+    when 'auto'
+      assign size_class = 'max-w-auto'
+    else
+      assign size_class = 'max-w-2xl'
+  endcase
+-%}
+
+<template data-modal-content="{{ id }}">
+  <div class="relative bg-white shadow-xl w-full {{ size_class }} {{ modal_class }} max-h-[90vh] max-w-[90vw] overflow-y-auto">
+    {%- if content -%}
+      {{- content -}}
+    {%- else -%}
+      {%- case variant -%}
+        {%- when 'alert', 'confirm' -%}
+          <div class="p-6">
+            <div class="flex items-start gap-4">
+              {%- if icon -%}
+                <div class="shrink-0 w-10 h-10 flex items-center justify-center rounded-full {% if variant == 'alert' %}bg-red-100{% else %}bg-subtle/10{% endif %}">
+                  {%- liquid
+                    if variant == 'alert'
+                      assign icon_class = 'w-5 h-5 text-system-red'
+                    else
+                      assign icon_class = 'w-5 h-5 text-primary'
+                    endif
+                    render 'a--icon', icon: icon, class: icon_class 
+                  -%}
+                </div>
+              {%- endif -%}
+              <div class="grow">
+                {%- if heading -%}
+                  <h3 class="text-lg font-medium mb-2" data-modal-title>{{ heading }}</h3>
+                {%- endif -%}
+                {%- if body -%}
+                  <div class="text-sm opacity-80" data-modal-description>{{ body }}</div>
+                {%- endif -%}
+              </div>
+              <button 
+                type="button" 
+                class="absolute top-4 right-4 p-1 text-gray-400 hover:opacity-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                data-modal-close
+              >
+                <span class="sr-only">Close</span>
+                {%- render 'a--icon', icon: 'close', class: 'h-4 w-4' -%}
+              </button>
+            </div>
+            
+            {%- if primary_label or secondary_label -%}
+              <div class="flex gap-3 mt-6 {% if variant == 'confirm' %}justify-end{% else %}justify-center{% endif %}">
+                {%- if secondary_label -%}
+                  <button 
+                    type="button" 
+                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary {{ secondary_class }}"
+                    data-modal-close
+                  >
+                    {{ secondary_label }}
+                  </button>
+                {%- endif -%}
+                {%- if primary_label -%}
+                  {%- if primary_action -%}
+                    {{- primary_action -}}
+                  {%- else -%}
+                    {%- render 'a--button', tag: 'button', style: 'primary', label: primary_label, class: primary_class -%}
+                  {%- endif -%}
+                {%- endif -%}
+              </div>
+            {%- endif -%}
+          </div>
+          
+        {%- when 'default' -%}
+          <div class="relative">
+            {%- if heading -%}
+              <div class="px-6 py-4 border-b border-secondary">
+                <h3 class="text-lg font-medium" data-modal-title>{{ heading }}</h3>
+                <button 
+                type="button" 
+                class="absolute top-4 right-4 p-1 text-gray-400 hover:opacity-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                data-modal-close
+              >
+                <span class="sr-only">Close</span>
+                {%- render 'a--icon', icon: 'close', class: 'h-4 w-4' -%}
+              </button>
+              </div>
+            {%- endif -%}
+            
+            {%- if body -%}
+              <div class="p-6">
+                <div class="rte max-w-none" data-modal-description>{{ body }}</div>
+              </div>
+            {%- endif -%}
+            
+            {%- if primary_label or secondary_label -%}
+              <div class="px-6 py-4 border-t border-secondary flex gap-3 justify-end">
+                {%- if secondary_label -%}
+                  <button 
+                    type="button" 
+                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary {{ secondary_class }}"
+                    data-modal-close
+                  >
+                    {{ secondary_label }}
+                  </button>
+                {%- endif -%}
+                {%- if primary_label -%}
+                  {%- if primary_action -%}
+                    {{- primary_action -}}
+                  {%- else -%}
+                    <button 
+                      type="button" 
+                      class="px-4 py-2 text-sm font-medium text-white bg-subtle border border-transparent rounded-md hover:bg-subtle/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary {{ primary_class }}"
+                    >
+                      {{ primary_label }}
+                    </button>
+                  {%- endif -%}
+                {%- endif -%}
+              </div>
+            {%- endif -%}
+          </div>
+      {%- endcase -%}
+    {%- endif -%}
+    {% unless hide_close_button %}
+    <button 
+      type="button" 
+      class="absolute cursor-pointer top-4 right-4 p-1 focus:outline-none  focus:ring-offset-2 focus:ring-primary"
+      data-modal-close
+    >
+      <span class="sr-only">Close</span>
+      {%- render 'a--icon', icon: 'close' -%}
+    </button>
+    {% endunless %}
+  </div>
+</template>

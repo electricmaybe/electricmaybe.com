@@ -1,0 +1,151 @@
+# climaybe — Multistore Hotfix to Main
+# Syncs hotfixes from staging-<store> or live-<store> back to main.
+# Only when the push is NOT from main (main→staging merge would create a loop).
+# Triggers: push to staging-* or live-*; also after Root to Stores completes (live-*).
+
+name: Multistore Hotfix to Main
+
+on:
+  push:
+    branches:
+      - 'staging-*'
+      - 'live-*'
+  workflow_run:
+    workflows: ["Root to Stores"]
+    types: [completed]
+    branches:
+      - 'live-*'
+
+concurrency:
+  group: multistore-hotfix-to-main-${{ github.event_name == 'push' && github.ref_name || github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+jobs:
+  sync-to-main:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Resolve source branch ref
+        id: ref
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            echo "branch=${{ github.event.workflow_run.head_branch }}" >> $GITHUB_OUTPUT
+          else
+            echo "branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve default store alias
+        id: default_store
+        run: |
+          DEFAULT_ALIAS=$(node -e "
+            const fs = require('fs');
+            const cfg = JSON.parse(fs.readFileSync('./climaybe.config.json', 'utf8'));
+            const stores = cfg?.stores || {};
+            const defaultStoreRaw = cfg?.default_store;
+            const normalize = (v) => String(v || '').toLowerCase().replace(/^https?:\\/\\//, '').replace(/\/.*\$/, '');
+            const defaultStore = normalize(defaultStoreRaw);
+            let alias = '';
+            if (defaultStore) {
+              for (const [k, d] of Object.entries(stores)) {
+                if (normalize(d) === defaultStore) { alias = k; break; }
+              }
+            }
+            if (!alias) alias = Object.keys(stores)[0] || '';
+            process.stdout.write(alias);
+          ")
+          echo "alias=$DEFAULT_ALIAS" >> $GITHUB_OUTPUT
+          echo "Default store alias: $DEFAULT_ALIAS"
+
+      - name: Check if backport is needed
+        id: check
+        run: |
+          SOURCE="${{ steps.ref.outputs.branch }}"
+          SOURCE_ALIAS="${SOURCE#staging-}"
+          SOURCE_ALIAS="${SOURCE_ALIAS#live-}"
+          DEFAULT_ALIAS="${{ steps.default_store.outputs.alias }}"
+
+          # Do not backport when this push was a merge FROM main (staging-* or live-*; would loop)
+          if [[ "$SOURCE" == staging-* || "$SOURCE" == live-* ]]; then
+            MAIN_SHA=$(git rev-parse origin/main 2>/dev/null || echo "")
+            if [ -n "$MAIN_SHA" ]; then
+              SECOND_PARENT=$(git rev-parse origin/$SOURCE^2 2>/dev/null || echo "")
+              if [ "$SECOND_PARENT" = "$MAIN_SHA" ]; then
+                echo "needs_backport=false" >> $GITHUB_OUTPUT
+                echo "Push is merge from main into $SOURCE; skipping to avoid loop."
+                exit 0
+              fi
+            fi
+          fi
+
+          MERGE_BASE=$(git merge-base origin/main origin/$SOURCE 2>/dev/null || echo "")
+          if [ -z "$MERGE_BASE" ]; then
+            echo "needs_backport=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Default store: commits outside stores/ and assets/ trigger backport.
+          # Live-branch minified assets should never backport into main.
+          # Non-default store: only commits under stores/<alias>/ trigger backport; root JSON must not overwrite main.
+          if [ -n "$DEFAULT_ALIAS" ] && [ "$SOURCE_ALIAS" = "$DEFAULT_ALIAS" ]; then
+            COMMITS=$(git log --oneline ${MERGE_BASE}..origin/$SOURCE -- . ':!stores/' ':!assets/' 2>/dev/null | \
+              grep -v "\[stores-to-root\]" | grep -v "\[root-to-stores\]" | grep -v "chore(release)" | grep -v "chore(assets)" || true)
+          else
+            COMMITS=$(git log --oneline ${MERGE_BASE}..origin/$SOURCE -- "stores/${SOURCE_ALIAS}/" 2>/dev/null | \
+              grep -v "\[stores-to-root\]" | grep -v "\[root-to-stores\]" | grep -v "chore(release)" || true)
+          fi
+
+          if [ -n "$COMMITS" ]; then
+            # Skip no-op history merges when source and main already have identical content.
+            MAIN_TREE=$(git rev-parse origin/main^{tree} 2>/dev/null || echo "")
+            SOURCE_TREE=$(git rev-parse origin/$SOURCE^{tree} 2>/dev/null || echo "")
+            if [ -n "$MAIN_TREE" ] && [ "$MAIN_TREE" = "$SOURCE_TREE" ]; then
+              echo "needs_backport=false" >> $GITHUB_OUTPUT
+              echo "No-op backport: origin/main and origin/$SOURCE trees are identical."
+              exit 0
+            fi
+
+            echo "needs_backport=true" >> $GITHUB_OUTPUT
+            echo "is_default_store=$([ -n "$DEFAULT_ALIAS" ] && [ "$SOURCE_ALIAS" = "$DEFAULT_ALIAS" ] && echo true || echo false)" >> $GITHUB_OUTPUT
+            echo "Commits to sync to main:"
+            echo "$COMMITS"
+          else
+            echo "needs_backport=false" >> $GITHUB_OUTPUT
+            echo "No new commits to sync."
+          fi
+
+      - name: Merge into main and push
+        if: steps.check.outputs.needs_backport == 'true'
+        run: |
+          SOURCE="${{ steps.ref.outputs.branch }}"
+          IS_DEFAULT="${{ steps.check.outputs.is_default_store }}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin
+          git checkout main
+          git merge origin/$SOURCE --no-ff -m "Merge $SOURCE into main [hotfix-backport]"
+
+          # Non-default store: do not bring root sync files to main (avoid conflicts).
+          # Keep only stores/<alias>/ and shared code; restore config/, templates/, sections/ from main.
+          if [ "$IS_DEFAULT" != "true" ]; then
+            git checkout origin/main -- config/ templates/ sections/ 2>/dev/null || true
+            git checkout HEAD -- config/settings_schema.json 2>/dev/null || true
+            if ! git diff --cached --quiet || ! git diff --quiet; then
+              git add config/ templates/ sections/
+              git commit -m "chore: keep root sync files from main for non-default store backport [hotfix-backport]"
+            fi
+          fi
+
+          git push origin main
+
+          echo "Synced $SOURCE → main"

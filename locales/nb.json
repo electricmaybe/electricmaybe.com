@@ -1,0 +1,898 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin language editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+ {
+  "general": {
+    "countdown": {
+      "days": "Days",
+      "day": "Day",
+      "hours": "Hrs",
+      "hour": "Hrs",
+      "minutes": "Min",
+      "minute": "Min",
+      "seconds": "Sec",
+      "second": "Sec"
+    },
+    "media": {
+      "gallery_viewer": "Gallery Viewer",
+      "load_image": "Load image {{ index }} in gallery view",
+      "load_model": "Load 3D Model {{ index }} in gallery view",
+      "load_video": "Play video {{ index }} in gallery view",
+      "image_available": "Image {{ index }} is now available in gallery view",
+      "open_media": "Open media {{ index }} in modal",
+      "play_model": "Play 3D Viewer",
+      "play_video": "Play video",
+      "pause_video": "Pause video",
+      "mute_video": "Mute video"
+    },
+    "breadcrumbs": {
+      "home": "Home",
+      "home_link_title": "Home"
+    },
+    "password_page": {
+      "login_form_heading": "Enter store using password:",
+      "login_password_button": "Enter using password",
+      "login_form_password_label": "Password",
+      "login_form_password_placeholder": "Your password",
+      "login_form_error": "Wrong password!",
+      "login_form_submit": "Enter",
+      "admin_link_html": "Are you the store owner? <a href=\"/admin\" class=\"link underlined-link\">Log in here</a>",
+      "powered_by_shopify_html": "This shop will be powered by {{ shopify }}",
+      "modal": "Modal"
+    },
+    "account": {
+      "login": "Login",
+      "register": "Register",
+      "orders": "Orders",
+      "addresses": "Addresses",
+      "details": "Details",
+      "help": "Help"
+    },
+    "placeholders": {
+      "email": "Email",
+      "name": "Name",
+      "first_name": "John",
+      "last_name": "Doe",
+      "phone": "+15551234567"
+    },
+    "social": {
+      "alt_text": {
+        "share_on_facebook": "Share on Facebook",
+        "share_on_twitter": "Tweet on Twitter",
+        "share_on_pinterest": "Pin on Pinterest"
+      },
+      "links": {
+        "twitter": "Twitter",
+        "facebook": "Facebook",
+        "pinterest": "Pinterest",
+        "instagram": "Instagram",
+        "tumblr": "Tumblr",
+        "snapchat": "Snapchat",
+        "youtube": "YouTube",
+        "vimeo": "Vimeo",
+        "tiktok": "TikTok",
+        "linkedin": "LinkedIn"
+      }
+    },
+    "continue_shopping": "Fortsett å handle",
+    "pagination": {
+      "label": "Pagination",
+      "page": "Page {{ number }}",
+      "pages_label": "Pagination pages",
+      "next": "Next page",
+      "next_short": "Next",
+      "previous": "Previous page",
+      "previous_short": "Previous"
+    },
+    "search": {
+      "search": "Søk",
+      "reset": "Fjern søkeord",
+      "clear_search": "Tøm søk",
+      "all": "All",
+      "products": "Products",
+      "collections": "Samlinger",
+      "popular_searches": "Populære søk",
+      "results_for": "Resultater for \"{{ terms }}\"",
+      "product_results_for": "Produktresultater for \"{{ terms }}\"",
+      "car_model_results_for": "Resultater for bilmodeller \"{{ terms }}\"",
+      "car_models_using": "Bilmodeller som bruker “{{ terms }}”",
+      "car_models_grid_label": "Oversikt over bilmodeller",
+      "car_filters": {
+        "filter_by": "Filtrer etter",
+        "close_filters": "Lukk filtre",
+        "quick_filter": "Hurtigfilter",
+        "all_filters": "Alle filtre",
+        "sort": "Sorter",
+        "charging_time": "Ladetid",
+        "type": "Type",
+        "power": "Strøm",
+        "cable": "Kabel"
+      },
+      "products_found_with_count": {
+        "one": "{{ count }} produkter funnet",
+        "other": "{{ count }} produkter funnet"
+      },
+      "cars_found_with_count": {
+        "one": "{{ count }} biler funnet",
+        "other": "{{ count }} biler funnet"
+      },
+      "you_might_be_interested_in": "Dette kan være interessant for deg"
+    },
+    "cart": {
+      "title": "Handlekurven din",
+      "view": "Fortsett til handlekurven",
+      "view_empty_cart": "Vis handlekurven min",
+      "order_notes": "Bestillingsmerknader",
+      "discount": "Rabatt",
+      "promotion": "Kampanje",
+      "available_payment_methods": "100 % sikre betalinger",
+      "calculate_shipping": "Beregn frakt",
+      "item_added": "Varen er lagt i handlekurven",
+      "items": {
+        "one": "1 item",
+        "other": "{{ count }} items"
+      }
+    },
+    "share": {
+      "close": "Lukk del",
+      "copy_to_clipboard": "Kopier lenken",
+      "share_url": "Link",
+      "success_message": "Link copied to clipboard"
+    },
+    "slider": {
+      "of": "of",
+      "next_slide": "Slide right",
+      "previous_slide": "Slide left",
+      "name": "Slider"
+    }
+  },
+  "products": {
+    "product": {
+      "add_to_cart": "Legg i handlekurven",
+      "adding_to_cart": "Legge til i handlekurven",
+      "add_to_cart_success": "Lagt i handlekurven!",
+      "cutoff_dispatch_html": "*Bestill innen <b> {{ cutoff_range }} </b>  for gratis levering samme dag",
+      "cutoff_dispatch_remaining_html": "*Bestill innen de neste <b> {{ gjenværende }} </b>  for gratis levering samme dag",
+      "adding_error": "Prøv igjen",
+      "care": "Omsorg",
+      "choose_options": "Velg alternativer",
+      "choose_product_options": "Velg alternativer for {{ product_name }}",
+      "complete_the_look": "Fullfør looken",
+      "description": "Beskrivelse",
+      "gift_card_delivery": "Leveres via e-post innen 2 timer",
+      "instock_only": "Kun på lager",
+      "inventory_in_stock": "På lager",
+      "inventory_in_stock_show_count": "{{ quantity }} på lager",
+      "inventory_low_stock": "Lite på lager",
+      "inventory_low_stock_show_count": "Lavt lager: {{ quantity }} igjen",
+      "inventory_out_of_stock": "Utsolgt",
+      "inventory_out_of_stock_continue_selling": "In stock",
+      "sku": "SKU",
+      "on_sale": "Sale",
+      "product_variants": "Product variants",
+      "variant_drawer_text": {
+        "type": "Temporary text for Type drawer.",
+        "power": "Temporary text for Power drawer.",
+        "cable": "Temporary text for Cable drawer.",
+        "length": "Temporary text for Length drawer."
+      },
+      "variant_option_names": {
+        "type": "Type",
+        "power": "Power",
+        "cable": "Cable",
+        "length": "Length"
+      },
+      "pickup_availability": {
+        "view_store_info": "Vis butikkinformasjon",
+        "check_other_stores": "Sjekk tilgjengelighet i andre butikker"
+      },
+      "price": {
+        "from": "Fra",
+        "from_price_html": "Fra {{ price_min }}",
+        "regular_price": "Normalpris",
+        "sale_price": "Salgspris",
+        "unit_price": "Enhetspris"
+      },
+      "view_more_images": "Se flere bilder",
+      "save_message": "Du sparer {{ save_amount }} %",
+      "see_full_collection": "Se hele kolleksjonen",
+      "full_collection": "Hele kolleksjonen",
+      "order_swatches": "Bestill fargeprøver",
+      "size_chart": "Størrelsesguide",
+      "traditional_retail": "Tradisjonell detaljhandel",
+      "share": "Del dette produktet",
+      "sold_out": "Utsolgt",
+      "unavailable": "Ikke tilgjengelig",
+      "vendor": "Leverandør",
+      "video": "Video",
+      "value_unavailable": "{{ option_value }} - Ikke tilgjengelig",
+      "variant_sold_out_or_unavailable": "Variant sold out or unavailable",
+      "video_exit_message": "{{ title }} opens full screen video in same window.",
+      "view_full_details": "View full details",
+      "view_in_3d": "View in 3D",
+      "xr_button": "View in your space",
+      "xr_button_label": "View in your space, loads item in augmented reality window",
+      "include_taxes": "Tax included.",
+      "shipping_policy_html": "<a href=\"{{ link }}\">Shipping</a> calculated at checkout."
+    },
+    "reviews": {
+      "show_reviews_from": "Show reviews from:",
+      "all_countries": "All Countries",
+      "loading_reviews": "Loading reviews...",
+      "no_reviews_available": "No reviews available.",
+      "error_loading_reviews": "Failed to load reviews. Please try again later.",
+      "authentic_buyer": "Authentic buyer",
+      "filter_by_country": "Filter reviews by country",
+      "country_names": {
+        "uk": "United Kingdom",
+        "us": "United States",
+        "de": "Germany",
+        "fr": "France",
+        "it": "Italy",
+        "es": "Spain",
+        "nl": "Netherlands",
+        "be": "Belgium",
+        "at": "Austria",
+        "ch": "Switzerland",
+        "se": "Sweden",
+        "no": "Norway",
+        "dk": "Denmark",
+        "fi": "Finland",
+        "pl": "Poland",
+        "cz": "Czech Republic",
+        "ie": "Ireland",
+        "pt": "Portugal",
+        "gr": "Greece"
+      }
+    },
+    "modal": {
+      "label": "Media gallery"
+    },
+    "facets": {
+      "apply": "Apply",
+      "clear": "Clear",
+      "clear_all": "Remove all",
+      "from": "From",
+      "filter_and_sort": "Filter and sort",
+      "filter_by_label": "Filter:",
+      "filter_button": "Filters",
+      "clear_all_filters": "Clear all filters",
+      "filters_selected": {
+        "one": "{{ count }} selected",
+        "other": "{{ count }} selected"
+      },
+      "filter_selected_accessibility": "{{ type }} ({{ count }} filters selected)",
+      "show_more": "Show more",
+      "show_less": "Show less",
+      "max_price": "The highest price is {{ price }}",
+      "product_count": {
+        "one": "{{ product_count }} of {{ count }} product",
+        "other": "{{ product_count }} of {{ count }} products"
+      },
+      "product_count_simple": {
+        "one": "{{ count }} product",
+        "other": "{{ count }} products"
+      },
+      "reset": "Reset",
+      "sort_button": "Sort",
+      "sort_by_label": "Sort by:",
+      "to": "To",
+      "clear_filter": "Remove filter",
+      "view": "View"
+    },
+    "general": {
+      "color_swatch_trigger": "Select a color"
+    },
+    "metafield_titles": {
+      "backrest-type": "Backrest type",
+      "upholstery-material": "Upholstery material",
+      "seat-type": "Seat type",
+      "back-type": "Back type",
+      "fabric_SKU": "Fabric SKU",
+      "furniture-fixture-material": "Furniture fixture material",
+      "a_packaging_dimensions": "Packaging Dimensions",
+      "width": "Width",
+      "depth": "Depth",
+      "seat-height": "Seat Height",
+      "seat-width": "Seat Width",
+      "seat-depth": "Seat Depth",
+      "a_width": "Product Dimensions",
+      "tabletop_height": "Tabletop Height",
+      "seat_no": "Number of Seats",
+      "lamp_shade_diameter": "Lamp Shade Diameter",
+      "mount_dimensions": "Mount Dimensions",
+      "material": "Material",
+      "assembly": "Assembly Requirements",
+      "installation_details": "Installation Details",
+      "chair_features": "Features",
+      "indoor_outdoor_use": "Indoor or Outdoor Use",
+      "modular_instructions": "Modular Instructions",
+      "instruction": "Instructions Included",
+      "bundle_information": "Bundle Information",
+      "cushion_information": "Cushion Information",
+      "other_details": "Other Information",
+      "leg_material": "Base Material",
+      "seat_material": "Seat Material",
+      "frame_construction": "Frame Construction",
+      "material_details": "Material Details",
+      "a_seating_height": "Seat Height",
+      "seat_depth": "Seat Depth",
+      "seat_width": "Seat Width",
+      "seat_thickness": "Seat Thickness",
+      "armrest_height": "Armrest Height",
+      "tabletop_thickness": "Tabletop Thickness",
+      "leg_information": "Leg Information",
+      "bulb_base": "Bulb Base",
+      "bulb_included": "Bulb Included",
+      "weight_limit": "Weight Limit",
+      "max_load": "Max Load",
+      "stackable": "Stackable",
+      "voltage": "Voltage",
+      "max_watt": "Max. Bulb Watt",
+      "dimmable": "Dimmable",
+      "cord_length": "Cord Length",
+      "switch_location": "Switch Location",
+      "battery_size": "Battery Size",
+      "care_instructions": "Care Instructions",
+      "weight": "Product Weight",
+      "a_cartons": "No. of Shipping Cartons",
+      "assembly_tools_included": "Tools & Fixings Included",
+      "certifications": "Certifications"
+    }
+  },
+  "templates": {
+    "404": {
+      "title": "Page not found",
+      "subtext": "404"
+    },
+    "search": {
+      "no_results": "No products found for \"{{ terms }}\"",
+      "no_results_for_type": "No products found for \"{{ terms }}\" in \"{{ type }}\"",
+      "no_results_body": "Check the spelling or use a different word or a phrase.",
+      "page": "Page",
+      "products": "Products",
+      "articles": "Articles",
+      "results_pages_with_count": {
+        "one": "{{ count }} page",
+        "other": "{{ count }} pages"
+      },
+      "results_suggestions_with_count": {
+        "one": "{{ count }} suggestion",
+        "other": "{{ count }} suggestions"
+      },
+      "results_products_with_count": {
+        "one": "{{ count }} product",
+        "other": "{{ count }} products"
+      },
+      "results_with_count": {
+        "one": "{{ count }} product",
+        "other": "{{ count }} products"
+      },
+      "results_with_count_and_term": {
+        "one": "Products for \"{{ terms }}\"",
+        "other": "Products for \"{{ terms }}\""
+      },
+      "results_with_count_and_term_and_type": {
+        "one": "Products for \"{{ terms }}\" in \"{{ type }}\"",
+        "other": "Products for \"{{ terms }}\" in \"{{ type }}\""
+      },
+      "title": "Search results",
+      "search_for": "View all products for \"{{ terms }}\"",
+      "search_for_type": "View all products for \"{{ terms }}\" in \"{{ type }}\"",
+      "suggestions": "Suggestions",
+      "pages": "Pages"
+    },
+    "cart": {
+      "cart": "Cart"
+    },
+    "contact": {
+      "form": {
+        "title": "Contact form",
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone number",
+        "comment": "Message",
+        "send": "Submit Message",
+        "post_success": "Thanks for contacting us. We'll get back to you as soon as possible.",
+        "error_heading": "Please adjust the following:"
+      }
+    },
+    "tab": {
+      "notification": {
+        "come_back": "Come back!"
+      }
+    }
+  },
+  "sections": {
+    "find_your_cable": {
+      "select_car_socket": "Velg bilens stikkontakt",
+      "shop_cables": "Butikk {{ from }} til {{ to }} kabler"
+    },
+    "irl": {
+      "buy_it_now": "Kjøp nå"
+    },
+    "announcements": {
+      "previous_announcement": "Tidligere kunngjøring",
+      "next_announcement": "Neste kunngjøring",
+      "carousel": "Carousel",
+      "announcement": "Kunngjøring",
+      "announcement_bar": "Announcement bar"
+    },
+    "header": {
+      "announcement": "Announcement",
+      "menu": "Menu",
+      "all_collection": "All {{ collection }}",
+      "view_all": "View all",
+      "cart_count": {
+        "one": "{{ count }} item",
+        "other": "{{ count }} items"
+      }
+    },
+    "cart": {
+      "cart": "Handlekurv",
+      "title": "Din handlekurv",
+      "caption": "Vare i handlekurven",
+      "remove_title": "Fjern {{ title }}",
+      "subtotal": "Delsum",
+      "new_subtotal": "Ny delsum",
+      "total": "Total",
+      "shipping_text": "Beregnes ved kassen",
+      "shipping": "Frakt",
+      "note": "Bestill spesielle instruksjoner",
+      "checkout": "Gå til kassen",
+      "empty": "Handlekurven din er tom",
+      "add_items": "Legg varer i handlekurven for å gå til kassen",
+      "cart_error": "Det oppstod en feil under oppdateringen av handlekurven din. Prøv på nytt.",
+      "cart_quantity_error_html": "Du kan bare legge {{ quantity }} av denne varen i handlekurven.",
+      "savings": "Besparelser",
+      "store_credit": "Store credit (if applied)",
+      "store_credit_text_html": "Du har en <span class=\"text-green\">{{ amount }}</span> butikkreditt som du kan bruke i kassen",
+      "add_a_gift_message": "Legg til en hilsen",
+      "add_a_gift_message_tooltip": "Mottakeren vil motta en e-post med din hilsen når bestillingen sendes. Informasjon om enkel retur vil være inkludert i e-posten med leveringsbekreftelse. Gavekort sendes via e-post innen 2 timer.",
+      "checkout_button_usp_text": "100 dagers returrett og 3 års garanti",
+      "order_summary_label": "Bestillingsoversikt",
+      "checkout_securely": "Sikker betaling",
+      "trust_title_default": "Bestill trygt.",
+      "trust_subtext_default": "Kjøperbeskyttelse tilgjengelig i de neste trinnene",
+      "upsell_added": "Lagt til!",
+      "upsell_error": "Error",
+      "quantity_decrease": "minus",
+      "quantity_increase": "plus",
+      "taxes_and_shipping_policy_at_checkout_html": "Skatter og <a href=\"{{ link }}\">frakt</a> beregnes ved kassen",
+      "taxes_included_but_shipping_at_checkout": "Inkl. mva. og frakt beregnes ved kassen",
+      "taxes_included_and_shipping_policy_html": "Tax included. <a href=\"{{ link }}\">Shipping</a> calculated at checkout.",
+      "taxes_and_shipping_at_checkout": "Skatter og frakt beregnes ved kassen",
+      "headings": {
+        "product": "Produkt",
+        "price": "Pris",
+        "total": "Totalt",
+        "quantity": "Quantity",
+        "image": "Product image"
+      },
+      "update": "Update",
+      "login": {
+        "title": "Have an account?",
+        "paragraph_html": "<a href=\"{{ link }}\" class=\"link underline pr-2\">Log in</a> to check out faster."
+      }
+    },
+    "footer": {
+      "payment": "Payment methods"
+    },
+    "product_feed": {
+      "collections": "Collections",
+      "filters": "Filters",
+      "showing": "Showing {{ currentStart }} - {{ currentEnd }} of {{ all_products_count }} products"
+    },
+    "featured_blog": {
+      "view_all": "View all",
+      "onboarding_title": "Blog post",
+      "onboarding_content": "Give your customers a summary of your blog post"
+    },
+    "featured_collection": {
+      "view_all": "View all",
+      "view_all_label": "View all products in the {{ collection_name }} collection"
+    },
+    "collection_list": {
+      "view_all": "View all"
+    },
+    "collections_standard": {
+      "aria_label": "Collections list",
+      "heading": "All collections",
+      "product_count": "{{ count }} products",
+      "empty": "No collections found"
+    },
+    "collection_template": {
+      "empty": "No products found",
+      "title": "Collection",
+      "shop_now": "Or shop all products",
+      "use_fewer_filters_html": "Use fewer filters or <a class=\"{{ class }}\" href=\"{{ link }}\">remove all</a>",
+      "product_count": "{{ count }} product"
+    },
+    "video": {
+      "load_video": "Load video: {{ description }}"
+    },
+    "slideshow": {
+      "load_slide": "Load slide",
+      "previous_slideshow": "Previous slide",
+      "next_slideshow": "Next slide",
+      "pause_slideshow": "Pause slideshow",
+      "play_slideshow": "Play slideshow",
+      "carousel": "Carousel",
+      "slide": "Slide"
+    },
+    "page": {
+      "title": "Page title"
+    }
+  },
+  "customer": {
+    "account": {
+      "title": "Account",
+      "log_in": "Account",
+      "recover_success": "We have sent you an e-mail with a link to update your password.",
+      "button_label": "Account",
+      "details": "Account details",
+      "view_addresses": "View addresses",
+      "return": "Return to Account details",
+      "first_name": "First Name",
+      "last_name": "Last Name",
+      "phone": "Phone",
+      "email": "e-mail",
+      "password": "Password"
+    },
+    "return": {
+      "title": "Return"
+    },
+    "help_center": {
+      "title": "Help Center",
+      "short_title": "Help Center",
+      "returns": "Returns",
+      "faq": "FAQ",
+      "faq_search_placeholder": "Search FAQs",
+      "faq_search_aria": "Search FAQs",
+      "faq_search_label": "Search in FAQ",
+      "faq_search_prompt": "What are you looking for?",
+      "shipping": "shipping",
+      "shipping_policy": "Shipping Policy",
+      "shipping_and_returns": "Shipping and Returns",
+      "contact": "Contact",
+      "terms_of_service": "Terms of Service",
+      "privacy_policy": "Privacy Policy",
+      "refund_policy": "Refund Policy",
+      "legal_notice": "Legal Notice"
+    },
+    "account_fallback": "Account",
+    "activate_account": {
+      "title": "Activate account",
+      "subtext": "Create your password to activate your account.",
+      "password": "Password",
+      "password_confirm": "Confirm password",
+      "submit": "Activate account",
+      "cancel": "Decline invitation"
+    },
+    "addresses": {
+      "title": "Addresses",
+      "default": "Default",
+      "my_address": "My Address",
+      "add_new": "Add a new address",
+      "edit_address": "Edit address",
+      "first_name": "First name",
+      "last_name": "Last name",
+      "full_name": "Full name",
+      "company": "Company",
+      "address1": "Address 1",
+      "address2": "Address 2",
+      "city": "City",
+      "country": "Country/region",
+      "province": "Provinces",
+      "zip": "Postal/ZIP code",
+      "phone": "Phone",
+      "set_default": "Set as default address",
+      "add": "Add address",
+      "update": "Update address",
+      "cancel": "Cancel",
+      "edit": "Edit",
+      "delete": "Delete",
+      "delete_confirm": "Are you sure you wish to delete this address?",
+      "delete_success": "You've successfully deleted your address",
+      "delete_button": "Delete Address",
+      "delete_close": "Close"
+    },
+    "log_in": "Log in",
+    "log_out": "Log out",
+    "login_page": {
+      "cancel": "Cancel",
+      "go_back": "Go back",
+      "create_account": "Create account",
+      "email": "Email",
+      "forgot_password": "Forgot your password?",
+      "password_error": "Your password must be at least 6.",
+      "guest_continue": "Continue",
+      "guest_title": "Continue as a guest",
+      "password": "Password",
+      "title": "Login",
+      "social_login": "Social Login",
+      "sign_in": "Sign in",
+      "submit": "Submit",
+      "not_a_member_html": "Not a member? <b><a href=\"{{ link }}\">Sign up</a></b> now",
+      "already_signed_up_html": "Already signed up? <a href=\"{{ link }}\">Sign in</a> now"
+    },
+    "order": {
+      "items": {
+        "one": "Item",
+        "other": "Items"
+      },
+      "previous_orders": "Previous orders",
+      "title": "Order {{ name }}",
+      "details": "Order Details",
+      "date_html": "Placed on {{ date }}",
+      "cancelled_html": "Order Cancelled on {{ date }}",
+      "cancelled_reason": "Reason: {{ reason }}",
+      "billing_address": "Billing Address",
+      "delivery_information": "Delivery Information",
+      "delivery_address": "My Address",
+      "payment_information": "Payment Information",
+      "payment_status": "Payment Status",
+      "shipping_address": "Shipping Address",
+      "fulfillment_status": "Fulfillment Status",
+      "discount": "Discount",
+      "last_item": "Last 1 product.",
+      "last_items": "Last {{ item_count }} item.",
+      "shipping": "Shipping",
+      "shipment": "Shipment ({{ number}} Item)",
+      "expected_delivery": "Expected Delivery",
+      "tax": "Tax",
+      "product": "Product",
+      "sku": "SKU",
+      "price": "Price",
+      "quantity": "Quantity",
+      "total": "Total",
+      "total_refunded": "Refunded",
+      "total_duties": "Duties",
+      "fulfilled_at_html": "Fulfilled {{ date }}",
+      "track_shipment": "Track shipment",
+      "tracking_url": "Tracking link",
+      "tracking_company": "Carrier",
+      "tracking_number": "Tracking number",
+      "subtotal": "Subtotal",
+      "my_orders": "My Orders",
+      "was_sent": "Sent ({{ number}})",
+      "will_be_sent": "Will be sent ({{ number}})",
+      "steps1": "Order Taken",
+      "steps2": "Preparing",
+      "steps3": "Sent",
+      "overview": "Overview",
+      "number": "Number",
+      "date": "Date",
+      "terms_of_service": "Terms of Service",
+      "item": "Item"
+    },
+    "orders": {
+      "all_orders_html": "All Orders (<span>{{ number}}</span>)",
+      "returned_orders_html": "Returned Orders (<span>{{number}}</span>)",
+      "title": "Order history",
+      "order_number": "Order",
+      "order_number_link": "Order number {{ number }}",
+      "date": "Date",
+      "payment_status": "Payment status",
+      "fulfillment_status": "Fulfillment status",
+      "total": "Total",
+      "none": "You haven't placed any orders yet.",
+      "button_text": "Shop Now"
+    },
+    "recover_password": {
+      "title": "Reset your password",
+      "subtext": "We will send you an email to reset your password",
+      "success": "We've sent you an email with a link to update your password."
+    },
+    "register": {
+      "title": "Create account",
+      "name": "Name",
+      "first_name": "First name",
+      "last_name": "Last name",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Create",
+      "social_login": "Social Login",
+      "recover_submit": "submit",
+      "mandatory_info": "Please enter your data. The mandatory fields are marked with an *.",
+      "legal_files_html": "By creating your account, you agree to the <strong>GTC</strong> and <strong>Privacy Policy</strong>.",
+      "not_a_member_html": "Not a member? <b><a href=\"{{ link }}\">Signup</a></b> now",
+      "already_signed_up_html": "Already signed up? <a href=\"{{ link }}\">Sign in</a> now"
+    },
+    "reset_password": {
+      "create_new_password": "Reset your password",
+      "error_character_size": "Must be at least 8 characters long.",
+      "error_lowercase": "Must contain a lowercase letter.",
+      "error_uppercase": "Must contain an uppercase letter.",
+      "error_special_character": "Must contain a number or special character.",
+      "error_difference": "Your password must be same the other one.",
+      "new_password_button": "Reset Password",
+      "new_password_success": "Password reset successful",
+      "title": "Reset password for account",
+      "subtext": "Enter a new password for {{ email }}",
+      "success_shopping": "Shopping",
+      "password": "Password",
+      "password_confirm": "Confirm password",
+      "placeholder": "New Password",
+      "placeholder_repeat": "New password repeat",
+      "submit": "Reset password"
+    },
+    "password": {
+      "title": "Change password"
+    }
+  },
+  "localization": {
+    "country_label": "Country/region",
+    "language_label": "Language",
+    "update_language": "Update language",
+    "update_country": "Update country/region"
+  },
+  "newsletter": {
+    "label": "E-post",
+    "placeholder": "john@doe.com",
+    "success": "Takk for at du abonnerer",
+    "button_label": "Subscribe",
+    "description_html": "Ved å abonnere på vårt nyhetsbrev godtar du vår <a href=\"{{ link }}\">personvernpolicy</a> og <a href=\"{{ link }}\">vilkår for bruk</a>.",
+    "email_placeholder": "Abonner på vårt nyhetsbrev",
+    "subscribe_aria_label": "Abonner på nyhetsbrev",
+    "subscribe_sr_text": "Abonner",
+    "description_sr": "Skriv inn e-postadressen din for å abonnere på vårt nyhetsbrev med kampanjer og dekorasjonstips.",
+    "error_message": "Vennligst oppgi en gyldig e-postadresse."
+  },
+  "footer": {
+    "back_to_top": "Tilbake til toppen",
+    "legal_links_label": "Juridiske lenker",
+    "contact": "Kontakt",
+    "follow_us": "Følg oss"
+  },
+  "accessibility": {
+    "skip_to_text": "Gå til innhold",
+    "skip_to_product_info": "Gå til produktinformasjon",
+    "close": "Lukk",
+    "unit_price_separator": "per",
+    "vendor": "Leverandør:",
+    "error": "Feil",
+    "refresh_page": "Når du velger et utvalg, oppdateres hele siden.",
+    "link_messages": {
+      "new_window": "Åpnes i et nytt vindu.",
+      "external": "Åpner ekstern nettside."
+    },
+    "loading": "Laster...",
+    "total_reviews": "Totalt antall anmeldelser",
+    "count_reviews": {
+      "one": "{{ count }} review",
+      "other": "{{ count }} reviews"
+    },
+    "star_reviews_info": "{{ rating_value }} av {{ rating_max }} stjerner",
+    "collapsible_content_title": "Sammenleggbart innhold",
+    "complementary_products": "Komplementære produkter",
+    "go_to_product": "Gå til {{ title }}"
+  },
+  "blogs": {
+    "article": {
+      "blog": "Blog",
+      "read_more": "Read more",
+      "read_more_title": "Read more: {{ title }}",
+      "comments": {
+        "one": "{{ count }} comment",
+        "other": "{{ count }} comments"
+      },
+      "moderated": "Please note, comments need to be approved before they are published.",
+      "comment_form_title": "Leave a comment",
+      "name": "Name",
+      "email": "Email",
+      "message": "How to",
+      "post": "Post comment",
+      "back_to_blog": "Back to blog",
+      "share": "Share this article",
+      "success": "Your comment was posted successfully! Thank you!",
+      "success_moderated": "Your comment was posted successfully. We will publish it in a little while, as our blog is moderated."
+    }
+  },
+  "onboarding": {
+    "product_title": "Example product title",
+    "collection_title": "Your collection's name"
+  },
+  "gift_cards": {
+    "issued": {
+      "how_to_use_gift_card": "Use the gift card code online or QR code in-store",
+      "title": "Here's your {{ value }} gift card balance for {{ shop }}!",
+      "subtext": "Your gift card",
+      "gift_card_code": "Gift card code",
+      "shop_link": "Visit online store",
+      "add_to_apple_wallet": "Add to Apple Wallet",
+      "qr_image_alt": "QR code — scan to redeem gift card",
+      "copy_code": "Copy gift card code",
+      "expiration_date": "Expires {{ expires_on }}",
+      "copy_code_success": "Code copied successfully",
+      "expired": "Expired"
+    }
+  },
+  "recipient": {
+    "form": {
+      "checkbox": "I want to send this as a gift",
+      "email_label": "Recipient email",
+      "email_label_optional_for_no_js_behavior": "Recipient email (optional)",
+      "email": "Email",
+      "name_label": "Recipient name (optional)",
+      "name": "Name",
+      "message_label": "Message (optional)",
+      "message": "Message",
+      "max_characters": "{{ max_chars }} characters max",
+      "send_on": "YYYY-MM-DD",
+      "send_on_label": "Send on (optional)"
+    }
+  },
+  "collections": {
+    "showing_x_of_y": "Showing {{ current_offset }} of {{ total_products }} products",
+    "filters": {
+      "more_filters": "More Filters",
+      "less_filters": "Less Filters"
+    },
+    "filters_ui": {
+      "quick_filter": "Quick Filter",
+      "all_filters": "All Filters",
+      "filter": "Filter",
+      "filter_by": "Filter by",
+      "close_filters": "Close filters",
+      "sort": "Sort",
+      "sort_options": "Sort options",
+      "clear_all": "Clear All",
+      "view_with_count": "View ({{ count }})"
+    },
+    "faceting": {
+      "price_filter_from": "Price from",
+      "price_filter_to": "Price to",
+      "price_range_to": "to"
+    },
+    "shop_the_look": {
+      "title": "Shop the look",
+      "save_all": "Save all",
+      "add_all_to_cart": "Add all to cart",
+      "see_products": "See products",
+      "go_back": "Go back",
+      "saving_to_wishlist": "Saving to wishlist...",
+      "saved_to_wishlist": "Saved to wishlist!",
+      "saving_error": "Error saving to wishlist"
+    },
+    "special_collections": {
+      "shop_button": "Shop {{ collection }} ({{ count }})",
+      "more": "+ More",
+      "models_count": "{{ count }} Fabrics"
+    }
+  },
+  "global": {
+    "decimal_style": {
+      "same": "Same size",
+      "sup": "Superscript",
+      "sub": "Subscript"
+    },
+    "global_info": {
+      "decimal_style_difference": "Display decimals as a separate superscript, subscript or the same with the price"
+    }
+  },
+  "shopify": {
+    "checkout": {
+      "order_summary": {
+        "total_savings": "Total promotion savings",
+        "discount_order_stacking": {
+          "one": "Promotion",
+          "other": "Promotions"
+        }
+      }
+    }
+  },
+  "customer_accounts": {
+    "orders": {
+      "order_status": {
+        "complete_label": "Shipped"
+      }
+    }
+  }
+}

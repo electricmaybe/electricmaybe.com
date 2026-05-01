@@ -1,0 +1,20 @@
+<div class="mx-auto py-s-base px-s-whole max-w-3xl">
+  <h2>{{ page.title }}</h2>
+  <div class="rte mt-9">
+    {{ page.content }}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:global.page",
+  "class": "full-spaced-section",
+  "settings": [
+  ],
+  "enabled_on": {
+    "templates": [
+      "page"
+    ]
+  }
+}
+{% endschema %}

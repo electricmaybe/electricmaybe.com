@@ -1,0 +1,785 @@
+{%- doc -%}
+  Atomic Collection Filters - Modular, event-driven filter system
+
+  This component renders a modular filtering system where each filter is an independent component
+  that communicates via events. Supports desktop/mobile layouts with preserved dropdown states.
+
+  @param {object} results - Collection or search results object containing filters and sort options (required)
+  @param {number} [filter_threshold] - Number of filters to show before "More Filters" button (defaults to 4)
+
+  @example
+  {% render 'm--filters' %}
+  @example
+  {% render 'm--filters',
+    results: collection,
+    filter_threshold: 6
+  %}
+{%- enddoc -%}
+
+{%- liquid
+  if search
+    assign results = search
+  else
+    assign results = collection
+  endif
+  assign sort_by = results.sort_by | default: results.default_sort_by
+  assign filter_threshold = filter_threshold | default: 4
+
+  assign update_url = ''
+  assign products_count = 0
+  if collection and collection.handle != blank
+    assign update_url = collection.url
+    assign products_count = results.products_count | default: results.all_products_count | default: collection.products.size | default: 0
+  elsif search
+    assign update_url = routes.search_url | append: '?q=' | append: search.terms | append: '&type=product'
+    assign products_count = search.results_count | default: 0
+  endif
+
+  assign id_base = 'filters'
+  if collection and collection.handle != blank
+    assign id_base = 'collection-' | append: collection.handle
+  elsif search
+    assign id_base = 'search'
+  endif
+
+-%}
+
+{% comment %} Load simple form-based filters JavaScript {% endcomment %}
+<script src="{{ 'collection-filters-simple.js' | asset_url }}" defer="defer"></script>
+<script src="{{ 'collection-quick-filter.js' | asset_url }}" defer="defer"></script>
+
+<collection-filters>
+  {% comment %} DESKTOP FILTERS {% endcomment %}
+  <div class="max-lg:hidden block text-ui-base {% if products_count > 30 %} -top-px [[data-header-visible=true][data-scroll-range=far]_&]:translate-y-[calc(var(--header-offset)-2px)] transition-transform duration-750 ease-in-out z-10{% endif %}">
+    <form class="filter-form-desktop">
+      <electric-filter-manager
+        data-collection-handle="{% if collection and collection.handle != blank %}{{ collection.handle }}{% endif %}"
+        data-update-url="{{ update_url }}"
+        class="block relative"
+      >
+        {%- render '_body-loading-bar', target: 'collection-filters' -%}
+
+        {%- liquid
+          # QUICK FILTER SOURCE (override)
+          # Merchant can configure `custom.quick_filters` as:
+          # - list of metaobjects (each metaobject contains the filter name text)
+          # - or comma-separated string
+          assign quick_filter_items_raw = collection.metafields.custom.quick_filters | default: ''
+          assign quick_filter_items_value = collection.metafields.custom.quick_filters.value
+          assign search_quick_filter_items_value = shop.metafields.custom.search_quick_filters.value
+
+          assign has_quick_filter_override = false
+          assign quick_filter_items_csv = ''
+          assign quick_filter_source = 'default_results_filters'
+
+          if search and search_quick_filter_items_value != blank
+            # Search source: shop-level quick filters (max 4, in merchant-defined order)
+            assign has_quick_filter_override = true
+            assign quick_filter_source = 'shop.metafields.custom.search_quick_filters'
+            capture quick_filter_items_csv
+              assign quick_override_count = 0
+              for item in search_quick_filter_items_value
+                assign filter_name = item.filter_name.value | default: item.filter_name | default: item.name.value | default: item.name | default: item.title.value | default: item.title | default: item | default: ''
+                assign filter_name = filter_name | strip
+                if filter_name == blank
+                  continue
+                endif
+                if quick_override_count > 0
+                  echo ','
+                endif
+                echo filter_name
+                assign quick_override_count = quick_override_count | plus: 1
+                if quick_override_count == 4
+                  break
+                endif
+              endfor
+            endcapture
+            assign quick_filter_items = quick_filter_items_csv | downcase | replace: ', ', ',' | split: ','
+          elsif quick_filter_items_value != blank
+            # Collection source: metaobject list (merchant-defined order)
+            assign has_quick_filter_override = true
+            assign quick_filter_source = 'collection.metafields.custom.quick_filters.value'
+            capture quick_filter_items_csv
+              assign quick_override_count = 0
+              for obj in quick_filter_items_value
+                assign filter_name = obj.filter_name.value | default: obj.filter_name | default: obj.title.value | default: obj.title | default: ''
+                assign filter_name = filter_name | strip
+                if filter_name == blank
+                  continue
+                endif
+                if quick_override_count > 0
+                  echo ','
+                endif
+                echo filter_name
+                assign quick_override_count = quick_override_count | plus: 1
+                if quick_override_count == 4
+                  break
+                endif
+              endfor
+            endcapture
+            assign quick_filter_items = quick_filter_items_csv | downcase | replace: ', ', ',' | split: ','
+          elsif quick_filter_items_raw != blank
+            # Collection source fallback: comma-separated list
+            assign quick_filter_items_raw = quick_filter_items_raw | strip
+            assign has_quick_filter_override = true
+            assign quick_filter_source = 'collection.metafields.custom.quick_filters(raw)'
+            assign quick_filter_items = quick_filter_items_raw | downcase | replace: ', ', ',' | split: ','
+          elsif search_quick_filter_items_value != blank
+            # Collection fallback source: shop-level quick filters
+            assign has_quick_filter_override = true
+            assign quick_filter_source = 'shop.metafields.custom.search_quick_filters'
+            capture quick_filter_items_csv
+              assign quick_override_count = 0
+              for item in search_quick_filter_items_value
+                assign filter_name = item.filter_name.value | default: item.filter_name | default: item.name.value | default: item.name | default: item.title.value | default: item.title | default: item | default: ''
+                assign filter_name = filter_name | strip
+                if filter_name == blank
+                  continue
+                endif
+                if quick_override_count > 0
+                  echo ','
+                endif
+                echo filter_name
+                assign quick_override_count = quick_override_count | plus: 1
+                if quick_override_count == 4
+                  break
+                endif
+              endfor
+            endcapture
+            assign quick_filter_items = quick_filter_items_csv | downcase | replace: ', ', ',' | split: ','
+          endif
+
+          if quick_filter_source == blank
+            assign quick_filter_source = 'default_results_filters'
+          endif
+
+          if has_quick_filter_override == false
+            # Default: first 4 eligible filters from the collection filter list
+            capture quick_filter_items_csv
+              assign quick_count = 0
+              for filter in results.filters
+                if filter.type == 'price_range'
+                  continue
+                endif
+
+                # Skip filters that have no selectable values (unless active)
+                assign empty_values = filter.values | where: 'count', 0
+                assign empty_values_size = empty_values | size
+                assign all_values_size = filter.values | size
+                if empty_values_size == all_values_size and filter.active_values.size == 0 and filter.type == 'list'
+                  continue
+                endif
+
+                if quick_count > 0
+                  echo ','
+                endif
+                echo filter.label
+
+                assign quick_count = quick_count | plus: 1
+                if quick_count == 4
+                  break
+                endif
+              endfor
+            endcapture
+
+            assign quick_filter_items = quick_filter_items_csv | downcase | replace: ', ', ',' | split: ','
+          endif
+
+          # Determine if we have any renderable quick filters (in configured order)
+          assign quick_filters_count = 0
+          for quick_item in quick_filter_items
+            assign quick_item = quick_item | strip
+            if quick_item == blank
+              continue
+            endif
+            assign quick_item_key = quick_item | downcase
+            assign quick_item_handle = quick_item_key | handleize
+            assign quick_item_compact = quick_item_key | replace: 'filter.p.m.custom.', '' | replace: 'filter.v.option.', '' | replace: 'filter.v.', '' | replace: 'filter.p.', '' | replace: '.', '' | replace: '_', '' | replace: '-', '' | replace: ' ', '' | replace: '/', ''
+            for filter in results.filters
+              if filter.type == 'price_range'
+                continue
+              endif
+
+              assign filter_label_key = filter.label | downcase
+              assign filter_param_key = filter.param_name | downcase
+              assign filter_label_handle = filter.label | handleize
+              assign filter_param_handle = filter.param_name | handleize
+              assign filter_param_compact = filter_param_key | replace: 'filter.p.m.custom.', '' | replace: 'filter.v.option.', '' | replace: 'filter.v.', '' | replace: 'filter.p.', '' | replace: '.', '' | replace: '_', '' | replace: '-', '' | replace: ' ', '' | replace: '/', ''
+
+              assign quick_matches_filter = false
+              if quick_item_key == filter_label_key or quick_item_key == filter_param_key
+                assign quick_matches_filter = true
+              endif
+              if quick_matches_filter == false and quick_item_handle == filter_label_handle
+                assign quick_matches_filter = true
+              endif
+              if quick_matches_filter == false and quick_item_handle == filter_param_handle
+                assign quick_matches_filter = true
+              endif
+              if quick_matches_filter == false and quick_item_compact == filter_param_compact
+                assign quick_matches_filter = true
+              endif
+              if quick_matches_filter == false and quick_item_compact != blank and filter_param_compact != blank
+                if quick_item_compact contains filter_param_compact or filter_param_compact contains quick_item_compact
+                  assign quick_matches_filter = true
+                endif
+              endif
+              unless quick_matches_filter
+                continue
+              endunless
+
+              assign empty_values = filter.values | where: 'count', 0
+              assign empty_values_size = empty_values | size
+              assign all_values_size = filter.values | size
+              if empty_values_size == all_values_size and filter.active_values.size == 0 and filter.type == 'list'
+                continue
+              endif
+
+              assign quick_filters_count = quick_filters_count | plus: 1
+              break
+            endfor
+          endfor
+
+          # Safety fallback:
+          # If merchant provided an override list but none matched, fall back to first 4 eligible filters.
+          if has_quick_filter_override and quick_filters_count == 0
+            assign quick_filter_source = 'fallback_to_default_results_filters'
+            capture quick_filter_items_csv
+              assign quick_count = 0
+              for filter in results.filters
+                if filter.type == 'price_range'
+                  continue
+                endif
+
+                assign empty_values = filter.values | where: 'count', 0
+                assign empty_values_size = empty_values | size
+                assign all_values_size = filter.values | size
+                if empty_values_size == all_values_size and filter.active_values.size == 0 and filter.type == 'list'
+                  continue
+                endif
+
+                if quick_count > 0
+                  echo ','
+                endif
+                echo filter.label
+
+                assign quick_count = quick_count | plus: 1
+                if quick_count == 4
+                  break
+                endif
+              endfor
+            endcapture
+
+            assign quick_filter_items = quick_filter_items_csv | downcase | replace: ', ', ',' | split: ','
+
+            # Recalculate count using fallback list (keep order)
+            assign quick_filters_count = 0
+            for quick_item in quick_filter_items
+              assign quick_item = quick_item | strip
+              if quick_item == blank
+                continue
+              endif
+              assign quick_item_key = quick_item | downcase
+              assign quick_item_handle = quick_item_key | handleize
+              assign quick_item_compact = quick_item_key | replace: 'filter.p.m.custom.', '' | replace: 'filter.v.option.', '' | replace: 'filter.v.', '' | replace: 'filter.p.', '' | replace: '.', '' | replace: '_', '' | replace: '-', '' | replace: ' ', '' | replace: '/', ''
+              for filter in results.filters
+                if filter.type == 'price_range'
+                  continue
+                endif
+
+                assign filter_label_key = filter.label | downcase
+                assign filter_param_key = filter.param_name | downcase
+                assign filter_label_handle = filter.label | handleize
+                assign filter_param_handle = filter.param_name | handleize
+                assign filter_param_compact = filter_param_key | replace: 'filter.p.m.custom.', '' | replace: 'filter.v.option.', '' | replace: 'filter.v.', '' | replace: 'filter.p.', '' | replace: '.', '' | replace: '_', '' | replace: '-', '' | replace: ' ', '' | replace: '/', ''
+
+                assign quick_matches_filter = false
+                if quick_item_key == filter_label_key or quick_item_key == filter_param_key
+                  assign quick_matches_filter = true
+                endif
+                if quick_matches_filter == false and quick_item_handle == filter_label_handle
+                  assign quick_matches_filter = true
+                endif
+                if quick_matches_filter == false and quick_item_handle == filter_param_handle
+                  assign quick_matches_filter = true
+                endif
+                if quick_matches_filter == false and quick_item_compact == filter_param_compact
+                  assign quick_matches_filter = true
+                endif
+                if quick_matches_filter == false and quick_item_compact != blank and filter_param_compact != blank
+                  if quick_item_compact contains filter_param_compact or filter_param_compact contains quick_item_compact
+                    assign quick_matches_filter = true
+                  endif
+                endif
+                unless quick_matches_filter
+                  continue
+                endunless
+
+                assign empty_values = filter.values | where: 'count', 0
+                assign empty_values_size = empty_values | size
+                assign all_values_size = filter.values | size
+                if empty_values_size == all_values_size and filter.active_values.size == 0 and filter.type == 'list'
+                  continue
+                endif
+
+                assign quick_filters_count = quick_filters_count | plus: 1
+                break
+              endfor
+            endfor
+          endif
+        -%}
+
+        <div class="px-s-outer py-s-xs">
+          {%- if quick_filters_count > 0 -%}
+            <collection-quick-filter class="flex flex-col gap-y-s-xs w-full" data-open="true">
+              <div class="flex items-center justify-between w-full">
+                <div class="flex items-center">
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-x-b-sm cursor-pointer"
+                    aria-expanded="false"
+                    aria-controls="collection-quick-filter-panel"
+                    data-quick-filter-toggle
+                  >
+                    <span>{{ 'collections.filters_ui.quick_filter' | t }}</span>
+                    <span data-quick-filter-icon-plus>
+                      {% render 'a--icon', icon: 'plus', width: '1.5rem' %}
+                    </span>
+                    <span class="hidden" data-quick-filter-icon-minus>
+                      {% render 'a--icon', icon: 'minus', width: '1.5rem' %}
+                    </span>
+                  </button>
+                </div>
+
+                <div class="flex items-center gap-x-s-xs">
+                  <drawer-trigger data-target="atomicFiltersDrawer" class="inline-flex items-center gap-x-b-sm">
+                    <span>{{ 'collections.filters_ui.all_filters' | t }}</span>
+                    {% render 'a--icon', icon: 'filter', width: '1.5rem' %}
+                  </drawer-trigger>
+
+                  <electric-filter-sort>
+                    <dropdown-disclosure data-sync-group="filters">
+                      <details class="relative group">
+                        <summary class="flex items-center gap-x-b-sm cursor-pointer">
+                          <span>{{ 'collections.filters_ui.sort' | t }}</span>
+                          {% render 'a--icon', icon: 'sort-new', width: '1.5rem' %}
+                        </summary>
+                    <div class="absolute top-full mt-2 p-4 -right-5 z-50 min-w-[220px] bg-subtle border border-primary">
+                      <ul class="space-y-3" role="radiogroup">
+                        {% for option in results.sort_options %}
+                          <li class="w-auto {% if option.value == sort_by %}font-medium{% endif %} hover:underline cursor-pointer">
+                                <label for="Sort-{{ forloop.index }}-{{ id_base }}" class="block cursor-pointer">
+                                  {{ option.name }}
+                                  <input
+                                    id="Sort-{{ forloop.index }}-{{ id_base }}"
+                                    type="radio"
+                                    name="sort_by"
+                                    class="sr-only"
+                                    value="{{ option.value | escape }}"
+                                    {% if option.value == sort_by %}checked{% endif %}
+                                  >
+                                </label>
+                              </li>
+                            {% endfor %}
+                          </ul>
+                        </div>
+                      </details>
+                    </dropdown-disclosure>
+                  </electric-filter-sort>
+                </div>
+              </div>
+
+                {%- comment -%} Quick filter groups live in their own element under the bar. {%- endcomment -%}
+              <div id="collection-quick-filter-panel" class="hidden w-full" data-quick-filter-panel>
+                <div class="flex gap-x-s-sm items-start w-full">
+                  {%- for quick_item in quick_filter_items -%}
+                    {%- assign quick_item = quick_item | strip -%}
+                    {%- if quick_item == blank -%}{%- continue -%}{%- endif -%}
+                    {%- assign quick_item_key = quick_item | downcase -%}
+                    {%- assign quick_item_handle = quick_item_key | handleize -%}
+                    {%- assign quick_item_compact = quick_item_key | replace: 'filter.p.m.custom.', '' | replace: 'filter.v.option.', '' | replace: 'filter.v.', '' | replace: 'filter.p.', '' | replace: '.', '' | replace: '_', '' | replace: '-', '' | replace: ' ', '' | replace: '/', '' -%}
+                    {%- for filter in results.filters -%}
+                      {%- liquid
+                        if filter.type == 'price_range'
+                          continue
+                        endif
+
+                        assign filter_label_key = filter.label | downcase
+                        assign filter_param_key = filter.param_name | downcase
+                        assign filter_label_handle = filter.label | handleize
+                        assign filter_param_handle = filter.param_name | handleize
+                        assign filter_param_compact = filter_param_key | replace: 'filter.p.m.custom.', '' | replace: 'filter.v.option.', '' | replace: 'filter.v.', '' | replace: 'filter.p.', '' | replace: '.', '' | replace: '_', '' | replace: '-', '' | replace: ' ', '' | replace: '/', ''
+
+                        assign quick_matches_filter = false
+                        if quick_item_key == filter_label_key or quick_item_key == filter_param_key
+                          assign quick_matches_filter = true
+                        endif
+                        if quick_matches_filter == false and quick_item_handle == filter_label_handle
+                          assign quick_matches_filter = true
+                        endif
+                        if quick_matches_filter == false and quick_item_handle == filter_param_handle
+                          assign quick_matches_filter = true
+                        endif
+                        if quick_matches_filter == false and quick_item_compact == filter_param_compact
+                          assign quick_matches_filter = true
+                        endif
+                        if quick_matches_filter == false and quick_item_compact != blank and filter_param_compact != blank
+                          if quick_item_compact contains filter_param_compact or filter_param_compact contains quick_item_compact
+                            assign quick_matches_filter = true
+                          endif
+                        endif
+                        unless quick_matches_filter
+                          continue
+                        endunless
+
+                        assign empty_values = filter.values | where: 'count', 0
+                        assign empty_values_size = empty_values | size
+                        assign all_values_size = filter.values | size
+                        if empty_values_size == all_values_size and filter.active_values.size == 0 and filter.type == 'list'
+                          continue
+                        endif
+                      -%}
+
+                      <div class="flex flex-col gap-y-b-base items-start justify-center">
+                        <div class="flex items-center gap-x-b-sm">
+                          {% render 'quick-filter--info-heading',
+                            label: filter.label | escape,
+                            lookup_key: filter.label,
+                            lookup_param: filter.param_name,
+                            context_id: id_base | append: '-' | append: forloop.index
+                          %}
+                        </div>
+
+                        {%- liquid
+                          assign is_image_filter = false
+                          if filter.presentation == 'image'
+                            assign is_image_filter = true
+                          endif
+                        -%}
+
+                        {%- if filter.param_name == 'filter.v.availability' -%}
+                          {%- render 'm--toggle-switch',
+                            checked: filter.values.first.active,
+                            label: filter.values.first.label,
+                            name: filter.values.first.param_name
+                          -%}
+                        {%- elsif is_image_filter -%}
+                          <div class="flex flex-wrap gap-x-b-sm gap-y-b-sm">
+                            {%- for filter_value in filter.values -%}
+                              {%- if filter_value.count == 0 -%}{%- continue -%}{%- endif -%}
+                              <label class="cursor-pointer flex flex-col items-center">
+                                <input
+                                  type="checkbox"
+                                  name="{{ filter_value.param_name }}"
+                                  value="{{ filter_value.value }}"
+                                  class="sr-only peer"
+                                  {% if filter_value.active %}checked{% endif %}
+                                >
+                                <div class="relative rounded border border-secondary peer-checked:border-contrast peer-checked:ring-2 peer-checked:ring-contrast overflow-hidden flex flex-col items-center justify-between p-1 gap-y-b-xs">
+                                  {%- if filter_value.image -%}
+                                    <div class="w-14 h-14 flex items-center justify-center shrink-0">
+                                      <img
+                                        src="{{ filter_value.image | image_url: width: 120 }}"
+                                        alt="{{ filter_value.label | default: filter_value.alt | escape }}"
+                                        width="56"
+                                        height="56"
+                                        class="w-full h-full object-contain -mix-blend-darken"
+                                        loading="lazy"
+                                      >
+                                    </div>
+                                  {%- endif -%}
+                                  <span class="text-ui-small text-center leading-[1.1] peer-checked:font-medium px-0.5 shrink-0">
+                                    {{ filter_value.label | escape }}
+                                  </span>
+                                </div>
+                              </label>
+                            {%- endfor -%}
+                          </div>
+                        {%- else -%}
+                          <div class="flex flex-wrap gap-y-b-sm gap-x-b-sm">
+                            {%- for filter_value in filter.values -%}
+                              {%- if filter_value.count == 0 -%}{%- continue -%}{%- endif -%}
+                              <label class="cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  name="{{ filter_value.param_name }}"
+                                  value="{{ filter_value.value }}"
+                                  class="sr-only peer"
+                                  {% if filter_value.active %}checked{% endif %}
+                                >
+                                <span class="inline-flex items-center justify-center px-b-xs py-2 rounded-full border border-secondary text-ui-base leading-[1.2] bg-surface peer-checked:color-schema-contrast">
+                                  {{ filter_value.label | escape }}
+                                </span>
+                              </label>
+                            {%- endfor -%}
+                          </div>
+                        {%- endif -%}
+                      </div>
+                      {%- break -%}
+                    {%- endfor -%}
+                  {%- endfor -%}
+                </div>
+              </div>
+            </collection-quick-filter>
+          {%- else -%}
+            <div class="flex items-center justify-end w-full gap-x-s-xs">
+              <drawer-trigger data-target="atomicFiltersDrawer" class="inline-flex items-center gap-x-b-sm">
+                <span>{{ 'collections.filters_ui.all_filters' | t }}</span>
+                {% render 'a--icon', icon: 'filter', width: '1.5rem' %}
+              </drawer-trigger>
+
+              <electric-filter-sort>
+                <dropdown-disclosure data-sync-group="filters">
+                  <details class="relative group">
+                    <summary class="flex items-center gap-x-b-sm cursor-pointer">
+                      <span>{{ 'collections.filters_ui.sort' | t }}</span>
+                      {% render 'a--icon', icon: 'sort-new', width: '1.5rem' %}
+                    </summary>
+                    <div class="absolute top-full mt-2 p-4 -right-5 z-50 min-w-[220px] bg-subtle border border-primary">
+                      <ul class="space-y-3" role="radiogroup">
+                        {% for option in results.sort_options %}
+                          <li class="w-auto {% if option.value == sort_by %}font-medium{% endif %} hover:underline cursor-pointer">
+                            <label for="Sort-{{ forloop.index }}-{{ id_base }}" class="block cursor-pointer">
+                              {{ option.name }}
+                              <input
+                                id="Sort-{{ forloop.index }}-{{ id_base }}"
+                                type="radio"
+                                name="sort_by"
+                                class="sr-only"
+                                value="{{ option.value | escape }}"
+                                {% if option.value == sort_by %}checked{% endif %}
+                              >
+                            </label>
+                          </li>
+                        {% endfor %}
+                      </ul>
+                    </div>
+                  </details>
+                </dropdown-disclosure>
+              </electric-filter-sort>
+            </div>
+          {%- endif -%}
+        </div>
+
+        {%- comment -%} Quick Filter panel is inside <collection-quick-filter> so the JS can find it. {%- endcomment -%}
+      </electric-filter-manager>
+    </form>
+  </div>
+
+  {% comment %} MOBILE FILTERS {% endcomment %}
+  <div class="lg:hidden px-s-inner md:px-0">
+    <div class="flex items-center justify-between">
+      <drawer-trigger data-target="atomicFiltersDrawer" class="inline-flex items-center gap-x-b-base p-2">
+        <span>{{ 'collections.filters_ui.filter' | t }}</span>
+        {% render 'a--icon', icon: 'filter', width: '1.5rem' %}
+        <span class="mobile-filter-count sr-only"></span>
+      </drawer-trigger>
+
+      <electric-filter-sort class="p-2">
+        <dropdown-disclosure data-sync-group="filters">
+          <details class="relative group">
+            <summary class="flex items-center gap-x-b-base cursor-pointer">
+              <span>{{ 'collections.filters_ui.sort' | t }}</span>
+              {% render 'a--icon', icon: 'sort-new', width: '1.5rem' %}
+            </summary>
+            <div class="absolute top-full mt-2 p-4 right-0 z-50 min-w-[220px] bg-subtle border border-primary">
+              <ul class="space-y-3" role="radiogroup">
+                {% for option in results.sort_options %}
+                  <li class="w-auto {% if option.value == sort_by %}font-medium{% endif %} hover:underline cursor-pointer">
+                    <label for="MobileSort-{{ forloop.index }}-{{ id_base }}" class="block cursor-pointer">
+                      {{ option.name }}
+                      <input
+                        id="MobileSort-{{ forloop.index }}-{{ id_base }}"
+                        type="radio"
+                        name="sort_by"
+                        class="sr-only"
+                        value="{{ option.value | escape }}"
+                        {% if option.value == sort_by %}checked{% endif %}
+                      >
+                    </label>
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+          </details>
+        </dropdown-disclosure>
+      </electric-filter-sort>
+    </div>
+  </div>
+
+  {% comment %} Mobile Drawer Content {% endcomment %}
+  {% capture drawer_filters %}
+  {%- liquid
+    if products_count == 0 and search
+      assign products_count = search.results_count | default: 0
+    endif
+  -%}
+  <form class="filter-form-mobile flex flex-col h-full bg-surface">
+    <electric-filter-manager
+      data-collection-handle="{% if collection and collection.handle != blank %}{{ collection.handle }}{% endif %}"
+      data-update-url="{{ update_url }}"
+      class="px-s-inner lg:px-0 text-left flex flex-col flex-1"
+    >
+      {%- render '_body-loading-bar', target: 'collection-filters' -%}
+
+      {%- comment -%}
+        Canonical form note:
+        `collection-filters-simple.js` prefers the drawer (mobile) form as the canonical form.
+        Ensure `sort_by` inputs exist here so sorting works on desktop too.
+      {%- endcomment -%}
+      <fieldset class="sr-only" aria-label="{{ 'collections.filters_ui.sort_options' | t }}">
+        {%- for option in results.sort_options -%}
+          <label for="DrawerSort-{{ forloop.index }}-{{ id_base }}">
+            {{ option.name }}
+            <input
+              id="DrawerSort-{{ forloop.index }}-{{ id_base }}"
+              type="radio"
+              name="sort_by"
+              value="{{ option.value | escape }}"
+              {% if option.value == sort_by %}checked{% endif %}
+            >
+          </label>
+        {%- endfor -%}
+      </fieldset>
+
+      <div class="px-s-outer py-s-xs flex items-center gap-x-s-xs">
+        <drawer-trigger
+          data-target="atomicFiltersDrawer"
+          class="inline-flex items-center justify-center rounded-full bg-accent text-on-accent w-12 h-12 md:w-14 md:h-14 hover:opacity-85 transition-opacity"
+          aria-label="{{ 'collections.filters_ui.close_filters' | t }}"
+        >
+          {% render 'a--icon', icon: 'arrow-left-l', width: '1.25rem' %}
+        </drawer-trigger>
+        <div class="h3 text-primary">
+          {{ 'collections.filters_ui.filter_by' | t }}
+        </div>
+      </div>
+
+      <div class="flex-1 px-s-outer pb-s-xs">
+        {%- for filter in results.filters -%}
+          {%- liquid
+            assign empty_values = filter.values | where: 'count', 0
+            assign empty_values_size = empty_values | size
+            assign all_values_size = filter.values | size
+            if empty_values_size == all_values_size and filter.type != 'price_range'
+              continue
+            endif
+          -%}
+
+          <details class="border-b border-secondary">
+            <summary class="flex items-center justify-between py-6 cursor-pointer">
+              <span class="h5 text-primary">
+                {{ filter.label | escape }}
+              </span>
+              {% render 'a--icon', icon: 'chevron-d', width: '1.25rem' %}
+            </summary>
+            <div class="pb-4">
+              {%- case filter.type -%}
+                {%- when 'price_range' -%}
+                  <div class="px-0">
+                    {% render 'filter--price-range', filter: filter, input_prefix: 'mobile' %}
+                  </div>
+                {%- else -%}
+                  <electric-filter
+                    data-filter-id="filter-{{ filter.label | handleize }}-{{ forloop.index }}"
+                    data-filter-type="{{ filter.type }}"
+                    data-filter-param="{{ filter.param_name }}"
+                  >
+                    {%- liquid
+                      assign is_image_filter = false
+                      if filter.presentation == 'image'
+                        assign is_image_filter = true
+                      endif
+                    -%}
+
+                    {%- if filter.param_name == 'filter.v.availability' -%}
+                      {%- render 'm--toggle-switch',
+                        checked: filter.values.first.active,
+                        label: filter.values.first.label,
+                        name: filter.values.first.param_name
+                      -%}
+                    {%- elsif is_image_filter -%}
+                      <div class="flex flex-wrap gap-x-b-base gap-y-b-sm">
+                        {%- for filter_value in filter.values -%}
+                          {%- if filter_value.count == 0 -%}{%- continue -%}{%- endif -%}
+                          <label class="cursor-pointer flex flex-col items-center">
+                            <input
+                              type="checkbox"
+                              name="{{ filter_value.param_name }}"
+                              value="{{ filter_value.value }}"
+                              class="sr-only peer"
+                              {% if filter_value.active %}checked{% endif %}
+                            >
+                            <div class="relative rounded border border-secondary peer-checked:border-contrast peer-checked:ring-2 peer-checked:ring-contrast overflow-hidden flex flex-col items-center justify-between p-1.5 gap-y-b-xs">
+                              {%- if filter_value.image -%}
+                                <div class="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center shrink-0">
+                                  <img
+                                    src="{{ filter_value.image | image_url: width: 160 }}"
+                                    alt="{{ filter_value.label | default: filter_value.alt | escape }}"
+                                    width="80"
+                                    height="80"
+                                    class="w-full h-full object-contain -mix-blend-darken"
+                                    loading="lazy"
+                                  >
+                                </div>
+                              {%- endif -%}
+                              <span class="text-ui-small text-center leading-[1.1] peer-checked:font-medium px-0.5 shrink-0">
+                                {{ filter_value.label | escape }}
+                              </span>
+                            </div>
+                          </label>
+                        {%- endfor -%}
+                      </div>
+                    {%- else -%}
+                      <div class="flex flex-wrap gap-y-b-sm gap-x-b-sm">
+                        {%- for filter_value in filter.values -%}
+                          {%- if filter_value.count == 0 -%}{%- continue -%}{%- endif -%}
+                          <label class="cursor-pointer">
+                            <input
+                              type="checkbox"
+                              name="{{ filter_value.param_name }}"
+                              value="{{ filter_value.value }}"
+                              class="sr-only peer"
+                              {% if filter_value.active %}checked{% endif %}
+                            >
+                            <span class="inline-flex items-center justify-center px-b-xs py-2 rounded-full border border-secondary bg-transparent text-ui-base leading-[1.2] peer-checked:color-schema-contrast peer-checked:bg-surface">
+                              {{ filter_value.label | escape }}
+                            </span>
+                          </label>
+                        {%- endfor -%}
+                      </div>
+                    {%- endif -%}
+                  </electric-filter>
+              {%- endcase -%}
+            </div>
+          </details>
+        {%- endfor -%}
+      </div>
+
+      <div class="px-s-outer py-s-xs mt-auto sticky bottom-0 bg-surface">
+        <div class="flex gap-x-s-base">
+          <a
+            href="{{ update_url | default: routes.search_url }}"
+            class="clear-all-filters flex-1 inline-flex items-center justify-center rounded-full border-2 border-contrast h-12 lg:h-16 text-ui-base"
+          >
+            {{ 'collections.filters_ui.clear_all' | t }}
+          </a>
+          <drawer-trigger
+            data-target="atomicFiltersDrawer"
+            class="flex-1 inline-flex items-center justify-center rounded-full color-schema-contrast text-dune-50 border-2 border-contrast h-12 lg:h-16 text-ui-base"
+          >
+            {{ 'collections.filters_ui.view_with_count' | t: count: products_count }}
+          </drawer-trigger>
+        </div>
+      </div>
+    </electric-filter-manager>
+  </form>
+{% endcapture %}
+
+  {% render 'm--drawer',
+    content: drawer_filters,
+    id: 'atomicFiltersDrawer',
+    positionMobile: 'right',
+    positionDesktop: 'right'
+  %}
+</collection-filters>

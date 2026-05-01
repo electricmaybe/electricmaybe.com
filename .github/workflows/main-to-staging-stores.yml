@@ -1,0 +1,176 @@
+# climaybe — Main to Staging <store> (Multi-store)
+# When main is pushed (e.g. after staging→main merge), syncs main to each staging-<alias>.
+# Root JSON files (config/settings_data.json, templates/*.json, sections/*.json) are ignored:
+# merge brings main in but we immediately restore root from stores/<alias>/ so store-specific data is kept.
+# Runs on every push to main except pure store-sync commits ([stores-to-root], [root-to-stores]), so that:
+# - Version-bump commits: staging-<alias> get the new version.
+# - Hotfix backports:
+#   - staging-<alias> → main: skip syncing back into the same staging-<alias> (already has the change).
+#   - live-<alias> → main: sync into staging-<alias> too (so staging gets the live hotfix).
+#
+# Also runs when Post-Merge Tag or Nightly Hotfix Tag complete: version-bump pushes with GITHUB_TOKEN,
+# which does not trigger push-based workflows, so we explicitly run sync after those workflows finish.
+
+name: Main to Staging Stores
+
+on:
+  push:
+    branches: [main]
+  workflow_run:
+    workflows: ['Post-Merge Tag', 'Nightly Hotfix Tag']
+    types: [completed]
+    branches: [main]
+
+# Prevent concurrent store pushes
+concurrency:
+  group: main-to-staging-stores
+  cancel-in-progress: false
+
+jobs:
+  # Gate: skip only pure store-sync commits. For hotfix-backport, skip syncing back only when source was staging-<alias>.
+  # When triggered by workflow_run (version-bump finished), run sync if the workflow succeeded.
+  gate:
+    runs-on: ubuntu-latest
+    # workflow_run: only sync when Post-Merge or Nightly Hotfix completed successfully (version-bump pushed)
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+      hotfix_skip_alias: ${{ steps.check.outputs.hotfix_skip_alias }}
+    steps:
+      - name: Check commit message and hotfix source
+        id: check
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            echo "Triggered by workflow_run (version-bump finished); syncing main to staging."
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "hotfix_skip_alias=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+
+          if echo "$COMMIT_MSG" | grep -qE "\[skip-store-sync\]|\[stores-to-root\]|\[root-to-stores\]"; then
+            echo "Skipping — store sync commit (avoid loop)"
+            echo "should_run=false" >> $GITHUB_OUTPUT
+            echo "hotfix_skip_alias=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "should_run=true" >> $GITHUB_OUTPUT
+
+          # If hotfix-backport came from staging-<alias>, skip syncing back to that same staging branch.
+          HOTFIX_SKIP_ALIAS=""
+          if echo "$COMMIT_MSG" | grep -q "\[hotfix-backport\]"; then
+            SOURCE_BRANCH=$(echo "$COMMIT_MSG" | sed -n 's/.*Merge \([^ ]*\) into main.*/\1/p' | head -1)
+            if [[ -n "$SOURCE_BRANCH" && "$SOURCE_BRANCH" == staging-* ]]; then
+              HOTFIX_SKIP_ALIAS="${SOURCE_BRANCH#staging-}"
+            fi
+          fi
+          echo "hotfix_skip_alias=$HOTFIX_SKIP_ALIAS" >> $GITHUB_OUTPUT
+
+  # Read store list from climaybe.config.json
+  config:
+    needs: gate
+    if: needs.gate.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      stores: ${{ steps.read.outputs.stores }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read store aliases
+        id: read
+        run: |
+          STORES=$(node -e "
+            const fs = require('fs');
+            const cfg = JSON.parse(fs.readFileSync('./climaybe.config.json', 'utf8'));
+            const stores = Object.keys(cfg?.stores || {});
+            console.log(JSON.stringify(stores));
+          ")
+          echo "stores=$STORES" >> $GITHUB_OUTPUT
+          echo "Store aliases: $STORES"
+
+  # Merge main into each staging-<alias>; root JSONs ignored (restored from stores/<alias>/).
+  # Skip only staging-origin hotfix source branch (no need to merge back to same staging branch).
+  sync:
+    needs: [gate, config]
+    if: needs.gate.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        store: ${{ fromJson(needs.config.outputs.stores) }}
+      fail-fast: false
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      HOTFIX_SKIP_ALIAS: ${{ needs.gate.outputs.hotfix_skip_alias }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync main to staging-${{ matrix.store }} (root JSONs ignored)
+        run: |
+          git fetch origin main
+          BRANCH="staging-${{ matrix.store }}"
+          ALIAS="${{ matrix.store }}"
+          STORE_DIR="stores/${ALIAS}"
+
+          if [ -n "$HOTFIX_SKIP_ALIAS" ] && [ "$HOTFIX_SKIP_ALIAS" = "$ALIAS" ]; then
+            echo "Hotfix came from staging-$ALIAS, skipping (no need to merge back to same staging branch)."
+            exit 0
+          fi
+
+          if ! git ls-remote --heads origin "$BRANCH" | grep -q "$BRANCH"; then
+            echo "Branch $BRANCH does not exist on remote, skipping."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin "$BRANCH"
+          git checkout "$BRANCH"
+          BRANCH_TREE=$(git rev-parse HEAD^{tree} 2>/dev/null || echo "")
+          MAIN_TREE=$(git rev-parse origin/main^{tree} 2>/dev/null || echo "")
+          if [ -n "$BRANCH_TREE" ] && [ "$BRANCH_TREE" = "$MAIN_TREE" ]; then
+            echo "$BRANCH is already in sync with main (no-op), skipping."
+            exit 0
+          fi
+
+          # Keep generated assets branch-local to avoid chronic merge conflicts on staging branches.
+          # This does NOT prevent main changes from landing; it only resolves conflicts in favor
+          # of the current staging-<alias> branch when the same file was modified on both sides.
+          if ! git merge -X ours origin/main --no-ff -m "Sync main → $BRANCH"; then
+            echo "Merge had conflicts; aborting. Manual resolution may be needed."
+            git merge --abort 2>/dev/null || true
+            exit 1
+          fi
+
+          # Ignore root JSONs: restore from stores/<alias>/ so main's versions are not kept
+          if [ -d "$STORE_DIR" ]; then
+            for DIR in config templates sections; do
+              SRC="${STORE_DIR}/${DIR}"
+              if [ -d "$SRC" ]; then
+                find "$SRC" -name "*.json" | while read -r FILE; do
+                  REL_PATH="${FILE#$STORE_DIR/}"
+                  if [ "$REL_PATH" = "config/settings_schema.json" ]; then
+                    continue
+                  fi
+                  mkdir -p "$(dirname "$REL_PATH")"
+                  cp "$FILE" "$REL_PATH"
+                done
+              fi
+            done
+            git add config templates sections 2>/dev/null || true
+            if ! git diff --cached --quiet; then
+              git commit -m "chore: keep store root JSONs from stores/$ALIAS/ [stores-to-root]"
+            fi
+          fi
+
+          git push origin "$BRANCH" && echo "Pushed $BRANCH" || { echo "Push failed."; exit 1; }
+
+          gh workflow run "PR to Live" --ref "$BRANCH" 2>/dev/null || echo "Failed to trigger PR to Live for $BRANCH"

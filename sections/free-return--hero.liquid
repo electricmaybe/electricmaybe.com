@@ -1,0 +1,317 @@
+{%- liquid
+  assign overlay_header_active = false
+  if section.settings.overlay_header and section.index == 1
+    assign overlay_header_active = true
+  endif
+-%}
+
+{%- capture content -%}
+  {%- render 'm--free-return-hero',
+    heading: section.settings.heading,
+    description: section.settings.description,
+    info_text: section.settings.info_text,
+    button_1_label: section.settings.button_1_label,
+    button_1_url: section.settings.button_1_url,
+    button_2_label: section.settings.button_2_label,
+    button_2_url: section.settings.button_2_url
+  -%}
+{%- endcapture -%}
+
+{%- capture mini_cards_top -%}
+  {%- for block in section.blocks -%}
+    {%- if block.type != 'mini_card' -%}
+      {%- continue -%}
+    {%- endif -%}
+    {%- if forloop.index > 3 -%}
+      {%- continue -%}
+    {%- endif -%}
+    {%- assign mini_text = block.settings.text -%}
+    {%- assign mini_icon_image = block.settings.icon_image -%}
+    {%- assign mini_icon = block.settings.icon -%}
+    {%- assign mini_icon_viewbox = '0 0 32 32' -%}
+    {%- case mini_icon -%}
+      {%- when 'delivery' -%}{%- assign mini_icon_viewbox = '0 0 25 27' -%}
+      {%- when 'secure_2' -%}{%- assign mini_icon_viewbox = '0 0 22 24' -%}
+      {%- when 'shipping' -%}{%- assign mini_icon_viewbox = '0 0 31 19' -%}
+      {%- when 'discount' -%}{%- assign mini_icon_viewbox = '0 0 31 32' -%}
+    {%- endcase -%}
+    <div class="mini-card flex w-full min-w-0 shrink-0 flex-col items-center gap-x-b-base gap-y-b-xxs px-b-xxs text-center lg:justify-center" {{ block.shopify_attributes }}>
+      {%- if mini_icon != blank -%}
+        {%- render 'a--icon', icon: mini_icon, class: 'mini-card-icon w-6 h-6 text-current', viewBox: mini_icon_viewbox -%}
+      {%- elsif mini_icon_image != blank -%}
+        <img
+          src="{{ mini_icon_image | image_url: width: 48 }}"
+          width="24"
+          height="24"
+          alt="{{ mini_text | strip_html | escape }}"
+          class="mini-card-icon w-6 h-6 object-contain"
+          loading="lazy"
+        >
+      {%- endif -%}
+      {%- if mini_text != blank -%}
+        <div class="text-ui-base leading-[1.2] whitespace-normal text-center wrap-break-word [&>p]:m-0 [&>h1]:m-0 [&>h2]:m-0 [&>h3]:m-0 [&>h4]:m-0 [&>h5]:m-0 [&>h6]:m-0">
+          {{ mini_text }}
+        </div>
+      {%- endif -%}
+    </div>
+  {%- endfor -%}
+{%- endcapture -%}
+
+{%- capture mini_cards_below -%}
+  {%- for block in section.blocks -%}
+    {%- if block.type != 'mini_card' or forloop.index <= 3 -%}
+      {%- continue -%}
+    {%- endif -%}
+    {%- assign mini_text = block.settings.text -%}
+    {%- assign mini_icon_image = block.settings.icon_image -%}
+    {%- assign mini_icon = block.settings.icon -%}
+    <div class="mini-card flex w-auto shrink-0 flex-col items-center gap-y-b-sm text-center md:w-full" {{ block.shopify_attributes }}>
+      {%- if mini_icon != blank -%}
+        {%- render 'a--icon', icon: mini_icon, class: 'mini-card-icon w-6 h-6 text-current' -%}
+      {%- elsif mini_icon_image != blank -%}
+        <img
+          src="{{ mini_icon_image | image_url: width: 48 }}"
+          width="24"
+          height="24"
+          alt="{{ mini_text | strip_html | escape }}"
+          class="mini-card-icon w-6 h-6 object-contain"
+          loading="lazy"
+        >
+      {%- endif -%}
+      {%- if mini_text != blank -%}
+        <div class="text-ui-base leading-[1.2] [&>p]:m-0 [&>h1]:m-0 [&>h2]:m-0 [&>h3]:m-0 [&>h4]:m-0 [&>h5]:m-0 [&>h6]:m-0">
+          {{ mini_text }}
+        </div>
+      {%- endif -%}
+    </div>
+  {%- endfor -%}
+{%- endcapture -%}
+
+{%- capture banner_footer -%}
+  {%- if mini_cards_top != blank -%}
+    <div class="mini-cards mini-cards--on-banner w-full items-center self-stretch px-s-outer pb-0 text-on-accent">
+      <div class="grid grid-cols-3 gap-x-s-sm px-s-inner py-s-xs">
+        {{- mini_cards_top -}}
+      </div>
+    </div>
+  {%- endif -%}
+{%- endcapture -%}
+
+{%- capture numbered_cards -%}
+  {%- for block in section.blocks -%}
+    {%- if block.type != 'numbered_card' -%}
+      {%- continue -%}
+    {%- endif -%}
+    <div class="flex-1 border-secondary{% if forloop.first %} border-b md:border-b-0 md:border-r{% endif %}" {{ block.shopify_attributes }}>
+      <div class="h-full px-s-inner py-s-xs lg:py-b-xxl">
+        <div class="flex h-full flex-col items-center gap-y-s-xs lg:flex-row lg:gap-x-s-xl">
+          {%- if block.settings.image != blank -%}
+            <div class="order-first shrink-0 lg:order-last">
+              <img
+                src="{{ block.settings.image | image_url: width: 320 }}"
+                width="144"
+                height="144"
+                alt="{{ block.settings.title | escape }}"
+                class="h-24 w-24 object-contain lg:h-36 lg:w-36"
+                loading="lazy"
+              >
+            </div>
+          {%- endif -%}
+          <div class="flex flex-col gap-y-s-xs text-primary">
+            {%- if block.settings.title != blank -%}
+              <p class="h2">
+                {{ block.settings.title | escape }}
+              </p>
+            {%- endif -%}
+            {%- if block.settings.description != blank -%}
+              <div class="rte text-body">
+                {{ block.settings.description }}
+              </div>
+            {%- endif -%}
+          </div>
+        </div>
+      </div>
+    </div>
+  {%- endfor -%}
+{%- endcapture -%}
+
+{%- capture below_content -%}
+  {%- if mini_cards_below != blank -%}
+    <div class="mini-cards mini-cards--below w-full px-s-outer">
+      <div class="px-s-inner w-full py-b-base text-primary">
+        <div class="flex w-full items-center justify-between gap-x-s-sm overflow-x-auto hide-scroll-bar flex-nowrap md:grid md:grid-cols-7 md:gap-x-s-base md:overflow-visible">
+          {{- mini_cards_below -}}
+        </div>
+      </div>
+    </div>
+  {%- endif -%}
+{%- endcapture -%}
+
+{%- render 'm--hero-wrapper',
+  section: section,
+  content: content,
+  banner_footer: banner_footer,
+  below_content: below_content,
+  numbered_cards: numbered_cards,
+  overlay_header_active: overlay_header_active
+-%}
+
+{% schema %}
+{
+  "name": "Free return hero",
+  "tag": "section",
+  "class": "section-free-return-hero",
+  "settings": [
+    { "type": "checkbox", "id": "overlay_header", "label": "Overlay header", "default": true },
+    { "type": "richtext", "id": "heading", "label": "Heading", "default": "<p>Free return</p>" },
+    { "type": "richtext", "id": "description", "label": "Description" },
+    { "type": "text", "id": "info_text", "label": "Info text" },
+    { "type": "text", "id": "button_1_label", "label": "Primary button label" },
+    { "type": "url", "id": "button_1_url", "label": "Primary button URL" },
+    { "type": "text", "id": "button_2_label", "label": "Secondary button label" },
+    { "type": "url", "id": "button_2_url", "label": "Secondary button URL" },
+    {
+      "type": "select",
+      "id": "height",
+      "label": "Height mobile",
+      "default": "h-128",
+      "options": [
+        { "value": "h-auto", "label": "Auto" },
+        { "value": "h-64", "label": "XS" },
+        { "value": "h-96", "label": "S" },
+        { "value": "h-128", "label": "M" },
+        { "value": "h-160", "label": "L" },
+        { "value": "h-screen", "label": "Screen" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "height_md",
+      "label": "Height tablet",
+      "default": "md:h-128",
+      "options": [
+        { "value": "md:h-auto", "label": "Auto" },
+        { "value": "md:h-64", "label": "XS" },
+        { "value": "md:h-80", "label": "S" },
+        { "value": "md:h-128", "label": "M" },
+        { "value": "md:h-160", "label": "L" },
+        { "value": "md:h-screen", "label": "Screen" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "height_lg",
+      "label": "Height desktop",
+      "default": "lg:h-[32vw]",
+      "options": [
+        { "value": "lg:h-auto", "label": "Auto" },
+        { "value": "lg:h-[24vw]", "label": "S" },
+        { "value": "lg:h-[32vw]", "label": "M" },
+        { "value": "lg:h-[48vw]", "label": "L" },
+        { "value": "lg:h-screen", "label": "Screen" }
+      ]
+    },
+    { "type": "image_picker", "id": "image_mobile", "label": "Mobile image" },
+    { "type": "image_picker", "id": "image_tablet", "label": "Tablet image" },
+    { "type": "image_picker", "id": "image_desktop", "label": "Desktop image" },
+    {
+      "type": "select",
+      "id": "position_mobile",
+      "label": "Position mobile",
+      "default": "items-center justify-center text-center",
+      "options": [
+        { "value": "items-start justify-start text-left", "label": "Top Left" },
+        { "value": "items-start justify-center text-center", "label": "Top Center" },
+        { "value": "items-start justify-end text-right", "label": "Top Right" },
+        { "value": "items-center justify-start text-left", "label": "Middle Left" },
+        { "value": "items-center justify-center text-center", "label": "Middle Center" },
+        { "value": "items-center justify-end text-right", "label": "Middle Right" },
+        { "value": "items-end justify-start text-left", "label": "Bottom Left" },
+        { "value": "items-end justify-center text-center", "label": "Bottom Center" },
+        { "value": "items-end justify-end text-right", "label": "Bottom Right" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "position_tablet",
+      "label": "Position tablet",
+      "default": "md:items-center md:justify-center md:text-center",
+      "options": [
+        { "value": "md:items-start md:justify-start md:text-left", "label": "Top Left" },
+        { "value": "md:items-start md:justify-center md:text-center", "label": "Top Center" },
+        { "value": "md:items-start md:justify-end md:text-right", "label": "Top Right" },
+        { "value": "md:items-center md:justify-start md:text-left", "label": "Middle Left" },
+        { "value": "md:items-center md:justify-center md:text-center", "label": "Middle Center" },
+        { "value": "md:items-center md:justify-end md:text-right", "label": "Middle Right" },
+        { "value": "md:items-end md:justify-start md:text-left", "label": "Bottom Left" },
+        { "value": "md:items-end md:justify-center md:text-center", "label": "Bottom Center" },
+        { "value": "md:items-end md:justify-end md:text-right", "label": "Bottom Right" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "position_desktop",
+      "label": "Position desktop",
+      "default": "lg:items-center lg:justify-start lg:text-left",
+      "options": [
+        { "value": "lg:items-start lg:justify-start lg:text-left", "label": "Top Left" },
+        { "value": "lg:items-start lg:justify-center lg:text-center", "label": "Top Center" },
+        { "value": "lg:items-start lg:justify-end lg:text-right", "label": "Top Right" },
+        { "value": "lg:items-center lg:justify-start lg:text-left", "label": "Middle Left" },
+        { "value": "lg:items-center lg:justify-center lg:text-center", "label": "Middle Center" },
+        { "value": "lg:items-center lg:justify-end lg:text-right", "label": "Middle Right" },
+        { "value": "lg:items-end lg:justify-start lg:text-left", "label": "Bottom Left" },
+        { "value": "lg:items-end lg:justify-center lg:text-center", "label": "Bottom Center" },
+        { "value": "lg:items-end lg:justify-end lg:text-right", "label": "Bottom Right" }
+      ]
+    },
+    { "type": "color", "id": "overlay_color", "label": "Overlay color", "default": "#000000" },
+    { "type": "range", "id": "overlay_opacity", "label": "Overlay opacity", "min": 0, "max": 100, "step": 5, "default": 30, "unit": "%" },
+    { "type": "range", "id": "overlay_blur", "label": "Overlay blur", "min": 0, "max": 10, "step": 1, "default": 0, "unit": "px" }
+  ],
+  "blocks": [
+    {
+      "type": "mini_card",
+      "name": "Mini card",
+      "limit": 7,
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "options": [
+            { "value": "", "label": "None" },
+            { "value": "europe", "label": "Europe" },
+            { "value": "delivery", "label": "Delivery" },
+            { "value": "secure_2", "label": "Secure" },
+            { "value": "shipping", "label": "Shipping" },
+            { "value": "newproduct", "label": "New product" },
+            { "value": "discount", "label": "Discount" },
+            { "value": "review", "label": "Review" },
+            { "value": "box", "label": "Box" },
+            { "value": "return-package", "label": "Return package" },
+            { "value": "return-arrow", "label": "Return arrow" }
+          ]
+        },
+        { "type": "image_picker", "id": "icon_image", "label": "Custom icon" },
+        { "type": "richtext", "id": "text", "label": "Text" }
+      ]
+    },
+    {
+      "type": "numbered_card",
+      "name": "Numbered card",
+      "limit": 2,
+      "settings": [
+        { "type": "text", "id": "title", "label": "Title", "default": "1. Step title" },
+        { "type": "richtext", "id": "description", "label": "Description" },
+        { "type": "image_picker", "id": "image", "label": "Icon / image" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Free return hero"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,160 @@
+/* ============================================
+   LENGTH SLIDER COMPONENT
+   Single-value range slider for product length selection
+   ============================================ */
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+.length-range-slider::-webkit-slider-thumb {
+  @apply pointer-events-auto appearance-none cursor-pointer;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: var(--color-white);
+  border: 2px solid var(--color-blue-700);
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 0 0 2px hsl(var(--color-blue-700) / 0.1);
+}
+
+/* Larger thumbs on mobile/touch devices */
+@media (pointer: coarse) {
+  .length-range-slider::-webkit-slider-thumb {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+}
+
+/* Firefox */
+.length-range-slider::-moz-range-thumb {
+  @apply pointer-events-auto cursor-pointer border-0;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: var(--color-white);
+  border: 2px solid var(--color-blue-700);
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 0 0 2px hsl(var(--color-blue-700) / 0.1);
+}
+
+/* Larger thumbs on mobile/touch devices */
+@media (pointer: coarse) {
+  .length-range-slider::-moz-range-thumb {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+}
+
+/* Remove default tracks */
+.length-range-slider::-webkit-slider-runnable-track {
+  @apply appearance-none bg-transparent border-0;
+}
+
+.length-range-slider::-moz-range-track {
+  @apply appearance-none bg-transparent border-0;
+}
+
+.length-range-slider:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2);
+}
+
+.length-range-slider:focus::-moz-range-thumb {
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Active range bar */
+.length-slider-active {
+  background: linear-gradient(
+    to right, 
+    var(--color-blue-700) 0%, 
+    var(--color-blue-700) var(--length-progress), 
+    transparent var(--length-progress)
+  );
+  z-index: 3;
+  height: 100%;
+}
+
+/* Slider track container - ensure markers can overflow */
+.length-slider-track {
+  position: relative;
+  overflow: visible;
+}
+
+/* Markers container */
+.length-markers {
+  position: relative;
+  height: 4rem; /* Ensure enough space for labels */
+  overflow: visible;
+  /* Add left padding to account for zero marker */
+  padding-left: 2rem;
+  /* No right padding to allow last marker label to overflow */
+  padding-right: 0;
+}
+
+/* Ensure parent containers allow overflow */
+length-slider {
+  overflow: visible;
+}
+
+length-slider fieldset {
+  overflow: visible;
+}
+
+/* Zero marker styling - visual only, positioned before track */
+.length-marker-zero {
+  z-index: 1;
+  pointer-events: none; /* Not interactive */
+}
+
+/* Value markers */
+.length-marker {
+  z-index: 2;
+}
+
+/* Last marker label can overflow */
+.length-marker:last-child .length-marker-label {
+  overflow: visible;
+  white-space: nowrap;
+}
+
+/* Ensure slider thumb aligns with markers */
+.length-range-slider {
+  /* The thumb will naturally align since markers are positioned at same percentages */
+}
+
+/* Prevent dragging before first variant visually */
+.length-slider-track {
+  /* Track starts where first variant marker is */
+}
+
+/* Marker dots */
+.length-marker-dot {
+  transition: all 0.2s ease;
+}
+
+.length-marker-dot.bg-subtle {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+
+/* Marker labels */
+.length-marker-label {
+  transition: color 0.2s ease, font-weight 0.2s ease;
+}
+
+/* Marker badge */
+.length-marker-badge {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-0.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+

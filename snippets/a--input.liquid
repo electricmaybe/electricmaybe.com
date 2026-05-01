@@ -1,0 +1,245 @@
+{%- comment -%}
+{% render 'a--input'
+    // required fields
+    placeholder: 'i.e john@doe.com'
+    name: 'i.e email'
+    type: 'email' or 'password' or 'text' or 'number' or 'tel' or 'url'
+    id: 'unique id'
+
+    // optional fields
+    size: 'large' or 'small', default is 'large'
+    value: 'input value'
+    form: form object
+    formId: 'form id'
+    label: 'i.e Email'
+    aria_label: 'aria label'
+    autocomplete: 'on' or 'off', default is 'on'
+    disabled: true or false, default is false
+    properties: 'custom properties'
+    required: true or false, default is false
+    min_length: min_length
+    max_length: max_length
+    caption: 'caption message'
+    textarea: true or false, default is false
+    body: 'textarea body'
+    rows: 'number of rows', default is 5
+    error_name: 'error name', default is type
+
+    // optional classes
+    class: 'custom classes'
+    label_class: 'custom classes'
+    wrapper_class: 'custom classes'
+
+    // icons
+    icon_left: 'icon name'
+    icon_right: 'icon name'
+
+    // button
+    button_label: 'button label'
+    button_style: 'primary', 'secondary' or 'ghost', default is 'primary'
+    button_class: 'custom classes'
+
+    // if type is password
+    showpassword: true or false, default is false
+    forgetPassword: true or false, default is false
+%}
+{%- endcomment -%}
+
+{%- liquid
+  assign wrapper_class = wrapper_class | append: ''
+  assign input_wrapper_class = 'relative flex items-stretch' | append: input_wrapper_class
+  assign input_class = class | append: ' focus:ring-0 focus:bg-transparent w-full focus:outline-hidden bg-transparent text-ui-base placeholder:text-ui-base border border-secondary p-4'
+
+  assign size = size | default: 'large'
+
+  if size == 'large'
+    assign input_wrapper_class = input_wrapper_class | append: ' gap-2'
+  endif
+
+  if type == 'checkbox'
+    assign label_class = label_class | append: ' text-medium h-full py-3 cursor-pointer'
+    assign wrapper_class = wrapper_class | append: ' flex flex-row-reverse items-center justify-end w-fit'
+  elsif type == 'password'
+    assign input_class = input_class | append: ' pr-8'
+  else
+    assign label_class = label_class | append: ' text-xxs/solid font-normal pt-2 text-body uppercase block h-3 mt-1 text-left'
+  endif
+
+  if textarea
+    assign tag = 'textarea'
+    assign input_wrapper_class = input_wrapper_class | append: ' pb-3 gap-0!'
+  else
+    assign tag = 'input'
+  endif
+
+  if tag == 'input'
+    assign input_class = input_class | append: ' h-14'
+  endif
+  if label_t
+    assign label = label_t | t
+  endif
+-%}
+
+
+<div class="{{ wrapper_class }}">
+  {% if label %}
+    <label for="{{ id }}" class="{{ label_class }} hidden!">{{ label }}</label>
+  {% endif %}
+
+  <div class="{{ input_wrapper_class }}">
+    {% if icon_left %}
+      {%- render 'a--icon',
+        icon: icon_left,
+        size: 'h-4',
+        wrapper_class: 'flex items-center justify-center',
+        class: 'w-auto'
+      -%}
+    {% endif %}
+    {% if textarea %}
+      <textarea
+        rows="{{ rows | default: 5 }}"
+        id="{{ id }}"
+        name="{{ name }}"
+        class="{{ input_class }}"
+        placeholder="{{ placeholder | default: type }}"
+        {% if type != 'text' %}
+          autocorrect="off"
+          autocapitalize="off"
+        {% else %}
+          autocapitalize="words"
+        {% endif %}
+        autocomplete="{{ autocomplete }}"
+        autocorrect="{{ autocorrect }}"
+        {% if disabled %}
+          disabled
+        {% endif %}
+        {% if formId %}
+          form="{{ formId }}"
+        {% endif %}
+        {% if properties %}
+          {{ properties }}
+        {% endif %}
+        {% if required %}
+          required
+        {% endif %}
+        {% if min_length %}
+          minlength="{{ min_length }}"
+        {% endif %}
+        {% if max_length %}
+          maxlength="{{ max_length }}"
+        {% endif %}
+        {% if form.errors contains type %}
+          aria-invalid="true"
+          aria-describedby="{{ id }}-error"
+        {% endif %}
+        {% if aria_label %}
+          aria-label="{{ aria_label }}"
+        {% endif %}
+      >{% if body %}{{ body }}{% endif %}</textarea>
+    {% else %}
+      <input
+        type='{{ type }}'
+        id="{{ id }}"
+        name="{{ name }}"
+        class="{{ input_class }}"
+        placeholder="{{ placeholder | default: type }}"
+        {% if value %}
+          value="{{ value }}"
+        {% endif %}
+        {% if type != 'text' %}
+          autocorrect="off"
+          autocapitalize="off"
+        {% else %}
+          autocapitalize="words"
+        {% endif %}
+        autocomplete="{{ autocomplete }}"
+        autocorrect="{{ autocorrect }}"
+        {% if disabled %}
+          disabled
+        {% endif %}
+        {% if formId %}
+          form="{{ formId }}"
+        {% endif %}
+        {% if properties %}
+          {{ properties }}
+        {% endif %}
+        {% if required %}
+          required
+        {% endif %}
+        {% if min_length %}
+          minlength="{{ min_length }}"
+        {% endif %}
+        {% if max_length %}
+          maxlength="{{ max_length }}"
+        {% endif %}
+        {% if form.errors contains type %}
+          aria-invalid="true"
+          aria-describedby="{{ id }}-error"
+        {% endif %}
+        {% if aria_label %}
+          aria-label="{{ aria_label }}"
+        {% endif %}
+      />
+    {% endif %}
+    {% if button_label or icon_right %}
+    <div class="flex gap-1 items-center">
+      {% if icon_right %}
+        {%- render 'a--icon',
+          icon: icon_right,
+          size: 'h-4',
+          wrapper_class: 'flex items-center justify-center pr-2',
+          class: 'w-auto'
+        -%}
+      {% endif %}
+      {%- liquid
+        if button_label
+          assign button_class = button_class | append: ' rounded-(--inputs-border-radius)'
+          if size == 'small'
+            assign button_style = button_style | default: 'ghost'
+          else
+            assign button_style = button_style | default: 'primary'
+            assign button_class = button_class | append: ' my-0'
+          endif
+          assign content = button_content | default: 'text-only'
+          if button_style == 'ghost'
+            assign button_style = 'secondary'
+          endif
+          render 'a--button', tag: 'button', size: 'sm', content: content, icon: button_icon, style: button_style, label: button_label, name: button_label, type: 'submit', class: button_class, icon_class: button_icon_size
+        endif
+      -%}
+    </div>
+    {% endif %}
+    {% if type == 'password' and showpassword == true %}
+      <eye-in-the-sky
+        data-target="{{ id }}"
+        class="absolute right-2 top-1/2 opacity-80 -translate-y-1/2 cursor-pointer hover:opacity-100"
+      >
+        {%- render 'a--icon', icon: 'eye', size: '16', wrapper_class: 'hide-when-parent-is-active' -%}
+        {%- render 'a--icon', icon: 'eye-close', size: '16', wrapper_class: 'show-when-parent-is-active' -%}
+      </eye-in-the-sky>
+    {% endif %}
+  </div>
+
+  <caption-message for="{{ id }}" class="flex items-center gap-2 mt-2 {% unless caption %}hidden{% endunless %}">
+    {% render 'a--icon', icon: 'info', size: '16' %}
+    <span>{{ caption }}</span>
+  </caption-message>
+  {% assign look_for = error_name | default: type %}
+  {%- if form.errors contains look_for -%}
+  {% render 'm--error-message' message: form.errors.messages[look_for] %}
+  {%- endif -%}
+</div>
+{% if type == 'password' %}
+  {% unless forgetPassword == false %}
+    <div class="hidden items-center mt-2 w-full">
+      {%- render 'a--icon', icon: 'error', size: '16' -%}
+      <span class="ms-2 text-sm/copy">{{ 'customer.login_page.password_error' | t }}</span>
+    </div>
+
+    <div class="mt-2 text-right">
+      <span id="forgetPassword" class="cursor-pointer text-sm/solid hover:underline hover:opacity-80">
+        {{ 'customer.login_page.forgot_password' | t }}
+      </span>
+    </div>
+  {% endunless %}
+{% endif %}

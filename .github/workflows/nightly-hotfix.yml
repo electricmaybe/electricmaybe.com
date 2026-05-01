@@ -1,0 +1,138 @@
+# climaybe — Nightly Hotfix Tagger (Single-store & Multi-store)
+# Runs at 02:00 US Eastern (07:00 UTC) every night.
+# Collects commits since latest tag (excluding release bumps and store-sync noise),
+# generates AI changelog, and creates a patch version tag.
+# Hotfix / non-staging merges are tagged here only (not at commit time).
+
+name: Nightly Hotfix Tag
+
+on:
+  schedule:
+    # 02:00 US Eastern = 07:00 UTC
+    - cron: '0 7 * * *'
+  # Allow manual trigger for testing
+  workflow_dispatch:
+
+# Prevent concurrent runs
+concurrency:
+  group: nightly-hotfix
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      has_changes: ${{ steps.check.outputs.has_changes }}
+      last_tag: ${{ steps.check.outputs.last_tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Check for untagged commits (or create initial tag from settings_schema.json)
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          LATEST_TAG=$(git tag --merged HEAD | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
+          if [ -z "$LATEST_TAG" ]; then
+            LATEST_TAG=$(git tag --merged HEAD | grep -E '^v[0-9]+\.[0-9]+$' | sort -V | tail -1)
+          fi
+          if [ -z "$LATEST_TAG" ]; then
+            SCHEMA="config/settings_schema.json"
+            if [ -f "$SCHEMA" ]; then
+              LATEST_TAG=$(node -e "
+                const fs = require('fs');
+                const arr = JSON.parse(fs.readFileSync('$SCHEMA', 'utf-8'));
+                const info = arr.find(x => x.name === 'theme_info');
+                const v = (info && info.theme_version) ? String(info.theme_version).trim() : '';
+                if (!v) process.exit(1);
+                let parts = v.replace(/^v/i, '').split('.');
+                if (parts.length === 2) parts.push('0');
+                if (parts.length < 3) parts = parts.concat(Array(3 - parts.length).fill('0')).slice(0, 3);
+                console.log('v' + parts.slice(0, 3).join('.'));
+              " 2>/dev/null || true)
+            fi
+            if [ -n "$LATEST_TAG" ]; then
+              if ! git rev-parse -q --verify "refs/tags/$LATEST_TAG" >/dev/null; then
+                git tag -a "$LATEST_TAG" -m "Initial version from settings_schema.json"
+                git push origin "$LATEST_TAG"
+                echo "Created initial tag $LATEST_TAG from settings_schema.json"
+              fi
+            fi
+          fi
+
+          if [ -z "$LATEST_TAG" ]; then
+            echo "No tags and no settings_schema.json theme_version, skipping."
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "last_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+
+          # Commits since last tag; exclude only version-bump and store-sync noise.
+          # Include [hotfix-backport] and commits with no PR (e.g. direct merges).
+          CANDIDATES=$(git log ${LATEST_TAG}..HEAD --pretty=format:"%H%x09%s" | \
+            grep -v "chore(release): bump version" | \
+            grep -v "\[skip-store-sync\]" | \
+            grep -v "\[stores-to-root\]" | \
+            grep -v "\[root-to-stores\]" || true)
+
+          COMMITS=""
+          while IFS=$'\t' read -r SHA SUBJECT; do
+            [ -z "$SHA" ] && continue
+
+            # Ignore metadata-only commits (e.g. no-op merges) so they do not trigger bumps.
+            if git diff-tree --quiet --no-commit-id -r "$SHA"; then
+              echo "Skipping no-op commit (empty tree diff): $SHA"
+              continue
+            fi
+
+            HEAD_REF=$(gh api \
+              repos/${{ github.repository }}/commits/$SHA/pulls \
+              --jq '.[0].head.ref // ""' 2>/dev/null || true)
+
+            # Skip only store-sync PRs (staging-* → main). Include staging and everything else.
+            if [[ -n "$HEAD_REF" && "$HEAD_REF" == staging-* ]]; then
+              echo "Skipping store-backport commit from $HEAD_REF: $SHA"
+              continue
+            fi
+
+            COMMITS="${COMMITS}${SUBJECT}"$'\n'
+          done <<< "$CANDIDATES"
+
+          if [ -n "$COMMITS" ]; then
+            COMMIT_COUNT=$(echo "$COMMITS" | wc -l | tr -d ' ')
+            echo "Found $COMMIT_COUNT untagged commit(s) since $LATEST_TAG"
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "No untagged commits since $LATEST_TAG"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+  changelog:
+    needs: check
+    if: needs.check.outputs.has_changes == 'true'
+    uses: ./.github/workflows/ai-changelog.yml
+    with:
+      base_ref: ${{ needs.check.outputs.last_tag }}
+      head_ref: HEAD
+    secrets:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+  bump:
+    needs: [check, changelog]
+    if: needs.check.outputs.has_changes == 'true'
+    uses: ./.github/workflows/version-bump.yml
+    with:
+      bump_type: patch
+      changelog: ${{ needs.changelog.outputs.changelog }}
+    secrets: inherit

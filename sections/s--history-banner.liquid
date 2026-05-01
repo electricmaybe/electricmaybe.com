@@ -1,0 +1,231 @@
+{%- liquid
+  assign title = section.settings.title
+  assign body = section.settings.body
+  assign image_left = section.settings.image_left
+  assign image_right = section.settings.image_right
+  assign overlay_header_active = false
+  if section.settings.overlay_header and section.index == 1
+    assign overlay_header_active = true
+  endif
+-%}
+
+{%- if overlay_header_active -%}
+  <style>
+    /* Homepage hero: header overlays the hero, so header-group should not reserve layout height */
+    .shopify-section-group-header-group {
+      height: 0;
+      background: transparent;
+    }
+
+    /*
+      Overlay header variant:
+      - At top of page: header has no background
+      - After scroll threshold: header switches to dark scheme
+    */
+    header-element:not([data-threshold-passed="true"]):not(.menu-open):not([data-nav-open="true"]):not([data-menu-open="true"]):not(:hover):not(:focus-within) #Header {
+      background-color: transparent !important;
+    }
+    header-element[data-threshold-passed="true"] #Header,
+    header-element.menu-open #Header,
+    header-element[data-nav-open="true"] #Header,
+    header-element[data-menu-open="true"] #Header,
+    header-element:hover #Header,
+    header-element:focus-within #Header {
+      background-color: var(--color-dune-950) !important;
+    }
+
+    /* Contrast header text/icons on this page */
+    header-element #Header .header__main {
+      color: var(--color-dune-50);
+    }
+    header-element #Header .header__desktop-navigation,
+    header-element #Header .header__desktop-navigation a,
+    header-element #Header .header-action {
+      color: var(--color-dune-50) !important;
+    }
+
+    /* Logo swap: keep white logo on this page */
+    header-element #Header .logo-black {
+      display: none !important;
+    }
+    header-element #Header .logo-white {
+      display: inline-flex !important;
+    }
+
+    /* Keep dropdown menus readable */
+    header-element #Header .header__desktop-navigation [class*="bg-surface"] {
+      color: var(--text-color-primary);
+    }
+
+    /* Contrast action buttons (search/cart) on desktop */
+    @media (min-width: 1024px) {
+      header-element #Header .header-action {
+        background-color: var(--color-dune-900) !important;
+      }
+      header-element #Header .header-action:hover {
+        opacity: 0.8;
+      }
+    }
+
+    /* Desktop megamenu dropdown: keep dark scheme on hover/open */
+    @media (min-width: 1024px) {
+      header-element #Header .header__desktop-navigation > ul > li > div.bg-surface {
+        /* Override the theme tokens used by bg-surface/bg-subtle/text-secondary/etc */
+        --background-color-surface: var(--color-dune-950);
+        --background-color-subtle: var(--color-dune-900);
+        --background-color-emphasis: var(--color-dune-800);
+        --background-color-accent: var(--color-dune-50);
+
+        --text-color-primary: var(--color-dune-50);
+        --text-color-secondary: var(--color-dune-100);
+        --text-color-on-accent: var(--color-dune-950);
+        --text-color-on-accent-sec: var(--color-dune-900);
+
+        --border-color-primary: var(--color-dune-50);
+        --border-color-secondary: var(--color-dune-700);
+        --border-color-on-accent: var(--color-dune-950);
+        --border-color-on-accent-sec: var(--color-dune-800);
+
+        color: var(--color-dune-50);
+      }
+
+      /* Keep promo cards (with images) on their original light styling */
+      header-element #Header .header__desktop-navigation > ul > li > div.bg-surface a.group\/card.bg-subtle {
+        --background-color-surface: var(--color-dune-50);
+        --background-color-subtle: var(--color-dune-100);
+        --background-color-emphasis: var(--color-dune-200);
+        --background-color-accent: var(--color-dune-950);
+
+        --text-color-primary: var(--color-dune-950);
+        --text-color-secondary: var(--color-dune-900);
+        --text-color-on-accent: var(--color-dune-50);
+        --text-color-on-accent-sec: var(--color-dune-100);
+
+        --border-color-primary: var(--color-dune-950);
+        --border-color-secondary: var(--color-dune-200);
+
+        /* Keep the promo card readable (light card within dark dropdown) */
+        color: var(--color-dune-900) !important;
+      }
+      header-element #Header .header__desktop-navigation > ul > li > div.bg-surface a.group\/card.bg-subtle .h4,
+      header-element #Header .header__desktop-navigation > ul > li > div.bg-surface a.group\/card.bg-subtle .text-secondary {
+        color: var(--color-dune-900) !important;
+      }
+      header-element #Header .header__desktop-navigation > ul > li > div.bg-surface a.group\/card.bg-subtle svg {
+        color: currentColor;
+      }
+    }
+  </style>
+{%- endif -%}
+
+<section class="bg-emphasis max-w grid gap-y-s-base lg:gap-y-s-xl pb-s-base{% if overlay_header_active %} py-15 lg:py-28{% else %} py-s-base{% endif %}">
+  <div></div>
+  <div class="px-s-outer">
+    <div class="flex flex-col items-center gap-y-s-base lg:grid lg:grid-cols-3 lg:gap-x-s-xl lg:items-center px-s-inner">
+      <div class="hidden lg:block">
+        <div class="border border-primary">
+          {%- if image_left != blank -%}
+            {%- render 'a--image',
+              image: image_left,
+              cols: 4,
+              aspect_ratio: 0.94,
+              picture_class: 'w-full aspect-[310/330]',
+              image_class: 'w-full h-full object-cover',
+              object_fit: 'object-cover',
+              crop: 'center'
+            -%}
+          {%- endif -%}
+        </div>
+      </div>
+
+      <div class="flex flex-col items-center text-center gap-y-s-xs max-w-md w-full">
+        {%- if title != blank -%}
+          <h2 class="h1 text-primary">
+            {{ title | escape }}
+          </h2>
+        {%- endif -%}
+        {%- if body != blank -%}
+          <div class="rte text-body text-primary">
+            {{ body }}
+          </div>
+        {%- endif -%}
+      </div>
+
+      <div class="order-first w-full flex justify-center lg:order-0 lg:justify-end">
+        <div class="border border-primary  w-full max-w-3xs md:max-w-none">
+          <div class="lg:hidden">
+            {%- if image_right != blank -%}
+              {%- render 'a--image',
+                image: image_right,
+                cols: 4,
+                aspect_ratio: 1.55,
+                picture_class: 'w-full aspect-[245/158]',
+                image_class: 'w-full h-full object-cover',
+                object_fit: 'object-cover',
+                crop: 'center'
+              -%}
+            {%- endif -%}
+          </div>
+          <div class="hidden lg:block">
+            {%- if image_right != blank -%}
+              {%- render 'a--image',
+                image: image_right,
+                cols: 4,
+                aspect_ratio: 0.94,
+                picture_class: 'w-full aspect-[310/330]',
+                image_class: 'w-full h-full object-cover',
+                object_fit: 'object-cover',
+                crop: 'center'
+              -%}
+            {%- endif -%}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "History banner",
+  "tag": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "overlay_header",
+      "label": "Overlay header",
+      "default": true
+    },
+    {
+      "type": "image_picker",
+      "id": "image_left",
+      "label": "Image (left)"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_right",
+      "label": "Image (right)"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "We are Voldt®"
+    },
+    {
+      "type": "richtext",
+      "id": "body",
+      "label": "Body",
+      "default": "<p>We specialize in electric vehicle charging cables. As a family business with over 100 years in automotive electrics, we bring generations of expertise to a new era. From our warehouse, we supply cables and everything related to charging across Europe — fast, reliable, and ready to ship within 24 hours.</p><p>At Voldt, everything we do is rooted in quality, service, and engineering that keeps the industry moving. What can we do for you?</p>"
+    }
+  ],
+  "presets": [
+    {
+      "name": "History banner"
+    }
+  ]
+}
+{% endschema %}

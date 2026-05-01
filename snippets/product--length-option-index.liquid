@@ -1,0 +1,32 @@
+{%- doc -%}
+  Outputs the 0-based index of the product's "length" option for use in variant.options[index].
+
+  Uses product--length-option-aliases for language-agnostic option handle matching.
+
+  @param {object} product - Product object (required)
+
+  @example
+  {% capture length_option_index %}{% render 'product--length-option-index', product: product %}{% endcapture %}
+  {% assign length_option_index = length_option_index | strip %}
+{%- enddoc -%}
+
+{%- capture length_aliases -%}{%- render 'product--length-option-aliases' -%}{%- endcapture -%}
+{%- assign length_aliases = length_aliases | strip_newlines | strip -%}
+{%- liquid
+  assign product = product | default: empty
+  assign length_option_index = blank
+
+  unless product != empty
+    echo ''
+    break
+  endunless
+
+  for option in product.options_with_values
+    assign option_handle = option.name | handleize
+    assign option_handle_token = ',' | append: option_handle | append: ','
+    if length_aliases contains option_handle_token
+      assign length_option_index = forloop.index0
+      break
+    endif
+  endfor
+-%}{{ length_option_index }}

@@ -1,0 +1,238 @@
+{%- liquid
+  assign overlay_header_active = false
+  if section.settings.overlay_header and section.index == 1
+    assign overlay_header_active = true
+  endif
+-%}
+
+{%- capture content -%}
+  {%- render 'm--hero-car-search',
+    sub_heading: section.settings.sub_heading,
+    heading: section.settings.heading,
+    body: section.settings.body,
+    search_placeholder: section.settings.search_placeholder,
+    search_aria_label: section.settings.search_aria_label
+  -%}
+{%- endcapture -%}
+
+{%- capture card_section -%}
+  {%- for block in section.blocks -%}
+    {%- if block.type != 'card' -%}
+      {%- continue -%}
+    {%- endif -%}
+    <div class="flex-1" {{ block.shopify_attributes }}>
+      {%- render 'm--hero-banner-card',
+        heading: block.settings.heading,
+        description: block.settings.description,
+        button_label: block.settings.button_label,
+        button_url: block.settings.button_url,
+        image: block.settings.image,
+        block: block
+      -%}
+    </div>
+  {%- endfor -%}
+{%- endcapture -%}
+
+{%- render 'm--hero-wrapper',
+  section: section,
+  content: content,
+  card_section: card_section,
+  overlay_header_active: overlay_header_active
+-%}
+
+{% schema %}
+{
+  "name": "Hero car search",
+  "tag": "section",
+  "class": "section-hero-car-search",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "overlay_header",
+      "label": "Overlay header",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "sub_heading",
+      "label": "Sub heading",
+      "default": "Premium European quality"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "European Charging Cables"
+    },
+    {
+      "type": "richtext",
+      "id": "body",
+      "label": "Body"
+    },
+    {
+      "type": "text",
+      "id": "search_placeholder",
+      "label": "Search placeholder",
+      "default": "Search"
+    },
+    {
+      "type": "text",
+      "id": "search_aria_label",
+      "label": "Search ARIA label",
+      "default": "Search"
+    },
+    {
+      "type": "select",
+      "id": "height",
+      "label": "Height mobile",
+      "default": "h-96",
+      "options": [
+        { "value": "h-auto", "label": "Auto" },
+        { "value": "h-64", "label": "XS" },
+        { "value": "h-96", "label": "S" },
+        { "value": "h-128", "label": "M" },
+        { "value": "h-160", "label": "L" },
+        { "value": "h-screen", "label": "Screen" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "height_md",
+      "label": "Height tablet",
+      "default": "md:h-80",
+      "options": [
+        { "value": "md:h-auto", "label": "Auto" },
+        { "value": "md:h-64", "label": "XS" },
+        { "value": "md:h-80", "label": "S" },
+        { "value": "md:h-128", "label": "M" },
+        { "value": "md:h-160", "label": "L" },
+        { "value": "md:h-screen", "label": "Screen" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "height_lg",
+      "label": "Height desktop",
+      "default": "lg:h-[24vw]",
+      "options": [
+        { "value": "lg:h-auto", "label": "Auto" },
+        { "value": "lg:h-[24vw]", "label": "S" },
+        { "value": "lg:h-[32vw]", "label": "M" },
+        { "value": "lg:h-[48vw]", "label": "L" },
+        { "value": "lg:h-screen", "label": "Screen" }
+      ]
+    },
+    {
+      "type": "image_picker",
+      "id": "image_mobile",
+      "label": "Mobile image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_tablet",
+      "label": "Tablet image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_desktop",
+      "label": "Desktop image"
+    },
+    {
+      "type": "select",
+      "id": "position_mobile",
+      "label": "Position mobile",
+      "default": "items-center justify-center text-center",
+      "options": [
+        { "value": "items-start justify-start text-left", "label": "Top Left" },
+        { "value": "items-start justify-center text-center", "label": "Top Center" },
+        { "value": "items-start justify-end text-right", "label": "Top Right" },
+        { "value": "items-center justify-start text-left", "label": "Middle Left" },
+        { "value": "items-center justify-center text-center", "label": "Middle Center" },
+        { "value": "items-center justify-end text-right", "label": "Middle Right" },
+        { "value": "items-end justify-start text-left", "label": "Bottom Left" },
+        { "value": "items-end justify-center text-center", "label": "Bottom Center" },
+        { "value": "items-end justify-end text-right", "label": "Bottom Right" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "position_tablet",
+      "label": "Position tablet",
+      "default": "md:items-center md:justify-center md:text-center",
+      "options": [
+        { "value": "md:items-start md:justify-start md:text-left", "label": "Top Left" },
+        { "value": "md:items-start md:justify-center md:text-center", "label": "Top Center" },
+        { "value": "md:items-start md:justify-end md:text-right", "label": "Top Right" },
+        { "value": "md:items-center md:justify-start md:text-left", "label": "Middle Left" },
+        { "value": "md:items-center md:justify-center md:text-center", "label": "Middle Center" },
+        { "value": "md:items-center md:justify-end md:text-right", "label": "Middle Right" },
+        { "value": "md:items-end md:justify-start md:text-left", "label": "Bottom Left" },
+        { "value": "md:items-end md:justify-center md:text-center", "label": "Bottom Center" },
+        { "value": "md:items-end md:justify-end md:text-right", "label": "Bottom Right" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "position_desktop",
+      "label": "Position desktop",
+      "default": "lg:items-center lg:justify-start lg:text-left",
+      "options": [
+        { "value": "lg:items-start lg:justify-start lg:text-left", "label": "Top Left" },
+        { "value": "lg:items-start lg:justify-center lg:text-center", "label": "Top Center" },
+        { "value": "lg:items-start lg:justify-end lg:text-right", "label": "Top Right" },
+        { "value": "lg:items-center lg:justify-start lg:text-left", "label": "Middle Left" },
+        { "value": "lg:items-center lg:justify-center lg:text-center", "label": "Middle Center" },
+        { "value": "lg:items-center lg:justify-end lg:text-right", "label": "Middle Right" },
+        { "value": "lg:items-end lg:justify-start lg:text-left", "label": "Bottom Left" },
+        { "value": "lg:items-end lg:justify-center lg:text-center", "label": "Bottom Center" },
+        { "value": "lg:items-end lg:justify-end lg:text-right", "label": "Bottom Right" }
+      ]
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Overlay color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Overlay opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "default": 30,
+      "unit": "%"
+    },
+    {
+      "type": "range",
+      "id": "overlay_blur",
+      "label": "Overlay blur",
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "default": 0,
+      "unit": "px"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "card",
+      "name": "Card",
+      "limit": 2,
+      "settings": [
+        { "type": "text", "id": "heading", "label": "Heading", "default": "EV Charging Cable" },
+        { "type": "richtext", "id": "description", "label": "Description" },
+        { "type": "text", "id": "button_label", "label": "Button label", "default": "Shop now" },
+        { "type": "url", "id": "button_url", "label": "Button URL" },
+        { "type": "image_picker", "id": "image", "label": "Image" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero car search"
+    }
+  ]
+}
+{% endschema %}

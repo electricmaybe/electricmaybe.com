@@ -1,0 +1,41 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+ {
+  "sections": {
+    "main": {
+      "type": "search--collection-main",
+      "settings": {
+        "show_filters": true,
+        "desktop_filters_threshold": 4,
+        "products_per_page": 24
+      }
+    },
+    "s_featured_collection_wWcQDH": {
+      "type": "s--featured-collection",
+      "name": "Featured collection",
+      "settings": {
+        "collection": "accessoires",
+        "title": "Popular accessories"
+      }
+    },
+    "s_reviews_FfNrdD": {
+      "type": "s--reviews",
+      "name": "Reviews",
+      "settings": {
+        "heading": "Join 20,000+ EV drivers across Europe, from the Netherlands to Norway, who trust Voldt® to keep them powered every day, everywhere."
+      }
+    }
+  },
+  "order": [
+    "main",
+    "s_featured_collection_wWcQDH",
+    "s_reviews_FfNrdD"
+  ]
+}

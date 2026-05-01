@@ -1,0 +1,467 @@
+<style>
+  .article-body p, .article-body h2{
+    margin: 0 !important;
+  }
+</style>
+
+{%- assign share_url = request.origin | append: article.url -%}
+{%- assign share_url_encoded = share_url | url_encode -%}
+{%- assign share_title = article.title | url_encode -%}
+
+{%- assign content_with_blocks = article.content -%}
+{%- for block in section.blocks -%}
+  {%- case block.type -%}
+    {%- when 'article_image' -%}
+      {%- capture block_html -%}
+        <div class="my-s-base">
+          {% if block.settings.image != blank %}
+            {% render 'a--image',
+              image: block.settings.image,
+              picture_class: 'w-full overflow-hidden rounded-(--media-border-radius)',
+              image_class: 'object-cover m-0!',
+              cols: 12
+            %}
+          {% endif %}
+        </div>
+      {%- endcapture -%}
+      {%- assign content_with_blocks = content_with_blocks | replace_first: '[image]', block_html -%}
+    {%- when 'article_search' -%}
+      {%- capture block_html -%}
+        <div class="bg-emphasis flex flex-col gap-y-s-xs items-start justify-center px-b-lg py-b-lg rounded-(--media-border-radius)">
+          {% if block.settings.heading != blank %}
+            <p class="h2">{{ block.settings.heading }}</p>
+          {% endif %}
+          {% if block.settings.description != blank %}
+            <div class="text-body-lg text-secondary max-w-md rte">{{ block.settings.description }}</div>
+          {% endif %}
+          <find-my-car class="w-full max-w-md flex justify-end items-center gap-x-b-sm self-stretch h-[52px] py-b-xs px-b-lg lg:h-16 lg:py-b-xs lg:pr-b-xs lg:pl-b-lg rounded-[48px] border border-secondary bg-white shadow-[0_2px_4px_0_rgba(0,0,0,0.15)] focus-within:border-secondary group z-(--layer-dropdown)">
+            <input type="text" placeholder="{{ block.settings.placeholder | escape }}" class="w-full h-full bg-transparent h5 font-light text-secondary placeholder:text-secondary placeholder:opacity-70 z-10 relative aria-expanded:rounded-b-none focus:outline-none peer" aria-label="{{ block.settings.placeholder | escape }}" aria-autocomplete="list" aria-expanded="false" autocomplete="off">
+            <div class="absolute top-2 right-2 h-[36px] w-[36px] lg:h-12 lg:w-12 rounded-full bg-subtle flex items-center justify-center group-hover:brightness-90 peer-focus:brightness-90 z-10">
+              {%- render 'a--icon', icon: 'search', width: 32, class: 'w-[20px] h-[20px] lg:w-[24px] lg:h-[24px]' -%}
+            </div>
+          </find-my-car>
+        </div>
+      {%- endcapture -%}
+      {%- assign content_with_blocks = content_with_blocks | replace_first: '[search]', block_html -%}
+    {%- when 'article_newsletter' -%}
+      {%- capture block_html -%}
+        <div class="bg-emphasis flex flex-col gap-y-s-base items-start px-b-lg py-b-lg rounded-(--media-border-radius)">
+          <div class="flex flex-col gap-y-s-base md:flex-row md:items-center md:justify-between md:gap-x-b-sm w-full">
+            <div class="flex flex-col gap-y-s-xs w-full md:max-w-md">
+              {% if block.settings.heading != blank %}
+                <p class="h3">{{ block.settings.heading }}</p>
+              {% endif %}
+              {% if block.settings.description != blank %}
+                <div class="text-ui-small text-secondary rte">{{ block.settings.description }}</div>
+              {% endif %}
+              {%- assign newsletter_form_id = 'article-newsletter-form-' | append: block.id -%}
+              {%- assign newsletter_input_id = 'article-newsletter-' | append: block.id -%}
+              {%- assign newsletter_description_id = 'article-newsletter-description-' | append: block.id -%}
+              <footer-newsletter class="w-full">
+                {%- form 'customer', id: newsletter_form_id -%}
+                  <div class="border-b border-primary flex items-center gap-x-2 transition-colors w-full">
+                    <input type="hidden" name="customer[accepts_marketing]" value="true">
+                    <input type="hidden" name="contact[tags]" value="newsletter">
+                    <label for="{{ newsletter_input_id }}" class="sr-only">Email address for newsletter</label>
+                    <input type="email" name="contact[email]" placeholder="{{ block.settings.placeholder | escape }}" id="{{ newsletter_input_id }}" class="w-full h-10 focus:outline-none placeholder:text-secondary" required aria-describedby="{{ newsletter_description_id }}" aria-invalid="false" autocomplete="email">
+                    <button type="submit" class="focus:outline-none focus:color-schema-contrast focus:bg-surface cursor-pointer transition-all hover:color-schema-contrast hover:bg-surface px-3 py-4" aria-label="{{ block.settings.button_label | escape }}">
+                      <span class="sr-only">{{ block.settings.button_label }}</span>
+                      {%- render 'a--icon', icon: 'arrow-r-up', class: 'w-4 h-4' -%}
+                    </button>
+                  </div>
+                  <div id="{{ newsletter_description_id }}" class="text-ui-small leading-copy text-secondary pt-6 link-underline">
+                    {{ block.settings.privacy_text }}
+                  </div>
+                {%- endform -%}
+              </footer-newsletter>
+            </div>
+            <div class="w-full md:w-auto md:ml-auto flex justify-center">
+              {% if block.settings.image != blank %}
+                {% render 'a--image',
+                  image: block.settings.image,
+                  picture_class: 'w-24 md:w-24 overflow-hidden md:ml-auto',
+                  image_class: 'object-contain -mix-blend-darken',
+                  cols: 2
+                %}
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {%- endcapture -%}
+      {%- assign content_with_blocks = content_with_blocks | replace_first: '[newsletter]', block_html -%}
+    {%- when 'article_products' -%}
+      {%- capture block_html -%}
+        {% if block.settings.products != blank %}
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-x-b-sm gap-y-s-base">
+            {% for product in block.settings.products %}
+              {%- render 'm--product-card', card_product: product, type: 'lite' -%}
+            {% endfor %}
+          </div>
+        {% endif %}
+      {%- endcapture -%}
+      {%- assign content_with_blocks = content_with_blocks | replace_first: '[products]', block_html -%}
+  {%- endcase -%}
+{%- endfor -%}
+{%- assign content_with_blocks = content_with_blocks | replace: '[image]', '' | replace: '[search]', '' | replace: '[newsletter]', '' | replace: '[products]', '' -%}
+
+<section class="px-s-outer" data-section-id="{{ section.id }}">
+  <div class="px-s-inner py-4 lg:py-s-sm">
+    <div class="grid grid-cols-1 lg:grid-cols-12 lg:gap-x-s-xl">
+      <aside class="lg:col-span-4">
+        <div class="flex flex-col gap-y-s-xs lg:sticky lg:top-(--header-sticky-offset)" data-article-toc>
+          <div class="flex items-start">
+            <div class="pt-s-base">
+              <span class="block w-px h-5 bg-subtle"></span>
+            </div>
+            <div class="flex-1">
+              <div class="bg-emphasis px-b-sm py-b-sm">
+                <p class="h4">{{ section.settings.toc_title }}</p>
+              </div>
+              <div class="px-b-sm py-b-sm">
+                <ol class="flex flex-col gap-y-b-sm" data-article-toc-list></ol>
+              </div>
+            </div>
+          </div>
+          <div class="h-px bg-emphasis w-full overflow-hidden" data-article-progress>
+            <span class="block h-px bg-accent w-0" data-article-progress-bar></span>
+          </div>
+          <div class="flex flex-col gap-y-b-sm">
+            <p class="h5">{{ section.settings.share_title }}</p>
+            <div class="flex items-center gap-x-b-sm">
+              {% if section.settings.share_facebook_enabled %}
+                <a
+                  href="https://www.facebook.com/sharer/sharer.php?u={{ share_url_encoded }}"
+                  class="w-9 h-9 rounded-full border border-primary flex items-center justify-center hover:opacity-80"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="{{ section.settings.share_facebook_label }}"
+                >
+                  {%- render 'a--icon', icon: 'facebook-v2', class: 'w-6 h-6 block' -%}
+                </a>
+              {% endif %}
+              {% if section.settings.share_instagram_enabled %}
+                <a
+                  href="https://www.instagram.com/direct/inbox/"
+                  class="w-9 h-9 rounded-full border border-primary flex items-center justify-center hover:opacity-80"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="{{ section.settings.share_instagram_label }}"
+                  data-share-instagram
+                >
+                   {%- render 'a--icon', icon: 'instagram-v2', viewBox: '0 0 18 20', class: 'w-6 h-6 block' -%}
+                </a>
+              {% endif %}
+              {% if section.settings.share_x_enabled %}
+                <a
+                  href="https://twitter.com/intent/tweet?url={{ share_url_encoded }}&text={{ share_title }}"
+                  class="w-9 h-9 p-2 rounded-full border border-primary flex items-center justify-center hover:opacity-80"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="{{ section.settings.share_x_label }}"
+                >
+                  {%- render 'a--icon', icon: 'twitter-x', viewBox: '0 0 20 20', class: 'w-6 h-6 block' -%}
+                </a>
+              {% endif %}
+              {% if section.settings.share_whatsapp_enabled %}
+                <a
+                  href="https://wa.me/?text={{ share_title }}%20{{ share_url_encoded }}"
+                  class="w-9 h-9 rounded-full border border-primary flex items-center justify-center hover:opacity-80"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="{{ section.settings.share_whatsapp_label }}"
+                >
+                  {%- render 'a--icon', icon: 'whatsapp-v2', viewBox: '0 0 18 18', class: 'w-6 h-6 block' -%}
+                </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <div class="lg:col-span-8 pt-s-base lg:pt-0">
+        <div class="article-body flex flex-col gap-y-s-sm rte" data-article-body>
+          {{ content_with_blocks }}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  (() => {
+    const section = document.querySelector('[data-section-id="{{ section.id }}"]');
+    if (!section) return;
+    const tocList = section.querySelector('[data-article-toc-list]');
+    const tocWrapper = section.querySelector('[data-article-toc]');
+    const articleBody = section.querySelector('[data-article-body]');
+    const instagramShare = section.querySelector('[data-share-instagram]');
+    const progressTrack = section.querySelector('[data-article-progress]');
+    const progressBar = section.querySelector('[data-article-progress-bar]');
+    if (!tocList || !articleBody) return;
+
+    const headings = articleBody.querySelectorAll('h2');
+    if (!headings.length) {
+      if (tocWrapper) tocWrapper.classList.add('hidden');
+      return;
+    }
+
+    let visibleIndex = 0;
+    const setHeadingOffset = (node) => {
+      if (!node) return;
+      const isLg = window.matchMedia('(min-width: 1024px)').matches;
+      node.style.scrollMarginTop = isLg ? 'var(--header-sticky-offset)' : '0px';
+    };
+
+    headings.forEach((heading, index) => {
+      const headingText = (heading.textContent || '').trim();
+      if (!headingText) return;
+      visibleIndex += 1;
+      const id = heading.id || `toc-${section.dataset.sectionId}-${index + 1}`;
+      heading.id = id;
+      heading.classList.add('h3');
+      setHeadingOffset(heading);
+
+      const item = document.createElement('li');
+      const number = String(visibleIndex).padStart(2, '0');
+      item.innerHTML = `
+        <a href="#${id}" class="flex items-start gap-x-b-sm hover:opacity-80">
+          <span class="text-ui-base font-medium">${number}.</span>
+          <span class="h5">${headingText}</span>
+        </a>
+      `;
+      tocList.appendChild(item);
+    });
+
+    if (!tocList.children.length && tocWrapper) {
+      tocWrapper.classList.add('hidden');
+    }
+
+    if (progressTrack && progressBar) {
+      const updateProgress = () => {
+        const rect = articleBody.getBoundingClientRect();
+        const viewHeight = window.innerHeight || document.documentElement.clientHeight;
+        const total = rect.height - viewHeight;
+        if (total <= 0) {
+          progressBar.style.width = '0%';
+          return;
+        }
+        const progress = Math.min(Math.max((-rect.top / total) * 100, 0), 100);
+        progressBar.style.width = `${progress}%`;
+      };
+
+      updateProgress();
+      window.addEventListener('scroll', () => window.requestAnimationFrame(updateProgress), { passive: true });
+      window.addEventListener('resize', () => window.requestAnimationFrame(updateProgress));
+    }
+
+    window.addEventListener('resize', () => {
+      headings.forEach((heading) => setHeadingOffset(heading));
+    });
+
+    if (instagramShare && navigator.share) {
+      instagramShare.addEventListener('click', (event) => {
+        event.preventDefault();
+        navigator.share({
+          title: '{{ article.title | escape }}',
+          url: '{{ share_url }}'
+        });
+      });
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Article",
+  "tag": "section",
+  "class": "section-article",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Usage"
+    },
+    {
+      "type": "paragraph",
+      "content": "Insert shortcodes directly in article content to render dynamic blocks. Each shortcode is replaced by the first matching block in this section; if no matching block exists, the shortcode is removed."
+    },
+    {
+      "type": "paragraph",
+      "content": "[image] -> Renders the \"Article Image\" block (single image embed)."
+    },
+    {
+      "type": "paragraph",
+      "content": "[search] -> Renders the \"Article Search\" block (Find My Car search module)."
+    },
+    {
+      "type": "paragraph",
+      "content": "[newsletter] -> Renders the \"Article Newsletter\" block (email signup with privacy copy)."
+    },
+    {
+      "type": "paragraph",
+      "content": "[products] -> Renders the \"Article Products\" block (selected product cards grid)."
+    },
+    {
+      "type": "header",
+      "content": "Share icons"
+    },
+    {
+      "type": "text",
+      "id": "toc_title",
+      "label": "Table of content title",
+      "default": "Table of content"
+    },
+    {
+      "type": "text",
+      "id": "share_title",
+      "label": "Share title",
+      "default": "Share with"
+    },
+    {
+      "type": "checkbox",
+      "id": "share_facebook_enabled",
+      "label": "Show Facebook",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "share_facebook_label",
+      "label": "Share Facebook label",
+      "default": "Share on Facebook"
+    },
+    {
+      "type": "checkbox",
+      "id": "share_instagram_enabled",
+      "label": "Show Instagram",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "share_instagram_label",
+      "label": "Share Instagram label",
+      "default": "Share on Instagram"
+    },
+    {
+      "type": "checkbox",
+      "id": "share_x_enabled",
+      "label": "Show X",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "share_x_label",
+      "label": "Share X label",
+      "default": "Share on X"
+    },
+    {
+      "type": "checkbox",
+      "id": "share_whatsapp_enabled",
+      "label": "Show WhatsApp",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "share_whatsapp_label",
+      "label": "Share WhatsApp label",
+      "default": "Share on WhatsApp"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "article_image",
+      "name": "Article Image",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        }
+      ]
+    },
+    {
+      "type": "article_search",
+      "name": "Article Search",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading",
+          "default": "Search your car"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "Description",
+          "default": "Over 95% of EVs in Europe use a Type 2 cable but if you're unsure, just search your vehicle below."
+        },
+        {
+          "type": "text",
+          "id": "placeholder",
+          "label": "Search placeholder",
+          "default": "Search your car"
+        }
+      ]
+    },
+    {
+      "type": "article_newsletter",
+      "name": "Article Newsletter",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading",
+          "default": "Subscribe to newsletter"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "Description",
+          "default": "By subscribing to our newsletter you agree to our privacy policy and will get commercial communication."
+        },
+        {
+          "type": "text",
+          "id": "placeholder",
+          "label": "Email placeholder",
+          "default": "Email"
+        },
+        {
+          "type": "text",
+          "id": "button_label",
+          "label": "Button label",
+          "default": "Subscribe"
+        },
+        {
+          "type": "richtext",
+          "id": "privacy_text",
+          "label": "Privacy text",
+          "default": "<p>By subscribing to our newsletter you agree to our privacy policy and will get commercial communication.</p>"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        }
+      ]
+    },
+    {
+      "type": "article_products",
+      "name": "Article Products",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "product_list",
+          "id": "products",
+          "label": "Products"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Article"
+    }
+  ]
+}
+{% endschema %}

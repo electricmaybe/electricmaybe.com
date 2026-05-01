@@ -1,0 +1,216 @@
+@theme {
+  /* Font families */
+  --font-*: initial;
+  --font-body: var(--font-body-family);
+  --font-heading: var(--font-heading-family);
+
+  /* Font Weights */
+  --font-weight-*: initial;
+  --font-weight-light: var(--font-body-weight-light);
+  --font-weight-normal: var(--font-body-weight);
+  --font-weight-medium: var(--font-body-weight-medium);
+  --font-weight-semibold: var(--font-body-weight-semibold);
+  --font-weight-bold: var(--font-body-weight-bold);
+
+  /* Custom font sizes */
+  --text-xxs: 0.625rem;
+  --text-xxs-1: calc(var(--text-xxs) - 0.03125rem);
+  --text-xs-1: calc(var(--text-xs) - 0.03125rem);
+  --text-sm-1: calc(var(--text-sm) - 0.03125rem);
+  --text-base-1: calc(var(--text-base) - 0.03125rem);
+
+  --leading-solid: 1;
+  --leading-115: 1.15;
+  --leading-120: 1.2;
+  --leading-copy: 1.5;
+  /* legacy */
+  --leading-default: 1;
+  --leading-solid: 1;
+  --leading-tight: 1.2;
+  --leading-base: 1.5;
+}
+
+
+/* ============================================
+   HEADINGS
+   ============================================ */
+
+   @layer utilities {
+   h1,
+   .h1,
+   h2,
+   .h2,
+   h3,
+   .h3,
+   h4,
+   .h4,
+   h5,
+   .h5,
+   h6,
+   .h6 {
+     @apply font-heading;
+     font-weight: var(--font-heading-weight);
+     font-size: var(--font-heading-size);
+     letter-spacing: var(--font-heading-letter-spacing);
+   }
+   h1,
+   .h1 {
+     @apply leading-solid text-5xl lg:text-6xl;
+   }
+   
+   h2,
+   .h2 {
+     @apply leading-115 text-3xl lg:text-4xl;
+   }
+   
+   h3,
+   .h3 {
+     @apply leading-115 text-2xl lg:text-3xl;
+   }
+   
+   h4,
+   .h4 {
+     @apply leading-120 text-xl lg:text-2xl;
+   }
+   
+   h5,
+   .h5 {
+     @apply leading-120 text-base lg:text-xl;
+   }
+   
+   h6,
+   .h6 {
+     @apply leading-120 text-sm lg:text-base;
+   }
+  }
+
+/* ============================================
+   UI TYPOGRAPHY TOKENS
+   ============================================ */
+
+@utility text-ui-base {
+  @apply text-sm font-normal;
+}
+
+@utility text-ui-base-uppercase {
+  @apply text-sm-1 leading-solid uppercase;
+}
+
+@utility text-ui-small {
+  @apply text-xs lg:text-sm leading-120 font-normal;
+}
+
+@utility text-ui-small-uppercase {
+  @apply text-xs-1 lg:text-sm-1 leading-120;
+}
+
+/* ============================================
+   DISPLAY SIZES
+   ============================================ */
+
+@utility display-1 {
+  @apply text-6xl lg:text-9xl;
+}
+
+@utility display-2 {
+  @apply text-5xl lg:text-8xl;
+}
+
+@utility display-3 {
+  @apply text-4xl lg:text-7xl leading-solid;
+}
+
+
+/* ============================================
+   TEXT SIZES
+   ============================================ */
+
+@utility text-caption {
+  @apply text-xs-1 font-medium leading-solid uppercase;
+}
+
+@utility text-body {
+  @apply text-sm lg:text-base leading-copy;
+}
+
+@utility text-body-lg {
+  @apply text-base lg:text-xl leading-copy;
+}
+
+@utility text-body-xl {
+  @apply text-lg lg:text-2xl leading-copy;
+}
+
+/* ============================================
+   RICH TEXT EDITOR
+   ============================================ */
+
+.rte {
+  @apply leading-copy link-underline text-body;
+  --font-heading-size: 1rem;
+  h1 {
+    @apply mt-8 mb-4 first:mt-0 text-2xl;
+  }
+
+  h2 {
+    @apply mt-8 mb-4 text-xl;
+  }
+
+  h3 {
+    @apply mt-6 mb-4 text-lg;
+  }
+
+  h4 {
+    @apply mt-6 mb-4 text-lg;
+  }
+
+  h5 {
+    @apply mt-4 mb-2 text-base;
+  }
+
+  h6 {
+    @apply mt-4 mb-2 italic text-base;
+  }
+
+  p,
+  ul,
+  ol {
+    @apply mb-4;
+  }
+
+  ul {
+    @apply list-disc ms-4;
+  }
+
+  ol {
+    @apply list-decimal ms-4;
+  }
+
+  li {
+    @apply mb-1;
+  }
+
+  p {
+    @apply last:mb-0;
+  }
+
+  blockquote {
+    @apply py-2 pl-4 my-4 italic border-l-4 border-primary;
+    p {
+      @apply mt-0;
+    }
+  }
+
+  img {
+    @apply mx-auto my-4 max-w-full;
+  }
+  table {
+    @apply w-full max-w-full border-collapse table-fixed text-sm/tight;
+  }
+  thead th {
+    @apply p-4 pt-0 pb-3 pl-8 font-medium text-left border-b text-primary;
+  }
+  tbody td {
+    @apply p-4 pl-9 border-b text-primary;
+  }
+}

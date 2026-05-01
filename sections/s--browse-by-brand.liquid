@@ -1,0 +1,158 @@
+{%- liquid
+  assign s = section.settings
+  assign desired_brands_raw = 'Abarth||Aiways||Alfa Romeo||Alpine||Audi||BMW||BYD||Bentley||Cadillac||Chery||Chevrolet||Citroën||Cupra||DS||Dacia||Dongfeng||Ferrari||Fiat||Fisker||Ford||GWM||Genesis||Honda||Hongqi||Hyundai||JAC||Jaecoo||Jaguar||Jeep||KGM||Kia||LEVC||Lancia||Land Rover||Landrover / Range Rover||Leapmotor||Lexus||Lightyear||Lotus||Lucid||Lynk&Co||MG||Maserati||Mazda||Mercedes||Mini||Mitsubishi||NIO||Nissan||Opel||Peugeot||Polestar||Porsche||Range Rover||Renault||Rolls Royce||SEAT||SSANGYONG||Seres||Skoda||Smart||Sono||SsangYong||Subaru||Suzuki||Tesla||Toyota||Vauxhall||VinFast||Volkswagen||Volvo||Voyah||XPENG||Zeekr'
+  assign desired_brands = desired_brands_raw | split: '||'
+  assign large_limit = 4
+-%}
+
+<section class="px-s-outer py-s-sm">
+  <div class="px-s-inner flex flex-col gap-y-s-xs">
+    {%- if s.heading != blank -%}
+      <h2 class="h2 text-center text-primary">
+        {{ s.heading | escape }}
+      </h2>
+    {%- endif -%}
+
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-x-s-xs gap-y-s-base">
+      {%- assign large_count = 0 -%}
+      {%- assign used_handles = '' -%}
+      {%- for block in section.blocks -%}
+        {%- if block.type != 'featured_brand' -%}
+          {%- continue -%}
+        {%- endif -%}
+        {%- assign brand_collection = block.settings.collection -%}
+        {%- if brand_collection == blank -%}
+          {%- continue -%}
+        {%- endif -%}
+        {%- assign handle_token = '||' | append: brand_collection.handle | append: '||' -%}
+        {%- unless used_handles contains handle_token -%}
+          <a
+            href="{{ brand_collection.url }}"
+            class="border border-secondary flex flex-col items-center text-center gap-y-s-sm px-b-xl py-b-xl"
+            {{ block.shopify_attributes }}
+          >
+            {%- if brand_collection.image != blank -%}
+              {{
+                brand_collection.image
+                | image_url: width: 160
+                | image_tag: loading: 'lazy', class: 'w-20 h-20 object-contain'
+              }}
+            {%- endif -%}
+            {%- assign list_a = brand_collection.metafields.custom.collection_list.value | default: brand_collection.metafields.custom.collection_list -%}
+            {%- assign list_b = brand_collection.metafields.custom.collection_list_1.value | default: brand_collection.metafields.custom.collection_list_1 -%}
+            {%- assign list_a_count = list_a | size -%}
+            {%- assign list_b_count = list_b | size -%}
+            {%- assign total_models = list_a_count | plus: list_b_count -%}
+            <div class="flex flex-col gap-y-b-xs items-center text-center">
+              <span class="h5 text-primary">{{ brand_collection.title | escape }}</span>
+              <span class="text-ui-small text-primary">
+                View {{ total_models }} models
+              </span>
+            </div>
+          </a>
+          {%- assign large_count = large_count | plus: 1 -%}
+          {%- assign used_handles = used_handles | append: handle_token -%}
+        {%- endunless -%}
+      {%- endfor -%}
+      {%- for brand in desired_brands -%}
+        {%- assign handle = brand | handleize -%}
+        {%- assign brand_collection = collections[handle] -%}
+        {%- assign handle_token = '||' | append: handle | append: '||' -%}
+        {%- if brand_collection != blank -%}
+          {%- unless used_handles contains handle_token -%}
+            {%- if large_count < large_limit -%}
+            <a
+              href="{{ brand_collection.url }}"
+              class="border border-secondary flex flex-col items-center text-center gap-y-s-sm px-b-xl py-b-xl"
+            >
+              {%- if brand_collection.image != blank -%}
+                {{
+                  brand_collection.image
+                  | image_url: width: 160
+                  | image_tag: loading: 'lazy', class: 'w-20 h-20 object-contain'
+                }}
+              {%- endif -%}
+              {%- assign list_a = brand_collection.metafields.custom.collection_list.value | default: brand_collection.metafields.custom.collection_list -%}
+              {%- assign list_b = brand_collection.metafields.custom.collection_list_1.value | default: brand_collection.metafields.custom.collection_list_1 -%}
+              {%- assign list_a_count = list_a | size -%}
+              {%- assign list_b_count = list_b | size -%}
+              {%- assign total_models = list_a_count | plus: list_b_count -%}
+              <div class="flex flex-col gap-y-b-xs items-center text-center">
+                <span class="h5 text-primary">{{ brand_collection.title | escape }}</span>
+                <span class="text-ui-small text-primary">
+                  View {{ total_models }} models
+                </span>
+              </div>
+            </a>
+            {%- assign large_count = large_count | plus: 1 -%}
+            {%- assign used_handles = used_handles | append: handle_token -%}
+            {%- endif -%}
+          {%- endunless -%}
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-s-xs gap-y-s-xs">
+      {%- for brand in desired_brands -%}
+        {%- assign handle = brand | handleize -%}
+        {%- assign brand_collection = collections[handle] -%}
+        {%- assign handle_token = '||' | append: handle | append: '||' -%}
+        {%- if brand_collection != blank -%}
+          {%- unless used_handles contains handle_token -%}
+            <a
+              href="{{ brand_collection.url }}"
+              class="border border-secondary flex items-center gap-x-b-sm px-b-xs py-b-xs"
+            >
+              {%- if brand_collection.image != blank -%}
+                {{
+                  brand_collection.image
+                  | image_url: width: 64
+                  | image_tag: loading: 'lazy', class: 'w-8 h-8 object-contain'
+                }}
+              {%- endif -%}
+              <span class="h6 text-primary">{{ brand_collection.title | escape }}</span>
+            </a>
+            {%- assign used_handles = used_handles | append: handle_token -%}
+          {%- endunless -%}
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Browse by brand",
+  "tag": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Browse by make"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "featured_brand",
+      "name": "Featured brand",
+      "limit": 4,
+      "settings": [
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Collection"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Browse by brand"
+    }
+  ]
+}
+{% endschema %}

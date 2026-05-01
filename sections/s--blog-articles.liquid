@@ -1,0 +1,123 @@
+{%- liquid
+  assign blog = blogs[section.settings.blog]
+  assign heading = section.settings.heading | default: 'Blog articles'
+  assign view_all_label = section.settings.view_all_label | default: ''
+  assign slider_id = 'blog-articles-' | append: section.id
+-%}
+
+<style>
+  /* Use the slider JS vars to render a "fills from 0 -> 100" progress bar without touching '_scripts/electric-slider.js'. */
+
+  #shopify-section-{{ section.id }} electric-slider[data-id="{{ slider_id }}"] .grid-cols-\[1fr_auto\] > :first-child {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  #shopify-section-{{ section.id }} electric-slider[data-id="{{ slider_id }}"] .electric-slider__bar {
+    transform: none !important;
+    width: calc(var(--slider-bar-position, 0px) + var(--slider-bar-width, 0px)) !important;
+  }
+</style>
+
+<div class="py-s-base">
+  <div class="flex flex-col gap-y-s-base overflow-clip">
+    {%- if heading != blank or view_all_label != blank -%}
+      <div class="px-s-whole flex items-center gap-x-s-xl w-full">
+        {%- if heading != blank -%}
+          <h2 class="h1 flex-1">
+            {{ heading }}
+          </h2>
+        {%- endif -%}
+
+        {%- if view_all_label != blank and blog != blank -%}
+          <a
+            href="{{ blog.url }}"
+            class="shrink-0 hidden lg:flex items-center gap-x-b-sm text-ui-base hover:opacity-70 transition-opacity"
+            aria-label="{{ view_all_label | escape }}"
+          >
+            <span>{{ view_all_label }}</span>
+            {%- render 'a--icon', icon: 'chevron-r', width: '1.5rem', height: '1.5rem' -%}
+          </a>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    <div class="flex flex-col gap-y-s-sm">
+      {%- if blog != blank and blog.articles_count > 0 -%}
+      {%- liquid
+        capture feed
+          for article in blog.articles limit: 9
+            render 'm--article-card', article: article
+          endfor
+        endcapture
+      -%}
+
+      {%- render 'm--electric-slider',
+        id: slider_id,
+        feed: feed,
+        per_row_mobile: 1.333,
+        per_row_tablet: 2.666,
+        per_row_desktop: 3,
+        gap: 'gap-x-b-base',
+        bar: true,
+        feed_class: 'order-1 px-s-whole scroll-px-s-whole',
+        slider_navigation_wrapper_class: 'order-2 px-s-whole! pt-b-base',
+        properties: 'data-animate-scroll',
+        slider_class: 'gap-y-s-sm'
+      -%}
+
+      {%- if view_all_label != blank and blog != blank -%}
+        <div class="lg:hidden flex justify-end pt-b-base">
+          <a
+            href="{{ blog.url }}"
+            class="shrink-0 flex items-center gap-x-b-sm text-ui-base hover:opacity-70 transition-opacity"
+            aria-label="{{ view_all_label | escape }}"
+          >
+            <span>{{ view_all_label }}</span>
+            {%- render 'a--icon', icon: 'chevron-r', width: '1.5rem', height: '1.5rem' -%}
+          </a>
+        </div>
+      {%- endif -%}
+      {%- else -%}
+        <!-- No blog selected or no articles available for s--blog-articles -->
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Blog articles",
+  "tag": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Blog articles"
+    },
+    {
+      "type": "text",
+      "id": "view_all_label",
+      "label": "View all label",
+      "default": "View all",
+      "info": "When set, links to the selected blog page."
+    },
+    {
+      "type": "blog",
+      "id": "blog",
+      "label": "Blog"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Blog articles"
+    }
+  ]
+}
+{% endschema %}
+
+

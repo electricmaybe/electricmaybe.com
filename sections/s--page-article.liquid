@@ -1,0 +1,332 @@
+{%- assign share_url = request.origin | append: page.url -%}
+{%- assign share_url_encoded = share_url | url_encode -%}
+{%- assign share_title = page.title | url_encode -%}
+{%- assign page_content = page.content
+  | replace: '</span><span>', ''
+  | replace: '</span> <span>', ''
+  | replace: '</span>
+<span>', ''
+  | replace: '</span>
+<span>', ''
+-%}
+
+<style>
+  .page-body h2{
+    margin: 0 !important;
+  }
+  .page-body p {
+    display: inline;
+    margin: 0;
+  }
+  .page-body span {
+    display: inline;
+  }
+</style>
+
+<section class="px-s-outer" data-section-id="{{ section.id }}">
+  <div class="px-s-inner py-s-sm flex flex-col gap-y-s-xl">
+    <div class="flex items-center">
+      {%- liquid
+        if section.index == 1
+          assign tag = 'h1'
+        else
+          assign tag = 'h2'
+        endif
+      -%}
+      <{{ tag }} class="h1 text-primary w-full text-left">{{ page.title }}</{{ tag }}>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-12 lg:gap-x-s-xl gap-y-s-base">
+      <aside class="lg:col-span-4">
+        <div class="flex flex-col gap-y-s-xs lg:sticky lg:top-(--header-sticky-offset)" data-page-toc>
+          <div class="flex items-start">
+            <div class="pt-s-base">
+              <span class="block w-px h-5 bg-subtle"></span>
+            </div>
+            <div class="flex-1">
+              <div class="bg-emphasis px-b-sm py-b-sm">
+                <p class="h4">{{ section.settings.toc_title }}</p>
+              </div>
+              <div class="px-b-sm py-b-sm">
+                <ol class="flex flex-col gap-y-b-sm" data-page-toc-list></ol>
+              </div>
+            </div>
+          </div>
+          <div class="h-px bg-emphasis w-full overflow-hidden" data-page-progress>
+            <span class="block h-px bg-accent w-0" data-page-progress-bar></span>
+          </div>
+          <div class="flex flex-col gap-y-b-sm">
+            <p class="h5">{{ section.settings.share_title }}</p>
+            <div class="flex items-center gap-x-b-sm">
+              {% if section.settings.share_facebook_enabled %}
+                <a
+                  href="https://www.facebook.com/sharer/sharer.php?u={{ share_url_encoded }}"
+                  class="w-9 h-9 rounded-full border border-primary flex items-center justify-center hover:opacity-80"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="{{ section.settings.share_facebook_label }}"
+                >
+                  {%- render 'a--icon', icon: 'facebook-v2', class: 'w-6 h-6 block' -%}
+                </a>
+              {% endif %}
+              {% if section.settings.share_instagram_enabled %}
+                <a
+                  href="https://www.instagram.com/direct/inbox/"
+                  class="w-9 h-9 rounded-full border border-primary flex items-center justify-center hover:opacity-80"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="{{ section.settings.share_instagram_label }}"
+                  data-share-instagram
+                >
+                   {%- render 'a--icon', icon: 'instagram-v2', viewBox: '0 0 18 20', class: 'w-6 h-6 block' -%}
+                </a>
+              {% endif %}
+              {% if section.settings.share_x_enabled %}
+                <a
+                  href="https://twitter.com/intent/tweet?url={{ share_url_encoded }}&text={{ share_title }}"
+                  class="w-9 h-9 p-2 rounded-full border border-primary flex items-center justify-center hover:opacity-80"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="{{ section.settings.share_x_label }}"
+                >
+                  {%- render 'a--icon', icon: 'twitter-x', viewBox: '0 0 20 20', class: 'w-6 h-6 block' -%}
+                </a>
+              {% endif %}
+              {% if section.settings.share_whatsapp_enabled %}
+                <a
+                  href="https://wa.me/?text={{ share_title }}%20{{ share_url_encoded }}"
+                  class="w-9 h-9 rounded-full border border-primary flex items-center justify-center hover:opacity-80"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="{{ section.settings.share_whatsapp_label }}"
+                >
+                  {%- render 'a--icon', icon: 'whatsapp-v2', viewBox: '0 0 18 18', class: 'w-6 h-6 block' -%}
+                </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <div class="lg:col-span-8 lg:pt-0">
+        <div class="page-body flex flex-col gap-y-s-sm rte" data-page-body>
+          {{ page_content }}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  (() => {
+    const section = document.querySelector('[data-section-id="{{ section.id }}"]');
+    if (!section) return;
+    const tocList = section.querySelector('[data-page-toc-list]');
+    const tocWrapper = section.querySelector('[data-page-toc]');
+    const pageBody = section.querySelector('[data-page-body]');
+    const instagramShare = section.querySelector('[data-share-instagram]');
+    const progressTrack = section.querySelector('[data-page-progress]');
+    const progressBar = section.querySelector('[data-page-progress-bar]');
+    if (!tocList || !pageBody) return;
+
+    const cleanupEmptyNodes = (root) => {
+      root.querySelectorAll('span').forEach((node) => {
+        const isWhitespaceText = (child) =>
+          child && child.nodeType === Node.TEXT_NODE && child.textContent.trim() === '';
+        const getFirstMeaningful = () => {
+          let current = node.firstChild;
+          while (isWhitespaceText(current)) {
+            current = current.nextSibling;
+          }
+          return current;
+        };
+        const getLastMeaningful = () => {
+          let current = node.lastChild;
+          while (isWhitespaceText(current)) {
+            current = current.previousSibling;
+          }
+          return current;
+        };
+
+        while (true) {
+          const first = getFirstMeaningful();
+          if (first && first.nodeType === Node.ELEMENT_NODE && first.tagName === 'BR') {
+            first.remove();
+            continue;
+          }
+          break;
+        }
+
+        while (true) {
+          const last = getLastMeaningful();
+          if (last && last.nodeType === Node.ELEMENT_NODE && last.tagName === 'BR') {
+            last.remove();
+            continue;
+          }
+          break;
+        }
+      });
+      root.querySelectorAll('p, span, h2').forEach((node) => {
+        const text = (node.textContent || '').trim();
+        if (!text) {
+          node.remove();
+        }
+      });
+    };
+
+    cleanupEmptyNodes(pageBody);
+
+    const headings = pageBody.querySelectorAll('h2');
+    if (!headings.length) {
+      if (tocWrapper) tocWrapper.classList.add('hidden');
+      return;
+    }
+
+    const setHeadingOffset = (node) => {
+      if (!node) return;
+      const isLg = window.matchMedia('(min-width: 1024px)').matches;
+      node.style.scrollMarginTop = isLg ? 'var(--header-sticky-offset)' : '0px';
+    };
+
+    headings.forEach((heading, index) => {
+      if (index > 0) {
+        const divider = document.createElement('hr');
+        divider.className = 'border-secondary my-s-xs';
+        heading.before(divider);
+      }
+      const headingText = (heading.textContent || '').trim();
+      if (!headingText) return;
+      const id = heading.id || `toc-${section.dataset.sectionId}-${index + 1}`;
+      heading.id = id;
+      heading.classList.add('h3');
+      setHeadingOffset(heading);
+
+      const item = document.createElement('li');
+      const number = String(index + 1).padStart(2, '0');
+      item.innerHTML = `
+        <a href="#${id}" class="flex items-start gap-x-b-sm hover:opacity-80">
+          <span class="text-ui-base font-medium">${number}.</span>
+          <span class="h5">${headingText}</span>
+        </a>
+      `;
+      tocList.appendChild(item);
+    });
+
+    if (!tocList.children.length && tocWrapper) {
+      tocWrapper.classList.add('hidden');
+    }
+
+    if (progressTrack && progressBar) {
+      const updateProgress = () => {
+        const rect = pageBody.getBoundingClientRect();
+        const viewHeight = window.innerHeight || document.documentElement.clientHeight;
+        const total = rect.height - viewHeight;
+        if (total <= 0) {
+          progressBar.style.width = '0%';
+          return;
+        }
+        const progress = Math.min(Math.max((-rect.top / total) * 100, 0), 100);
+        progressBar.style.width = `${progress}%`;
+      };
+
+      updateProgress();
+      window.addEventListener('scroll', () => window.requestAnimationFrame(updateProgress), { passive: true });
+      window.addEventListener('resize', () => window.requestAnimationFrame(updateProgress));
+    }
+
+    window.addEventListener('resize', () => {
+      headings.forEach((heading) => setHeadingOffset(heading));
+    });
+
+    if (instagramShare && navigator.share) {
+      instagramShare.addEventListener('click', (event) => {
+        event.preventDefault();
+        navigator.share({
+          title: '{{ page.title | escape }}',
+          url: '{{ share_url }}'
+        });
+      });
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Page article",
+  "tag": "section",
+  "class": "section-article",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Share icons"
+    },
+    {
+      "type": "text",
+      "id": "toc_title",
+      "label": "Table of content title",
+      "default": "Table of content"
+    },
+    {
+      "type": "text",
+      "id": "share_title",
+      "label": "Share title",
+      "default": "Share with"
+    },
+    {
+      "type": "checkbox",
+      "id": "share_facebook_enabled",
+      "label": "Show Facebook",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "share_facebook_label",
+      "label": "Share Facebook label",
+      "default": "Share on Facebook"
+    },
+    {
+      "type": "checkbox",
+      "id": "share_instagram_enabled",
+      "label": "Show Instagram",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "share_instagram_label",
+      "label": "Share Instagram label",
+      "default": "Share on Instagram"
+    },
+    {
+      "type": "checkbox",
+      "id": "share_x_enabled",
+      "label": "Show X",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "share_x_label",
+      "label": "Share X label",
+      "default": "Share on X"
+    },
+    {
+      "type": "checkbox",
+      "id": "share_whatsapp_enabled",
+      "label": "Show WhatsApp",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "share_whatsapp_label",
+      "label": "Share WhatsApp label",
+      "default": "Share on WhatsApp"
+    }
+  ],
+  "enabled_on": {
+    "templates": ["page"]
+  },
+  "presets": [
+    {
+      "name": "Page article"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,95 @@
+<section class="px-s-outer py-s-base">
+  <div class="mx-auto px-s-inner">
+    <div class="flex flex-col items-center gap-y-s-xl text-center">
+      {%- for block in section.blocks -%}
+        {%- case block.type -%}
+          {%- when 'title' -%}
+            {%- if block.settings.title != blank -%}
+              <h2 class="h1 text-primary max-w-xl lg:max-w-3xl" {{ block.shopify_attributes }}>
+                {{ block.settings.title | escape }}
+              </h2>
+            {%- endif -%}
+          {%- when 'italic' -%}
+            {%- if block.settings.italic_text != blank -%}
+              <div class="h1 leading-[1.2] text-primary italic max-w-xl lg:max-w-5xl" {{ block.shopify_attributes }}>
+                {{ block.settings.italic_text }}
+              </div>
+            {%- endif -%}
+          {%- when 'description' -%}
+            {%- if block.settings.description != blank -%}
+              <div class="text-[2rem] leading-[1.5] text-primary max-w-xl lg:max-w-3xl" {{ block.shopify_attributes }}>
+                {{ block.settings.description }}
+              </div>
+            {%- endif -%}
+        {%- endcase -%}
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "History text",
+  "tag": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "blocks": [
+    {
+      "type": "title",
+      "name": "Title",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "The long history of Voldt."
+        }
+      ]
+    },
+    {
+      "type": "italic",
+      "name": "Italic",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "richtext",
+          "id": "italic_text",
+          "label": "Italic text",
+          "default": "<p>A family business for over 100 years<br>In 1907, founder Christoffel De Koff had a vision. He realised that companies in the logistics sector needed specialised deliveries. Then, now and in the future.</p>"
+        }
+      ]
+    },
+    {
+      "type": "description",
+      "name": "Description",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Description",
+          "default": "<p>A family business for over 100 years<br>In 1907, founder Christoffel De Koff had a vision. He realised that companies in the logistics sector needed specialised deliveries. Then, now and in the future.</p><p>&nbsp;</p><p>His expertise in connectivity equipment made him an attractive business partner. Moreover, the passion Christopher had sparked like a spark in the next three generations. Starting in 1986, this led De Koff to become an importer of electric trucks. We supply wholesalers and body shops in the Netherlands, Belgium, Germany and other countries.</p>"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "History text",
+      "blocks": [
+        {
+          "type": "title"
+        },
+        {
+          "type": "italic"
+        },
+        {
+          "type": "description"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

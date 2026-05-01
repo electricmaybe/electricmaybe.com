@@ -1,0 +1,127 @@
+{% render '_script-variables' %}
+<script type="importmap">
+  {
+    "imports": {
+      "@theme/critical": "{{ '_critical.js' | asset_url }}",
+      "@theme/component": "{{ '_component.js' | asset_url }}",
+      "@theme/events": "{{ '_events.js' | asset_url }}",
+      "@theme/morph": "{{ '_morph.js' | asset_url }}",
+      "@theme/utilities": "{{ '_utilities.js' | asset_url }}"
+    }
+  }
+</script>
+<link
+  rel="modulepreload"
+  href="{{ '_critical.js' | asset_url }}"
+>
+<link
+  rel="modulepreload"
+  href="{{ '_utilities.js' | asset_url }}"
+  fetchpriority="low"
+>
+<link
+  rel="modulepreload"
+  href="{{ '_component.js' | asset_url }}"
+  fetchpriority="low"
+>
+<link
+  rel="modulepreload"
+  href="{{ '_events.js' | asset_url }}"
+  fetchpriority="low"
+>
+<link
+  rel="modulepreload"
+  href="{{ '_morph.js' | asset_url }}"
+  fetchpriority="low"
+>
+<script>
+  function preloadImage(url) {
+    let preloadLink = document.createElement('link');
+    preloadLink.rel = 'preload';
+    preloadLink.as = 'image';
+    preloadLink.href = url;
+    document.head.appendChild(preloadLink);
+  }
+</script>
+<script src="https://integrations.etrusted.com/applications/widget.js/v2" async defer></script>
+{% comment %} <script src="//unpkg.com/@ungap/custom-elements/es.js" defer="defer"></script> {% endcomment %}
+<script src="{{ 'index.js' | asset_url }}" defer="defer"></script>
+<script src="{{ 'related-products.js' | asset_url }}" defer="defer"></script>
+<script>
+  document.documentElement.className = document.documentElement.className.replace('no-js', 'js');
+</script>
+<script
+  src="//instant.page/5.2.0"
+  type="module"
+  defer="defer"
+  integrity="sha384-jnZyxPjiipYXnSU0ygqeac2q7CVYMbh84q0uHVRRxEtvFPiQYbXWUorga2aqZJ0z"
+></script>
+
+{%- if template.name == 'product' -%}
+  {%- assign first_3d_model = product.media | where: 'media_type', 'model' | first -%}
+  {%- if first_3d_model -%}
+    <script type="application/json" id="ProductJSON-{{ product.id }}">
+      {{ product.media | where: 'media_type', 'model' | json }}
+    </script>
+    <script src="{{ 'product-model.js' | asset_url }}" defer></script>
+  {%- endif -%}
+{%- endif -%}
+
+<script type="speculationrules">
+  {
+    "prerender": [
+      {
+        "where": {
+          "and": [
+            { "href_matches": "{{ routes.root_url }}*" },
+            { "not": { "href_matches": "{{ routes.account_url }}" } },
+            { "not": { "href_matches": "{{ routes.account_url }}/*" } },
+            { "not": { "href_matches": "{{ routes.cart_url }}" } },
+            { "not": { "href_matches": "{{ routes.cart_url }}/*" } },
+            { "not": { "href_matches": "{{ routes.storefront_login_url }}" } }
+          ]
+        },
+        "eagerness": "moderate"
+      }
+    ]
+  }
+</script>
+
+
+  {%- if template.name == 'search' and search.performed and search.results.size > 0 -%}
+    {%- assign products = search.results | where: 'object_type', 'product' -%}
+    {%- if products.size > 0 -%}
+      <script>
+        (function() {
+          // Extract clean search query string
+          const searchQuery = {{ search.terms | escape | json }};
+
+          // Handle case where search.terms might contain filters like "product_type:X AND query"
+          let cleanQuery = searchQuery;
+          if (searchQuery && searchQuery.includes(' AND ')) {
+            // Extract just the search term part after AND
+            cleanQuery = searchQuery.split(' AND ').pop().trim();
+          }
+
+          if (cleanQuery && typeof cleanQuery === 'string' && cleanQuery.trim()) {
+            // Get existing searches from localStorage
+            let recentSearches = JSON.parse(localStorage.getItem('recent_searches') || '[]');
+
+            // Filter out non-string values and remove duplicates
+            recentSearches = recentSearches.filter(q => {
+              return typeof q === 'string' && q.toLowerCase() !== cleanQuery.toLowerCase();
+            });
+
+            // Add the new query to the beginning
+            recentSearches.unshift(cleanQuery);
+
+            // Keep only the last 3 searches
+            recentSearches = recentSearches.slice(0, 3);
+
+            // Save back to localStorage
+            localStorage.setItem('recent_searches', JSON.stringify(recentSearches));
+          }
+        })();
+      </script>
+    {%- endif -%}
+  {%- endif -%}

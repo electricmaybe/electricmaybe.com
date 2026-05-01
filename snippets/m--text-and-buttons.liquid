@@ -1,0 +1,358 @@
+{%- liquid
+    assign s = block.settings | default: section.settings
+    assign hide_text_and_buttons = hide_text_and_buttons | default: s.hide_text_and_buttons
+    if block and section.blocks.size == 0
+      assign hide_text_and_buttons = false
+    endif
+-%}
+{%- unless hide_text_and_buttons -%}
+  {%- liquid
+    if size == 'large'
+      assign body_text_size = 'text-body-lg'
+      assign caption_class = 'text-caption'
+      assign tag = tag | default:'h2'
+      assign button_size = button_size | default: 'button-medium'
+      assign gap = gap | default: 'gap-y-b-base'
+    elsif size == 'small'
+      assign body_text_size = 'text-ui-base/copy'
+      assign caption_class = 'text-ui-title'
+      assign tag = tag | default: 'h3'
+      assign button_size = button_size | default: 'button-small'
+      assign gap = gap | default: 'gap-y-b-xs'
+    else
+      # meaning medium
+      assign body_text_size = body_text_size | default: 'text-body'
+      assign caption_class = caption_class | default: 'text-caption'
+      assign tag = tag | default: 'h2'
+      assign button_size = button_size | default: 'button-medium'
+      assign gap = gap | default: 'gap-y-b-base'
+    endif
+
+    assign class_inner_inner_wrapper = class_inner_inner_wrapper | append: ' ' | append: gap
+    assign class_inner_wrapper = class_inner_wrapper | append: ' ' | append: gap
+
+    assign show_breadcrumbs = show_breadcrumbs | default: s.show_breadcrumbs
+    assign overlay_vertical_position = overlay_vertical_position | default: s.overlay_vertical_position
+    assign content_horizontal_position_lg = content_horizontal_position_lg | default: s.content_horizontal_position_lg
+    assign section_layout_lg = section_layout_lg | default: s.section_layout_lg
+    assign section_direction = section_direction | default: s.section_direction
+    assign section_style = section_style | default: s.section_style
+    assign section_width = section_width | default: s.section_width
+    assign content_layout_md = content_layout_md | default: s.content_layout_md
+    assign content_alignment = content_alignment | default: s.content_alignment
+    assign content_alignment_lg = content_alignment_lg | default: s.content_alignment_lg
+    assign heading = heading | default: s.heading
+    assign caption = caption | default: s.caption
+    assign body_text = body_text | default: s.body_text
+    assign button_label = button_label | default: s.button_label
+    assign button_url = button_url | default: s.button_url
+    assign button_style = button_style | default: s.button_style
+    assign button_label_2 = button_label_2 | default: s.button_label_2
+    assign button_url_2 = button_url_2 | default: s.button_url_2
+    assign button_style_2 = button_style_2 | default: s.button_style_2
+    assign aria_label = aria_label | default: s.button_label
+    assign aria_label_2 = aria_label_2 | default: s.button_label_2
+
+    assign size_token = 'base'
+    if button_size == 'button-small'
+      assign size_token = 'sm'
+    elsif button_size == 'button-large'
+      assign size_token = 'lg'
+    endif
+
+    assign button_wrapper_class = 'inline-block space-x-4'
+    unless compact or button_style == 'link'
+      assign button_wrapper_class = button_wrapper_class | append: ' mt-2'
+      if content_layout_md == 'spread-horizontal'
+        assign button_wrapper_class = button_wrapper_class | append: ' md:mt-0'
+      endif
+    endunless
+
+    # class outer wrapper
+    assign class_outer_wrapper = class_outer_wrapper | append: ' flex ' | append: content_alignment | append: ' '
+    assign class_inner_wrapper = class_inner_wrapper | append: ' flex-col ' | append: content_horizontal_position_lg
+
+    if invert
+      assign class_outer_wrapper = class_outer_wrapper | append: ' text-on-accent'
+    endif
+
+    case overlay_vertical_position
+      when 'overlay-top'
+        assign class_outer_wrapper = class_outer_wrapper | append: ' absolute inset-x-0 top-0 z-10 after:bg-linear-to-b/oklch after:from-(--overlay-color) after:to-transparent after:absolute after:inset-0 after:opacity-(--overlay-opacity) backdrop-blur-(--overlay-blur) after:pointer-events-none after:-z-10'
+      when 'overlay-center'
+        assign class_outer_wrapper = class_outer_wrapper | append: ' absolute inset-x-0 top-1/2 -translate-y-1/2 z-10 after:bg-(--overlay-color) after:absolute after:inset-0 h-full after:opacity-(--overlay-opacity) backdrop-blur-(--overlay-blur) after:-z-10 after:pointer-events-none items-center'
+        assign class_inner_wrapper = class_inner_wrapper | append: ' h-fit'
+      when 'overlay-bottom'
+        assign class_outer_wrapper = class_outer_wrapper | append: ' absolute inset-x-0 bottom-0 z-10 after:bg-linear-to-t/oklch after:from-(--overlay-color) after:to-transparent after:absolute after:inset-0 after:opacity-(--overlay-opacity) backdrop-blur-(--overlay-blur) after:-z-10 after:pointer-events-none'
+      when 'bottom'
+        assign class_outer_wrapper = class_outer_wrapper | append: ' order-2'
+    endcase
+
+    if section_width == 'limited' and overlay_vertical_position contains 'overlay-'
+      assign class_inner_wrapper = class_inner_wrapper | append: ' px-12'
+    endif
+    if section_layout_lg == null and section_direction == null
+      assign class_outer_wrapper = class_outer_wrapper | append: ' w-full flex-1'
+    endif
+
+    # class inner wrapper
+    assign class_inner_wrapper = class_inner_wrapper | append: ' inline-flex w-full' | append: ' ' | append: section_layout_lg
+    # heading != null means the content is coming from sections not blocks so buttons are separated
+    if content_layout_md == 'spread-horizontal' or heading != null or body_text != null
+      assign class_inner_wrapper = class_inner_wrapper | append: ' ' | append: content_alignment | append: ' ' | append: content_alignment_lg
+    else
+      assign class_inner_inner_wrapper = class_inner_inner_wrapper | append: ' ' | append: content_alignment | append: ' ' | append: content_alignment_lg
+    endif
+      
+    case content_layout_md
+      when 'left-stacked'
+        assign class_inner_wrapper = class_inner_wrapper | append: ' flex-col md:text-left md:items-start'
+        assign class_inner_inner_wrapper = class_inner_inner_wrapper | append: ' md:text-left md:items-start'
+        assign class_outer_wrapper = class_outer_wrapper | append: ' md:justify-start'
+      when 'center-stacked'
+        assign class_inner_wrapper = class_inner_wrapper | append: ' flex-col md:text-center md:items-center'
+        assign class_inner_inner_wrapper = class_inner_inner_wrapper | append: ' md:text-center md:items-center'
+        assign class_outer_wrapper = class_outer_wrapper | append: ' md:justify-center'
+      when 'spread-horizontal'
+        assign class_inner_wrapper = class_inner_wrapper | append: ' flex-col md:flex-row md:justify-between md:items-end md:text-left w-full'
+    endcase
+
+    case section_layout_lg
+      when 'spread'
+        assign class_inner_wrapper = class_inner_wrapper | append: ' lg:text-left lg:items-start'
+        assign class_inner_inner_wrapper = class_inner_inner_wrapper | append: ' lg:text-left lg:items-start'
+      when 'evenly'
+        assign class_inner_wrapper = class_inner_wrapper | append: ' lg:text-center lg:items-center!'
+        assign class_inner_inner_wrapper = class_inner_inner_wrapper | append: ' lg:text-center lg:items-center!'
+      when 'centered'
+        assign class_inner_wrapper = class_inner_wrapper | append: ' lg:text-center lg:items-center lg:gap-4'
+        assign class_inner_inner_wrapper = class_inner_inner_wrapper | append: ' lg:text-center lg:items-center lg:gap-4'
+      when 'stacked'
+        assign class_inner_wrapper = class_inner_wrapper | append: ' lg:text-center lg:items-center!'
+        assign class_inner_inner_wrapper = class_inner_inner_wrapper | append: ' lg:text-center lg:items-center!'
+    endcase
+
+    if overlay_vertical_position and section_style == 'none' and section_width == 'bg-full'
+      if content_layout_md contains 'spread' or content_layout_md contains 'left'
+        assign class_inner_wrapper = class_inner_wrapper | append: ' wrapper'
+      endif
+    endif
+
+    if section_direction contains 'lg:flex-col'
+      assign class_inner_wrapper = class_inner_wrapper | append: ' lg:text-center lg:items-center'
+    elsif section_direction contains 'lg:flex-row'
+      assign class_inner_wrapper = class_inner_wrapper | append: ' lg:text-left lg:items-start'
+    endif
+
+    # initial variable declarations
+    assign has_button = false
+
+    assign class_inner_inner_wrapper = class_inner_inner_wrapper | append: ' inline-flex flex-col '
+
+    assign class_inner_inner_wrapper = class_inner_inner_wrapper | append: ' flex-col'
+
+    assign overlay_url = overlay_url | default: s.overlay_url
+    assign overlay_color = overlay_color | default: s.overlay_color
+    assign overlay_opacity = overlay_opacity | default: s.overlay_opacity
+    assign overlay_blur = overlay_blur | default: s.overlay_blur
+  -%}
+  <div
+    class="text-and-buttons outer-wrapper {% if section.settings.contrast %}text-on-accent{% endif %} {{ class_outer_wrapper }}"
+    style="{% if compact %}--font-heading-size-multiplier: 0.875;{% endif %} {{ style }}"
+  >
+    {% if overlay_url != blank %}
+      <a href="{{ overlay_url }}" aria-label="{{ heading }}-{{ button_label }}" class="absolute inset-0 z-0 overlay"> </a>
+    {% endif %}
+    <div class="inner-wrapper  {{ class_inner_wrapper }} {% if compact %}lg:flex-row! lg:items-center lg:gap-4{% endif %}">
+      {%- if heading == null and body_text == null -%}
+        <div class="inner-inner-wrapper {{ class_inner_inner_wrapper }}">
+          {%- for block in section.blocks -%}
+            {%- case block.type -%}
+              {%- when 'caption' -%}
+                {%- if block.settings.caption != blank -%}
+                  <p
+                    class="uppercase text-pretty {{ caption_class }}"
+                    {{ block.shopify_attributes }}
+                  >
+                    {{ block.settings.caption }}
+                  </p>
+                {%- endif -%}
+              {%- when 'heading' -%}
+                {%- if block.settings.heading != blank -%}
+                  <{{ tag }}
+                    class="{{ block.settings.heading_size }} {{ heading_class }}"
+                    {{ block.shopify_attributes }}
+                  >
+                    {{- block.settings.heading -}}
+                  </{{ tag }}>
+                {%- endif -%}
+              {%- when 'text' -%}
+                {%- if block.settings.body_text != blank -%}
+                  <div class="rte text-pretty {{ body_text_size }}" {{ block.shopify_attributes }}>
+                    {{ block.settings.body_text }}
+                  </div>
+                {%- endif -%}
+              {%- when 'button' -%}
+                {%- if content_layout_md == 'spread-horizontal' -%}
+                  {%- assign has_button = true -%}
+                {%- else -%}
+                  {%- if block.settings.button_label != blank -%}
+                    {%- assign button_style_one = block.settings.button_style | default: 'primary' -%}
+                    {%- assign button_style_two = block.settings.button_style_2 | default: 'primary' -%}
+                    {%- if button_style_one != 'primary' and button_style_one != 'button-primary' -%}{%- assign button_style_one = 'secondary' -%}{%- else -%}{%- assign button_style_one = 'primary' -%}{%- endif -%}
+                    {%- if button_style_two != 'primary' and button_style_two != 'button-primary' -%}{%- assign button_style_two = 'secondary' -%}{%- else -%}{%- assign button_style_two = 'primary' -%}{%- endif -%}
+                    <div class="{{ button_wrapper_class }} w-full" {{ block.shopify_attributes }}>
+                      {%-
+                        render 'a--button',
+                        size: size_token,
+                        label: block.settings.button_label,
+                        url: block.settings.button_url,
+                        style: button_style_one,
+                        aria_label: aria_label 
+                      -%}
+                      {%- if block.settings.button_label_2 != blank -%}
+                        {%-
+                          render 'a--button',
+                          size: size_token,
+                          label: block.settings.button_label_2,
+                          url: block.settings.button_url_2,
+                          style: button_style_two,
+                          aria_label: aria_label_2
+                        -%}
+                      {%- endif -%}
+                    </div>
+                  {%- endif -%}
+                {%- endif -%}
+            {%- endcase -%}
+          {%- endfor -%}
+        </div>
+        {% if has_button %}
+          <div class="buttons-wrapper inline-flex flex-col w-fit {% if compact %}gap-1{% else %}gap-3{% endif %}">
+            {%- for block in section.blocks -%}
+              {%- case block.type -%}
+                {%- when 'button' -%}
+                  {%- if block.settings.button_label != blank -%}
+                    {%- assign button_style_one = block.settings.button_style | default: 'primary' -%}
+                    {%- assign button_style_two = block.settings.button_style_2 | default: 'primary' -%}
+                    {%- if button_style_one != 'primary' and button_style_one != 'button-primary' -%}{%- assign button_style_one = 'secondary' -%}{%- else -%}{%- assign button_style_one = 'primary' -%}{%- endif -%}
+                    {%- if button_style_two != 'primary' and button_style_two != 'button-primary' -%}{%- assign button_style_two = 'secondary' -%}{%- else -%}{%- assign button_style_two = 'primary' -%}{%- endif -%}
+                    <div class="{{ button_wrapper_class }}" {{ block.shopify_attributes }}>
+                      {%-
+                        render 'a--button',
+                        size: size_token,
+                        label: block.settings.button_label,
+                        url: block.settings.button_url,
+                        style: button_style_one,
+                        aria_label: aria_label 
+                      -%}
+                      {%- if block.settings.button_label_2 != blank -%}
+                        {%-
+                          render 'a--button',
+                          size: size_token,
+                          label: block.settings.button_label_2,
+                          url: block.settings.button_url_2,
+                          style: button_style_two,
+                          aria_label: aria_label_2
+                        -%}
+                      {%- endif -%}
+                    </div>
+                  {%- endif -%}
+              {%- endcase -%}
+            {%- endfor -%}
+          </div>
+        {% endif %}
+      {%- else -%}
+        <div class="inner-inner-wrapper {{ class_inner_inner_wrapper }}">
+          {%- if show_breadcrumbs -%}
+            {% render 'm--breadcrumbs' inline: true, wrapper_class: breadcrumbs_wrapper_class %}
+          {%- endif -%}
+          {%- if caption != blank -%}
+            <p class="text-pretty uppercase {{ caption_class }}">
+              {{ caption }}
+            </p>
+          {%- endif -%}
+
+          {%- if heading != blank -%}
+            <{{ tag }} class="{{ s.heading_size }} {{ heading_class }}">
+              {{- heading -}}
+            </{{ tag }}>
+          {%- endif -%}
+
+          {%- if body_text != blank -%}
+            <div class="rte text-pretty {{ body_text_size }}">
+              {{ body_text }}
+            </div>
+          {%- endif -%}
+        </div>
+        {%- if button_label != blank -%}
+          {%- assign button_style_one = button_style | default: 'primary' -%}
+          {%- assign button_style_two = button_style_2 | default: 'primary' -%}
+          {%- if button_style_one != 'primary' and button_style_one != 'button-primary' -%}{%- assign button_style_one = 'secondary' -%}{%- else -%}{%- assign button_style_one = 'primary' -%}{%- endif -%}
+          {%- if button_style_two != 'primary' and button_style_two != 'button-primary' -%}{%- assign button_style_two = 'secondary' -%}{%- else -%}{%- assign button_style_two = 'primary' -%}{%- endif -%}
+          <div class="buttons-wrapper {{ button_wrapper_class }}">
+            {%-
+              render 'a--button',
+              size: size_token,
+              label: button_label,
+              url: button_url,
+              style: button_style_one,
+              aria_label: aria_label
+            -%}
+            {%- if button_label_2 != blank -%}
+              {%-
+                render 'a--button',
+                size: size_token,
+                label: button_label_2,
+                url: button_url_2,
+                style: button_style_two,
+                aria_label: aria_label_2
+              -%}
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      {%- endif -%}
+      {{ body }}
+    </div>
+    <style>
+        #shopify-section-{{ section.id }} .text-and-buttons {
+          --container-width: {{ settings.container_width | divided_by: 16.0 }}rem;
+        }
+    </style>
+  </div>
+{% else %}
+  {% if s.overlay_url != blank %}
+    <a href="{{ s.overlay_url }}" aria-label="{{ heading }}-{{ button_label }}" class="absolute inset-0 z-0"> </a>
+  {% endif %}
+{%- endunless -%}
+
+{% comment %}
+  This snippet renders a heading block with optional caption, heading, body text and buttons.
+
+  You can copy and paste the section schema below into your section file and remove unnecessary parts following if rulesets.
+
+  Then you can render this snippet in your section template like this:
+  {%- render 'm--text-and-buttons' -%}
+
+  The text and button inputs for this snippet can be:
+  - all in a single section setting
+  - all in a single block setting (you have to send the block variable when rendering)
+  - each text and button group as an individual block
+
+  Variables (all are optional, except block if all text and button settings are in a single block setting)
+  - block: The block object. Use only if you are using this snippet in a block, not when each piece is an individual block.
+  - compact: A boolean to make the sizes and spacing smaller.
+  - hide_text_and_buttons: A boolean to hide the text and buttons.
+  - tag: The heading tag. Default is 'h2'.
+  - class_outer_wrapper: The classes for the outer wrapper.
+  - class_inner_wrapper: The classes for the inner wrapper.
+  - content_horizontal_position: The horizontal position of the content.
+  - heading: The heading text.
+  - caption: The caption text.
+  - body_text: The body text.
+  - button_label: The label for the first button.
+  - button_url: The URL for the first button.
+  - button_style: The style for the first button. Options are 'primary', 'secondary', 'ghost', 'link'.
+  - button_label_2: The label for the second button.
+  - button_url_2: The URL for the second button.
+  - button_style_2: The style for the second button. Options are 'primary', 'secondary', 'ghost', 'link'.
+{% endcomment %}

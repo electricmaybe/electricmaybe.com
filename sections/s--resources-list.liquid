@@ -1,0 +1,169 @@
+<section class="px-s-outer py-s-base" data-resources-list data-section-id="{{ section.id }}">
+  <div class="px-s-inner grid gap-y-s-base">
+    <div class="flex items-center gap-x-b-base overflow-x-auto whitespace-nowrap hide-scroll-bar">
+      {%- for block in section.blocks -%}
+        {%- assign tab_collection = block.settings.collection -%}
+        {%- if tab_collection == blank -%}
+          {%- continue -%}
+        {%- endif -%}
+        {%- assign tab_label = block.settings.tab_label | default: tab_collection.title -%}
+        <button
+          type="button"
+          class="h2 py-1 {% if forloop.first %} underline underline-offset-8 decoration-2{% else %} opacity-30{% endif %}"
+          data-resources-tab
+          data-tab-index="{{ forloop.index0 }}"
+          aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+          {{ block.shopify_attributes }}
+        >
+          {{ tab_label | escape }}
+        </button>
+      {%- endfor -%}
+    </div>
+
+    <div class="mt-s-base">
+      {%- for block in section.blocks -%}
+        {%- assign tab_collection = block.settings.collection -%}
+        {%- if tab_collection == blank -%}
+          {%- continue -%}
+        {%- endif -%}
+        <div
+          class="{% unless forloop.first %}hidden{% endunless %}"
+          data-resources-panel
+          data-panel-index="{{ forloop.index0 }}"
+        >
+          {% paginate tab_collection.products by 50 %}
+          <ul class="flex flex-col">
+            {%- for product in tab_collection.products limit: 50 -%}
+              {%- assign spec_pdf = product.metafields.custom.spec_sheet_pdf -%}
+              {%- assign spec_url = spec_pdf.value.url | default: spec_pdf.url | default: spec_pdf.value | default: spec_pdf -%}
+              {%- if spec_url == blank -%}
+                {%- continue -%}
+              {%- endif -%}
+              <li class="flex items-center gap-x-s-base py-b-sm border-b border-secondary">
+                <p class="flex-1 text-ui-base text-primary leading-[1.2]">
+                  {{ product.title | escape }}
+                </p>
+                <a
+                  href="{{ spec_url }}"
+                  class="flex items-center gap-x-b-base h-16 px-b-lg rounded-full color-schema-contrast bg-surface border-2 border-primary text-ui-base leading-[1.2]"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  <span>PDF</span>
+                  <span class="w-6 h-6">
+                    {%- render 'a--icon', icon: 'download', class: 'w-full h-full text-on-accent' -%}
+                  </span>
+                </a>
+              </li>
+            {%- endfor -%}
+          </ul>
+          {% endpaginate %}
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% javascript %}
+  const resourcesLists = document.querySelectorAll('[data-resources-list]');
+
+  resourcesLists.forEach((section) => {
+    const tabs = Array.from(section.querySelectorAll('[data-resources-tab]'));
+    const panels = Array.from(section.querySelectorAll('[data-resources-panel]'));
+    if (!tabs.length || !panels.length) return;
+
+    const setActive = (index) => {
+      tabs.forEach((tab, tabIndex) => {
+        const isActive = tabIndex === index;
+        tab.classList.toggle('opacity-30', !isActive);
+        tab.classList.toggle('underline', isActive);
+        tab.classList.toggle('underline-offset-8', isActive);
+        tab.classList.toggle('decoration-1', isActive);
+        tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+
+      panels.forEach((panel, panelIndex) => {
+        panel.classList.toggle('hidden', panelIndex !== index);
+      });
+    };
+
+    tabs.forEach((tab, index) => {
+      tab.addEventListener('click', () => setActive(index));
+    });
+
+    const loadMorePages = async () => {
+      if (section.dataset.resourcesLoaded === 'true') return;
+      section.dataset.resourcesLoaded = 'true';
+      const sectionId = section.dataset.sectionId;
+      if (!sectionId) return;
+
+      for (let page = 2; page <= 5; page += 1) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('section_id', sectionId);
+        url.searchParams.set('page', String(page));
+        try {
+          const response = await fetch(url.toString());
+          if (!response.ok) continue;
+          const html = await response.text();
+          const doc = new DOMParser().parseFromString(html, 'text/html');
+          const incomingPanels = doc.querySelectorAll('[data-resources-panel]');
+          incomingPanels.forEach((incomingPanel) => {
+            const panelIndex = incomingPanel.dataset.panelIndex;
+            if (!panelIndex) return;
+            const targetPanel = section.querySelector(`[data-resources-panel][data-panel-index="${panelIndex}"]`);
+            if (!targetPanel) return;
+            const incomingItems = incomingPanel.querySelectorAll('li');
+            const targetList = targetPanel.querySelector('ul');
+            if (!targetList || !incomingItems.length) return;
+            incomingItems.forEach((item) => {
+              targetList.appendChild(item);
+            });
+          });
+        } catch (error) {
+          continue;
+        }
+      }
+    };
+
+    loadMorePages();
+  });
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Resources list",
+  "tag": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "blocks": [
+    {
+      "type": "resources_tab",
+      "name": "Collection tab",
+      "settings": [
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Collection",
+          "info": "Select a collection for this tab. The section lists products from the selected collection and shows a PDF button only when the product metafield custom.spec_sheet_pdf has a value."
+        },
+        {
+          "type": "text",
+          "id": "tab_label",
+          "label": "Tab label"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Resources list",
+      "blocks": [
+        {
+          "type": "resources_tab"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

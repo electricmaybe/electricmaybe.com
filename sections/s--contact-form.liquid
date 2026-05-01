@@ -1,0 +1,333 @@
+{%- liquid
+  assign has_app_block = false
+  for block in section.blocks
+    if block.type == '@app'
+      assign has_app_block = true
+      break
+    endif
+  endfor
+-%}
+<div class="px-s-whole py-s-base grid grid-cols-1 lg:grid-cols-12 gap-x-b-base w-full md:max-w-7/12 md:mx-auto lg:max-w-none gap-y-s-lg">
+  <h2 class="text-center lg:text-left display-1 lg:col-span-10">
+    {{ metaobjects.standard_title["contact-us-for-more-information"].title.value }}
+  </h2>
+  <div class="lg:col-span-4 text-ui-base/copy">
+    {% render 'a--image', image: section.settings.image, cols: 4, image_class: 'w-full' %}
+    {% if section.settings.body != blank %}
+      <div class="pt-b-base">
+        {{ metaobjects.standard_title["for-questions-or-general-inquiries-please-leave-your-contact-information-below-and-we-will-get-back-to-you-as-soon-as-possible"].title.value }}
+      </div>
+    {% endif %}
+  </div>
+  <div class="lg:col-start-7 lg:col-span-6">
+    {%- if has_app_block -%}
+      <div class="flex flex-col gap-y-s-base">
+        {%- for block in section.blocks -%}
+          {%- if block.type == '@app' -%}
+            <div {{ block.shopify_attributes }}>
+              {%- render block -%}
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    {%- else -%}
+      {% form 'contact' %}
+        <input type="hidden" name="return_to" value="{{ page.url }}?contact_posted=true&tab=contact">
+        <div class="flex flex-col gap-y-s-xs">
+          <div class="flex flex-col lg:flex-row gap-4">
+            <div class="flex flex-col gap-2 flex-1">
+              {%- assign name_value = form.name | default: customer.name -%}
+              {%- assign label = 'templates.contact.form.name' | t -%}
+              {%- assign placeholder = 'general.placeholders.name' | t -%}
+              {%- render 'a--input',
+                type: 'text',
+                name: 'contact[name]',
+                id: 'ContactFormName',
+                class: 'w-full [border-color:var(--border-secondary)] placeholder:[color:var(--text-secondary)] px-b-base! py-b-sm! h-auto',
+                size: 'large',
+                label: label,
+                placeholder: placeholder,
+                autocomplete: 'given-name',
+                value: name_value
+              -%}
+            </div>
+
+            <div class="flex flex-col gap-2 flex-1">
+              {% assign email_value = form.email | default: customer.email %}
+              {%- assign placeholder = 'general.placeholders.email' | t -%}
+              {%-
+                render 'a--input',
+                type: 'email',
+                name: 'contact[email]',
+                id: 'ContactFormEmail',
+                class: 'w-full [border-color:var(--border-secondary)] placeholder:[color:var(--text-secondary)] px-b-base! py-b-sm! h-auto ',
+                size: 'large',
+                label: 'E-mail',
+                placeholder: placeholder,
+                required: true,
+                value: email_value,
+                autocomplete: 'email'
+              -%}
+            </div>
+          </div>
+
+          {% if section.settings.show_phone %}
+            <div class="flex flex-col gap-2">
+              {%- assign phone_value = form.phone | default: customer.phone -%}
+              {%- assign placeholder = 'general.placeholders.phone' | t -%}
+              {%- assign label = 'templates.contact.form.phone' | t %}
+              {%- render 'a--input',
+                type: 'tel',
+                name: 'contact[phone]',
+                id: 'ContactFormPhone',
+                class: 'w-full [border-color:var(--border-secondary)] placeholder:[color:var(--text-secondary)] px-b-base! py-b-sm! h-auto',
+                size: 'large',
+                label: label,
+                placeholder: placeholder,
+                autocomplete: 'tel',
+                value: phone_value
+              -%}
+            </div>
+          {% endif %}
+
+          <div class="flex flex-col gap-2">
+            {%- assign placeholder = 'templates.contact.form.comment' | t -%}
+            {%- render 'a--input',
+              textarea: true,
+              type: 'text',
+              name: 'contact[comment]',
+              id: 'ContactFormMessage',
+              class: 'w-full min-h-[198px] [border-color:var(--border-secondary)] placeholder:[color:var(--text-secondary)] px-b-base! py-b-sm! ',
+              size: 'large',
+              placeholder: placeholder,
+              required: true,
+              body: form.body,
+              input_wrapper_class: ' pb-0!'
+            -%}
+          </div>
+
+          {%- if section.settings.enable_faq -%}
+            <div class="flex items-center gap-2 mt-2 text-solid-sm">
+              <input
+                required
+                id="faq_checked"
+                type="checkbox"
+                class="w-4 h-4 border cursor-pointer me-1 disabled:border-outline/40"
+              >
+              <label for="faq_checked" class="cursor-pointer">{{ section.settings.faq }}</label>
+            </div>
+          {%- endif -%}
+
+          {% assign label = 'templates.contact.form.send' | t %}
+          {%-
+            render 'a--button',
+            tag: 'button',
+            size: 'lg',
+            label: label,
+            name: 'send',
+            type: 'submit'
+          -%}
+          {%- if section.settings.show_recaptcha_note -%}
+            <div class="mt-3 text-text text-copy-xs">
+              {{ 'shopify.online_store.spam_detection.disclaimer_html' | t }}
+            </div>
+          {%- endif -%}
+          {% if form.posted_successfully? %}
+            <p class="inline-block w-auto p-2 mt-2 text-center rounded-sm shadow bg-accent1 text-accent1_fg note form-success">
+              {{ 'templates.contact.form.post_success' | t }}
+            </p>
+          {% endif %}
+          {% if form.errors %}
+            <div class="inline-block w-auto p-2 mt-2 bg-white rounded-sm border-alert text-alert">
+              {{ form.errors | default_errors }}
+            </div>
+          {% endif %}
+        </div>
+      {% endform %}
+    {%- endif -%}
+  </div>
+</div>
+
+{%- if has_app_block -%}
+  <style>
+    #shopify-section-{{ section.id }} .shopify-app-block .formful__wrapper {
+      max-width: none !important;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+    }
+
+    #shopify-section-{{ section.id }} .shopify-app-block .formful__fields {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr);
+      column-gap: 1rem !important;
+      row-gap: var(--spacing-b-xs) !important;
+    }
+
+    #shopify-section-{{ section.id }} .shopify-app-block .formful__form {
+      padding: 0 !important;
+    }
+
+    #shopify-section-{{ section.id }} .shopify-app-block .formful__field-wrapper {
+      width: 100%;
+      margin: 0 !important;
+    }
+
+    #shopify-section-{{ section.id }} .shopify-app-block .formful__field-wrapper--full {
+      grid-column: 1 / -1;
+    }
+
+    #shopify-section-{{ section.id }} .shopify-app-block .formful__label {
+      display: none !important;
+    }
+
+    #shopify-section-{{ section.id }} .shopify-app-block .formful__input.field__input {
+      width: 100%;
+      min-height: 3.5rem;
+      padding: 1rem !important;
+      border: 1px solid var(--border-color-secondary) !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      color: var(--text-color-primary) !important;
+      font-size: 1rem !important;
+      line-height: 1.2 !important;
+    }
+
+    #shopify-section-{{ section.id }} .shopify-app-block textarea.formful__input.field__input {
+      min-height: 198px;
+      padding-top: 1rem !important;
+      padding-bottom: 1rem !important;
+    }
+
+    #shopify-section-{{ section.id }} .shopify-app-block .formful__input.field__input::placeholder {
+      color: var(--text-color-secondary) !important;
+      opacity: 1 !important;
+    }
+
+    #shopify-section-{{ section.id }} .shopify-app-block .formful__input.field__input:focus {
+      outline: none !important;
+      box-shadow: none !important;
+      border-color: var(--border-color-secondary) !important;
+    }
+
+    #shopify-section-{{ section.id }} .shopify-app-block .contact__button,
+    #shopify-section-{{ section.id }} .shopify-app-block .formful__w-100 {
+      width: 100% !important;
+    }
+
+    #shopify-section-{{ section.id }} .shopify-app-block .formful__text-left {
+      text-align: center !important;
+    }
+
+    #shopify-section-{{ section.id }} .shopify-app-block .formful__button.button {
+      display: inline-flex !important;
+      width: 100% !important;
+      min-height: var(--height-b-lg) !important;
+      padding: 0 var(--spacing-b-xl) !important;
+      border: 1px solid var(--background-color-accent) !important;
+      border-radius: 9999px !important;
+      background: var(--background-color-accent) !important;
+      background-color: var(--background-color-accent) !important;
+      color: var(--text-color-on-accent) !important;
+      box-shadow: none !important;
+      align-items: center !important;
+      justify-content: center !important;
+      text-align: center !important;
+    }
+
+    #shopify-section-{{ section.id }} .shopify-app-block .formful__button.button:hover {
+      opacity: 0.8;
+    }
+
+    #shopify-section-{{ section.id }} .shopify-app-block .formful__button-label {
+      width: 100%;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      text-align: center !important;
+      margin: 0 auto !important;
+    }
+
+    @media screen and (min-width: 60rem) {
+      #shopify-section-{{ section.id }} .shopify-app-block .formful__fields {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+
+  <script>
+    (() => {
+      const root = document.getElementById('shopify-section-{{ section.id }}');
+
+      if (!root) return;
+
+      const enhanceFormfulFields = () => {
+        const fieldWrappers = root.querySelectorAll('.shopify-app-block .formful__field-wrapper');
+
+        for (const wrapper of fieldWrappers) {
+          const input = wrapper.querySelector('.formful__input');
+
+          if (!input) continue;
+
+          const labelText = input.dataset.label?.trim();
+
+          if (labelText && input.getAttribute('placeholder') !== labelText) {
+            input.setAttribute('placeholder', labelText);
+          }
+
+          if (input.tagName === 'TEXTAREA') {
+            wrapper.classList.add('formful__field-wrapper--full');
+          }
+        }
+      };
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', enhanceFormfulFields, { once: true });
+      } else {
+        enhanceFormfulFields();
+      }
+
+      const observer = new MutationObserver(() => enhanceFormfulFields());
+      observer.observe(root, { childList: true, subtree: true });
+    })();
+  </script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Contact form",
+  "tag": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "default": "Couldn't find the right cable?",
+      "label": "t:global.heading"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+    "type": "richtext",
+    "id": "body",
+    "label": "Text below image",
+    "default": "<p>For questions or general inquiries, please leave your contact information below and we will get back to you as soon as possible.</p>"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "@app"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Contact form"
+    }
+  ]
+}
+{% endschema %}

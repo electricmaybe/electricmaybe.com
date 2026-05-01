@@ -1,0 +1,692 @@
+{% schema %}
+  {
+    "name": "Custom reviews",
+    "settings": [],
+    "presets": [
+    {
+      "name": "Custom reviews"
+    }
+  ]
+  }
+{% endschema %}
+
+    <style>
+        .custom-review-container,
+        .custom-review-container * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+        
+        .custom-review-container {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .custom-review-container {
+            max-width: var(--page-width);
+        }
+
+        .custom-review-wrapper{
+            display: flex;
+            background: #F8F8F8;
+            padding: 4rem;
+            border-radius: 8px;
+        }
+        
+        .custom-review-header {
+            margin-bottom: 30px;
+            width: 30%;
+        }
+        
+        .custom-review-title {
+            color: #0E4D92;
+            font-size: 32px;
+            font-weight: 700;
+            line-height: 100%;
+            margin-bottom: 15px;
+            line-height: 1.2;
+        }
+        
+        .custom-review-overall-rating,.custom-review-overall-rating-title {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        .custom-review-stars {
+            display: flex;
+            margin-right: 10px;
+        }
+        
+        .custom-review-star {
+            font-size: 20px;
+            margin-right: 2px;
+            color: #B4B4B4;
+            position: relative;
+        }
+        
+        .custom-review-star.filled {
+            color: #DB6B21;
+        }
+        
+        .custom-review-star.half-filled {
+            position: relative;
+            color: #B4B4B4;
+        }
+        
+        .custom-review-star.half-filled::after {
+            content: "★";
+            color: #DB6B21;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 50%;
+            overflow: hidden;
+        }
+
+        .custom-review-star.partial-fill::after {
+            content: "★";
+            color: #DB6B21;
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .custom-review-star.partial-fill.partial-10::after { width: 10%; }
+        .custom-review-star.partial-fill.partial-20::after { width: 20%; }
+        .custom-review-star.partial-fill.partial-30::after { width: 30%; }
+        .custom-review-star.partial-fill.partial-40::after { width: 40%; }
+        .custom-review-star.partial-fill.partial-50::after { width: 50%; }
+        .custom-review-star.partial-fill.partial-60::after { width: 60%; }
+        .custom-review-star.partial-fill.partial-70::after { width: 70%; }
+        .custom-review-star.partial-fill.partial-80::after { width: 80%; }
+        .custom-review-star.partial-fill.partial-90::after { width: 90%; }
+        
+        .custom-review-rating-text {
+            color: #0E4D92;
+            font-weight: 700;
+            font-size: 14px;
+            line-height: 1;
+        }
+        
+        .custom-review-content {
+            /*display: flex;
+            flex-direction: column;
+            gap: 20px;*/
+            width: 70%;
+        }
+        
+        .custom-review-card {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .custom-review-user-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        
+        .custom-review-user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 12px;
+            overflow: hidden;
+            background-color: #e0e0e0;
+        }
+        
+        .custom-review-user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .custom-review-user-details {
+            flex-grow: 1;
+        }
+
+        .custom-review-user{
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .custom-review-user-name {
+            font-weight: 700;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            color: #0E4D92;
+            gap: 5px;
+            line-height: 1;
+        }
+        
+        .custom-review-flag {
+            /*display: inline-block;
+            width: 18px;
+            height: 12px; 
+            margin-left: 8px;
+            */
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+        .custom-review-flag svg{
+            vertical-align: middle;
+        }
+        
+        .custom-review-date {
+            color: #0E4D92;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .custom-review-verified {
+            font-size: 12px;
+            font-weight: 700;
+            align-items: center;
+            color: #DB6B21;
+            background: #DB6B211A;
+            padding: 8px;
+            border-radius: 4px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+        }
+        
+        .custom-review-verified-icon {
+            vertical-align: middle;
+            font-size: 12px;
+            margin-right: 3px;
+        }
+        
+        .custom-review-rating {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .custom-review-rating .custom-review-stars {
+            margin-right: 10px;
+        }
+        
+        .custom-review-rating .custom-review-star {
+            font-size: 18px;
+        }
+        
+        .custom-review-star.empty{
+            color: #B4B4B4;
+        }
+        
+        .custom-review-rating-value {
+            color: #0E4D92;
+            font-weight: 700;
+            font-size: 14px;
+        }
+        
+        .custom-review-heading {
+            margin-bottom: 10px;
+            color: #0E4D92;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        
+        .custom-review-text {
+            color: #0E4D92;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+        
+        .custom-review-footer {
+            display: flex;
+            justify-content: flex-start;
+            margin-top: 25px;
+        }
+        
+        .custom-review-see-all {
+            background: none;
+            border: none;
+            color: #0E4D92;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            gap: 8px;
+        }
+        
+        .custom-review-see-all:hover {
+            text-decoration: underline;
+        }
+        
+        .custom-review-arrow {
+            margin-left: 5px;
+            font-size: 18px;
+        }
+
+        .custom-review-flag-filter{
+          cursor: pointer; display: inline-block; padding: 2px 2px; border: 1px solid #ccc; border-radius: 4px;
+        }
+
+        .custom-review-flag-filter.active{
+          border: 1px solid #0E4D92;
+          color:#0E4D92;
+        }
+        
+        /* Responsive styles */
+        @media screen and (min-width: 768px) {
+            /* .custom-review-content {
+                flex-direction: row;
+                flex-wrap: wrap;
+            } */
+            
+            .custom-review-card {
+                flex: 1 0 calc(50% - 10px);
+                min-width: 300px;
+            }
+        }
+        
+        @media screen and (min-width: 1024px) {
+            .custom-review-card {
+                flex: 1 0 calc(33.33% - 15px);
+            }
+        }
+
+        @media (min-width: 768px) and (max-width: 991.98px) {
+            .custom-review-wrapper{
+                flex-direction: column;
+            }
+
+            .custom-review-header{
+                width: 100%;
+            }
+            .custom-review-content{
+                width: 100%;
+            }
+        }
+        
+        @media screen and (max-width: 767px) {
+            .custom-review-wrapper{
+                flex-direction: column;
+                padding: 1rem;
+            }
+
+            .custom-review-header{
+                width: 100%;
+            }
+            .custom-review-content{
+                width: 100%;
+            }
+            .custom-review-title {
+                font-size: 24px;
+            }
+            
+            .custom-review-card {
+                margin-bottom: 15px;
+                padding: 10px;
+            }
+            
+            .custom-review-verified {
+                position: relative;
+            }
+            
+            .custom-review-user-details {
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+    <div class="custom-review-container page-width" id="review-list">
+        <div class="custom-review-wrapper">
+            <div class="custom-review-header">
+              {% assign section_title = shop.metaobjects.section_title["reviews-title"] %}
+                <h2 class="custom-review-title">{{ section_title.title.value }}</h2>
+                <div class="custom-review-overall-rating">
+                    <div class="custom-review-stars">
+                        <span class="custom-review-star filled">★</span>
+                        <span class="custom-review-star filled">★</span>
+                        <span class="custom-review-star filled">★</span>
+                        <span class="custom-review-star filled">★</span>
+                        <span class="custom-review-star half-filled">★</span>
+                    </div>
+                    <span class="custom-review-rating-text">0.0 (0 {{ section_title.sub_title.value }})</span>
+                </div>
+            </div>
+            
+            <div class="custom-review-content">
+                <div class="review-local-filters" id="review-local-filters"></div>
+                <div class="custom-review-content-wrapper">
+                    
+                </div>
+                
+    
+                <div class="custom-review-footer">
+                    <button class="custom-review-see-all" id="loadMoreReviews">{{ section_title.label.value }}
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5.5 3L10.5 8L5.5 13" stroke="#0E4D92" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+  
+
+    <script>
+        let getUserAvtarImage = `data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzQiIGhlaWdodD0iMzQiIHZpZXdCb3g9IjAgMCAzNCAzNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iMC41IiB5PSIwLjUiIHdpZHRoPSIzMyIgaGVpZ2h0PSIzMyIgcng9IjE2LjUiIGZpbGw9IiNFQ0YzRkYiLz4KPHJlY3QgeD0iMC41IiB5PSIwLjUiIHdpZHRoPSIzMyIgaGVpZ2h0PSIzMyIgcng9IjE2LjUiIHN0cm9rZT0id2hpdGUiLz4KPHBhdGggZD0iTTIxLjY2NjYgMjNWMjEuNjY2N0MyMS42NjY2IDIwLjk1OTQgMjEuMzg1NyAyMC4yODExIDIwLjg4NTYgMTkuNzgxQzIwLjM4NTUgMTkuMjgxIDE5LjcwNzIgMTkgMTkgMTlIMTVDMTQuMjkyNyAxOSAxMy42MTQ1IDE5LjI4MSAxMy4xMTQ0IDE5Ljc4MUMxMi42MTQzIDIwLjI4MTEgMTIuMzMzMyAyMC45NTk0IDEyLjMzMzMgMjEuNjY2N1YyMyIgc3Ryb2tlPSIjMzQ3QkVGIiBzdHJva2Utd2lkdGg9IjEuMzMzMzMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8cGF0aCBkPSJNMTcgMTYuMzMzM0MxOC40NzI3IDE2LjMzMzMgMTkuNjY2NiAxNS4xMzk0IDE5LjY2NjYgMTMuNjY2N0MxOS42NjY2IDEyLjE5MzkgMTguNDcyNyAxMSAxNyAxMUMxNS41MjcyIDExIDE0LjMzMzMgMTIuMTkzOSAxNC4zMzMzIDEzLjY2NjdDMTQuMzMzMyAxNS4xMzk0IDE1LjUyNzIgMTYuMzMzMyAxNyAxNi4zMzMzWiIgc3Ryb2tlPSIjMzQ3QkVGIiBzdHJva2Utd2lkdGg9IjEuMzMzMzMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K`;
+
+        const verifiedIcon = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAD+SURBVHgBhVLLTQMxEH1vdrlvB1hIgLhBJUkHkBukiSQVICQUcSMlbCqgBW4IuJgOtoCsB493Q5bN7x3ssfw88+Z5iB4+7p3LM75avKp1dPXiffee6+B7fDYh4QAdKlC0l16V74qwvJj7xd+Dr7G7I5us+xBUZ5dzPxU7xGWAI8gop6mCaT7J+BZluC0WdYYaFYSP8VTFnm5ya7BDrtDqN7IGlCIpmaEwbt7T+WSNUuASmYlcbBgKMevYZI6VORFmuoscY7+qMUoufT64RSx9i8MuLaNLQ2n0wuMIYuay3RvYXwhkEKjX7JhAsFSGn/NnP/33YI3NaChMc380fgEKzGekxtcE+gAAAABJRU5ErkJggg==';
+        var localAndChnlObj = {};
+        var channelSel = "";
+        var localeSel = "";
+        let afterReviewId = "";
+        let hostName = window.location.hostname == "voldt-dev-store.myshopify.com" ? "voldt.nl" : window.location.hostname;
+        let keyValOfDomain = {
+          "chl-8931c5b4-e4cc-45d3-b3cb-76ecb9a5233d": "voldt.co.uk",
+          "chl-b583b4bd-965d-46cf-afb8-a022e33ceab8": "voldt.dk",
+          "chl-6541ef01-6994-4341-bc34-379958fc130a": "voldt.es",
+          "chl-c3627831-815d-424a-b5f1-79063412c0cf": "voldt.fi",
+          "chl-c3e21210-8b22-467c-9fb0-80799fce64c8": "voldt.fr",
+          "chl-21d3e635-2ed0-4fee-9b8f-93ed595928f9": "voldt.it",
+          "chl-4facd2dd-7ba8-42a7-a9f4-fbd7635d099d": "voldtladekabel.de",
+          "chl-66677ef0-1d66-44da-a634-975335caf726": "voldt.nl",
+          "chl-104f6c35-3ffb-4c08-926c-260185c1af33": "voldt.no",
+          "chl-f81370ba-a338-48d1-b478-b660632181f5": "voldt.se"
+        }
+        // Fetch all the skus for different variants of product
+        {% assign sku_list = '' %}
+        {% for variant in product.variants %}
+          {% if variant.sku != "" %}
+            {% assign current_sku = variant.sku %}
+            {% unless sku_list contains current_sku %}
+              {% if sku_list != '' %}
+                {% assign sku_list = sku_list | append: ',' %}
+              {% endif %}
+              {% assign sku_list = sku_list | append: current_sku %}
+            {% endunless %}
+          {% endif %}
+        {% endfor %}
+
+        console.log('{{ sku_list }}');
+
+        let skuList = '{{ sku_list }}';
+        function generateStarHTML(rating) {
+            const totalStars = 5;
+            let starHTML = '';
+        
+            const fullStars = Math.floor(rating);
+            const decimal = rating % 1;
+            const partialPercent = Math.round(decimal * 100);
+            const partialClass = partialPercent > 0 ? `partial-${Math.round(partialPercent / 10) * 10}` : null;
+        
+            // Full stars
+            for (let i = 0; i < fullStars; i++) {
+                starHTML += '<span class="custom-review-star filled">★</span>';
+            }
+        
+            // Partial star (uses CSS class like partial-30, partial-70, etc.)
+            if (partialClass) {
+                starHTML += `<span class="custom-review-star partial-fill ${partialClass}">★</span>`;
+            }
+        
+            // Empty stars
+            const remaining = totalStars - fullStars - (partialClass ? 1 : 0);
+            for (let i = 0; i < remaining; i++) {
+                starHTML += '<span class="custom-review-star empty">★</span>';
+            }
+        
+            return starHTML;
+        }
+
+        function generateLocalFilters(){
+          let valuesArray = [];
+          if (Object.keys(localAndChnlObj).length === 0) {
+            
+          }else{
+            valuesArray = Object.values(localAndChnlObj);
+            console.log(valuesArray);
+            let flagsIcon = `
+              <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom:10px; align-items: center;">
+                <div class="custom-review-flag-filter" style="font-size: 12px; font-weight: 500; padding: 2px 8px;" data-channel="" data-locale="">
+                  All
+                </div>
+            `;
+            
+            valuesArray.forEach(ele => {
+              if(keyValOfDomain && typeof keyValOfDomain[ele.channelRef] != "undefined" && keyValOfDomain[ele.channelRef] == hostName){
+                flagsIcon += `
+                  <div class="custom-review-flag-filter" data-channel="${ele.channelRef}" data-locale="${ele.locale}" data-count="${ele.count}" data-total-review="${ele.rating}" title="${ele.count} Reviews">
+                    <img src="${ele.flag_url}" style="height: 19px; width: 30px; border-radius: 4px; object-fit: cover; display: block;" />
+                  </div>
+                `;
+              }
+            });
+  
+            flagsIcon += '</div>';
+
+            document.getElementById("review-local-filters").innerHTML = flagsIcon;
+          }
+          document.querySelectorAll('.custom-review-flag-filter').forEach(function(elem) {
+            elem.addEventListener('click', function() {
+              document.querySelectorAll('.custom-review-card').forEach(function(el) {
+                el.remove();
+              });
+              document.querySelectorAll('.custom-review-flag-filter').forEach(function(el) {
+                el.classList.remove('active');
+              });
+          
+              this.classList.add('active');
+              channelSel = this.getAttribute('data-channel');
+              localeSel = this.getAttribute('data-locale');
+              let totalCountSel = this.getAttribute('data-count');
+              let totalRatingSel = this.getAttribute('data-total-review');
+              
+              if(channelSel == ""){
+                totalCountSel = valuesArray.reduce((cnt, curr)=> curr.count + cnt,0);
+                totalRatingSel = valuesArray.reduce((cnt, curr)=> curr.rating + cnt,0);
+              }
+              afterReviewId = "";
+              const overallReviewRatingDefaultHtml = `
+                  <div class="custom-review-stars">
+                      ${totalRatingSel ? generateStarHTML(totalRatingSel / totalCountSel) : ''}
+                  </div>
+                  <span class="custom-review-rating-text">${totalRatingSel ? (totalRatingSel / totalCountSel).toFixed(1) : '0.0'} (${ totalCountSel } {{ section_title.sub_title_2.value }})</span>`;
+              document.querySelectorAll('.custom-review-overall-rating')[0].innerHTML = overallReviewRatingDefaultHtml;
+              updateReviews()
+            });
+          });
+          selectFlagBasedOnDomain();
+        }
+
+        function updateConsolidatedRating(){
+            const apiUrl = `https://app-dev.voldt.com/api/shopify/reviews/${skuList}&rating=4,5`;
+            
+            fetch(apiUrl, {
+                method: 'GET', // or 'POST', 'PUT', etc.,
+                credentials: "include",
+                headers: {
+                    // 'Authorization': 'Basic ' + btoa('voldt:MOmcy03Q#2'),
+                    'Content-Type': 'application/json'
+                }
+            }).then(res => res.json())
+            .then(data => {
+                console.log(data, "data");
+                let allRevCondition = typeof document.getElementById('scroll-to-review') == 'object';
+                if(allRevCondition){
+                  const overallReviewRatingDefaultHtml = `
+                      <div class="custom-review-stars">
+                          ${generateStarHTML(0)}
+                      </div>
+                      <span class="custom-review-rating-text">${'0.0'} ({{ section_title.sub_title.value }})</span>`;
+                  document.querySelectorAll('.custom-review-overall-rating')[0].innerHTML = overallReviewRatingDefaultHtml;
+                }
+              
+                localAndChnlObj = {}
+                if(data && data.items && data.items.length > 0){
+
+                    let reviewSUM = 0;
+                    data.items.forEach((ele)=>{
+                        ele.rating = ele.rating ? parseFloat(ele.rating) : 0.0;
+                        reviewSUM += (ele.rating || 0);
+
+                        const locale = ele.questionnaire?.locale || '';
+                        const countryCode = locale.split('_')[1]?.toLowerCase() || '';
+                        const flagUrl = countryCode ? `https://flagcdn.com/w40/${countryCode}.png` : '';
+                        localAndChnlObj[ele.channelRef] = {
+                          "locale":locale,
+                          "channelRef": ele.channelRef,
+                          "flag_url":flagUrl,
+                          "rating": typeof localAndChnlObj[ele.channelRef] == "undefined" ? ele.rating : localAndChnlObj[ele.channelRef]["rating"] + ele.rating,
+                          "count": typeof localAndChnlObj[ele.channelRef] == "undefined" ? 1 : localAndChnlObj[ele.channelRef]["count"] + 1
+                        };
+                        
+                          
+                        
+                    });
+                  
+                    console.log(localAndChnlObj, "localAndChnlObj")
+                    if(allRevCondition){
+                      
+                      const overallRatingHtml = `
+                          <div class="custom-review-stars">
+                              ${reviewSUM ? generateStarHTML(reviewSUM / data.items.length) : ''}
+                          </div>
+                          <span class="custom-review-rating-text" style="cursor:pointer;">${reviewSUM ? (reviewSUM / data.items.length).toFixed(1) : '0.0'} (${data.items ? data.items.length : '0'} {{ section_title.sub_title_2.value }})</span>
+                      `;
+                      //document.querySelectorAll('.custom-review-overall-rating')[0].innerHTML = overallRatingHtml;
+                      //document.querySelectorAll('.custom-review-overall-rating-title')[0].innerHTML = overallRatingHtml;
+                    }
+                }
+                generateLocalFilters();
+            }).catch((error)=>{
+                console.log(error);
+            });
+        }
+
+        
+      
+        function updateReviews(){
+            // document.querySelectorAll('.custom-review-content-wrapper')[0].innerHTML = '';
+            const apiUrl = `https://app-dev.voldt.com/api/shopify/reviews/${skuList}?count=5${afterReviewId ? '&after='+afterReviewId:''}${channelSel ? '&channels='+channelSel:''}&rating=4,5`;
+            
+            fetch(apiUrl, {
+                method: 'GET', // or 'POST', 'PUT', etc.,
+                credentials: "include",
+                headers: {
+                    // 'Authorization': 'Basic ' + btoa('voldt:MOmcy03Q#2'),
+                    'Content-Type': 'application/json'
+                }
+            }).then(res => res.json())
+            .then(data => {
+                console.log(data, "data")
+              
+                if(data && data.items && data.items.length > 0){
+                    document.querySelectorAll('.custom-review-footer').forEach(function(el) {
+                        el.style.display = 'flex'; // or 'flex' or 'inline-block' based on your layout
+                    });
+                    let reviewHTML = ``;
+                    data.items.forEach((ele)=>{
+                        console.log(ele, "ele")
+                        const locale = ele.questionnaire?.locale || '';
+                        const countryCode = locale.split('_')[1]?.toLowerCase() || '';
+                        const flagUrl = countryCode ? `https://flagcdn.com/w20/${countryCode}.png` : '';
+                        ele.rating = ele.rating ? parseFloat(ele.rating) : 0.0;
+                        reviewHTML += `
+                        <div class="custom-review-card">
+                            <div class="custom-review-user-info">
+                                <div class="custom-review-user-avatar">
+                                    <img src="${ele.customer && ele.customer.profile ? ele.customer && ele.customer.profile : getUserAvtarImage}" alt="User Avatar">
+                                </div>
+                                <div class="custom-review-user-details">
+                                    <div class="custom-review-user">
+                                        <div class="custom-review-user-name">
+                                            ${ele.customer?.fullName || 'Anonymous'}
+                                            <img src="${flagUrl}" style="height:15px; width:19px; border-radius: 4px;" />
+                                        </div>
+                                        ${ele.verificationType === "VERIFIED" ? '<div class="custom-review-verified"><span class="custom-review-verified-icon"><img src="'+verifiedIcon+'" style="height:15px;" /></span> Verified review</div>' : ''}
+                                    </div>
+                                    
+                                    <div class="custom-review-date">${ele.submittedAt ? new Date(ele.submittedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : ""}</div>
+                                </div>
+                                
+                            </div>
+                            <div class="custom-review-rating">
+                                <div class="custom-review-stars">${ele.rating ? generateStarHTML(ele.rating) : ''}</div>
+                                <span class="custom-review-rating-value">${ele.rating.toFixed(1) || ''}</span>
+                            </div>
+                            <h3 class="custom-review-heading">${ele.title}</h3>
+                            <p class="custom-review-text">${ele.comment}</p>
+                        </div>
+                        `;
+                    });
+                    // document.querySelectorAll('.custom-review-content-wrapper')[0].insertAdjacentHTML('afterend', reviewHTML);
+                    // document.querySelectorAll('.custom-review-content-wrapper')[0].innerHTML += reviewHTML;
+                    // document.querySelectorAll('.custom-review-content-wrapper')[0].insertAdjacentHTML('beforeend', reviewHTML);
+                    document.querySelector('.custom-review-content-wrapper').insertAdjacentHTML('beforeend', reviewHTML);
+          
+                }
+              
+                if(data.paging.cursor.after != undefined){
+                    afterReviewId = data.paging.cursor.after;
+                    console.log("cursor"+ afterReviewId);
+                } else {
+                    afterReviewId = "";
+                    document.querySelectorAll('.custom-review-footer').forEach(function(el) {
+                        el.style.display = 'none';
+                    });
+                }
+            }).catch((error)=>{
+                afterReviewId = "";
+                document.querySelectorAll('.custom-review-footer').forEach(function(el) {
+                    el.style.display = 'none';
+                });
+                console.log(error);
+            });
+        }
+        updateConsolidatedRating();
+        
+
+        document.getElementById('loadMoreReviews').addEventListener('click', function(e) {
+            e.preventDefault(); // prevent default behavior if it's a link
+            updateReviews();
+        });
+
+        function selectFlagBasedOnDomain(){
+          // updateReviews();
+          if(hostName == "voldt.it"){
+            document.querySelector('.custom-review-flag-filter[data-locale="it_IT"]')?.click();
+          }else if(hostName == "voldt.at" || hostName == "voldtladekabel.de" || hostName == "voldt.ch"){
+            document.querySelector('.custom-review-flag-filter[data-locale="de_DE"]')?.click();
+          }else if(hostName == "voldt.be" || hostName == "voldt.nl"){
+            document.querySelector('.custom-review-flag-filter[data-locale="nl_NL"]')?.click();
+          }else if(hostName == "voldt.dk"){
+            document.querySelector('.custom-review-flag-filter[data-locale="da_DK"]')?.click();
+          }else if(hostName == "voldt.fi"){
+            document.querySelector('.custom-review-flag-filter[data-locale="fi_FI"]')?.click();
+          }else if(hostName == "voldt.fr"){
+            document.querySelector('.custom-review-flag-filter[data-locale="fr_FR"]')?.click();
+          }else if(hostName == "voldt.es"){
+            document.querySelector('.custom-review-flag-filter[data-locale="es_ES"]')?.click();
+          }else if(hostName == "voldt.se"){
+            document.querySelector('.custom-review-flag-filter[data-locale="sv_SE"]')?.click();
+          }else if(hostName == "voldt.co.uk"){
+            document.querySelector('.custom-review-flag-filter[data-locale="en_GB"]')?.click();
+          }else if(hostName == "voldt.no"){
+            document.querySelector('.custom-review-flag-filter[data-locale="nb_NO"]')?.click();
+          }else{
+            document.querySelector('.custom-review-flag-filter')?.click();
+          }
+          
+        };
+    </script>

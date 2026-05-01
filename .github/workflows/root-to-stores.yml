@@ -1,0 +1,131 @@
+# climaybe — Root to Stores / Stores to Root (Multi-store, live-*)
+# Same logic as stores-to-root on staging-*: direction depends on source.
+# Push to live-* from MAIN (merge): copy stores/<alias>/ → root.
+# Push to live-* from ELSEWHERE (direct, Shopify, etc.): copy root → stores/<alias>/.
+
+name: Root to Stores
+
+on:
+  push:
+    branches:
+      - 'live-*'
+
+# Prevent concurrent runs per branch
+concurrency:
+  group: root-to-stores-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Skip if our own sync commit; detect if push from main
+        id: gate
+        run: |
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          if echo "$COMMIT_MSG" | grep -qE "\[root-to-stores\]|\[stores-to-root\]|\[hotfix-backport\]|chore\(release\)"; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "from_main=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          # Detect: is this push a merge FROM main? (second parent = main)
+          MAIN_SHA=$(git rev-parse origin/main 2>/dev/null || echo "")
+          if [ -z "$MAIN_SHA" ]; then
+            echo "from_main=false" >> $GITHUB_OUTPUT
+          else
+            SECOND_PARENT=$(git rev-parse HEAD^2 2>/dev/null || echo "")
+            if [ "$SECOND_PARENT" = "$MAIN_SHA" ]; then
+              echo "from_main=true" >> $GITHUB_OUTPUT
+            else
+              echo "from_main=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+          echo "skip=false" >> $GITHUB_OUTPUT
+
+      - name: Extract store alias
+        if: steps.gate.outputs.skip != 'true'
+        id: alias
+        run: |
+          BRANCH="${{ github.ref_name }}"
+          ALIAS="${BRANCH#live-}"
+          echo "alias=$ALIAS" >> $GITHUB_OUTPUT
+          echo "Store alias: $ALIAS (from_main=${{ steps.gate.outputs.from_main }})"
+
+      # --- When push is FROM MAIN: stores → root ---
+      - name: Sync stores/<alias>/ to root (main merged in)
+        if: steps.gate.outputs.skip != 'true' && steps.gate.outputs.from_main == 'true'
+        run: |
+          ALIAS="${{ steps.alias.outputs.alias }}"
+          STORE_DIR="stores/${ALIAS}"
+          if [ ! -d "$STORE_DIR" ]; then
+            echo "Store directory $STORE_DIR does not exist, skipping."
+            exit 0
+          fi
+          for DIR in config templates sections; do
+            SRC="${STORE_DIR}/${DIR}"
+            if [ -d "$SRC" ]; then
+              find "$SRC" -name "*.json" | while read -r FILE; do
+                REL_PATH="${FILE#$STORE_DIR/}"
+                if [ "$REL_PATH" = "config/settings_schema.json" ]; then
+                  continue
+                fi
+                mkdir -p "$(dirname "$REL_PATH")"
+                cp "$FILE" "$REL_PATH"
+                echo "  Copied: $REL_PATH"
+              done
+            fi
+          done
+
+      - name: Commit stores→root
+        if: steps.gate.outputs.skip != 'true' && steps.gate.outputs.from_main == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: sync stores/${{ steps.alias.outputs.alias }}/ to root [stores-to-root]"
+            git push
+          else
+            echo "No changes to commit."
+          fi
+
+      # --- When push is NOT from main: root → stores/<alias>/ ---
+      - name: Sync root to stores/<alias>/ (external push)
+        if: steps.gate.outputs.skip != 'true' && steps.gate.outputs.from_main == 'false'
+        run: |
+          ALIAS="${{ steps.alias.outputs.alias }}"
+          STORE_DIR="stores/${ALIAS}"
+          mkdir -p "${STORE_DIR}/config" "${STORE_DIR}/templates" "${STORE_DIR}/sections"
+          for DIR in config templates sections; do
+            if [ -d "$DIR" ]; then
+              find "$DIR" -name "*.json" | while read -r FILE; do
+                if [ "$FILE" = "config/settings_schema.json" ]; then
+                  continue
+                fi
+                DEST="${STORE_DIR}/${FILE}"
+                mkdir -p "$(dirname "$DEST")"
+                cp "$FILE" "$DEST"
+                echo "  Synced: $FILE → $DEST"
+              done
+            fi
+          done
+
+      - name: Commit root→stores
+        if: steps.gate.outputs.skip != 'true' && steps.gate.outputs.from_main == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: sync root to stores/${{ steps.alias.outputs.alias }}/ [root-to-stores]"
+            git push
+          else
+            echo "No changes to commit."
+          fi

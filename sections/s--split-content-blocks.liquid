@@ -1,0 +1,147 @@
+<div class="px-s-outer">
+  <div class="flex flex-col gap-y-s-base lg:gap-y-0">
+    {%- for block in section.blocks -%}
+      {%- liquid
+        assign theme = block.settings.theme | default: 'light'
+        assign layout = block.settings.layout | default: 'text_left'
+        assign text_panel_class = 'bg-emphasis text-primary'
+        if theme == 'dark'
+          assign text_panel_class = 'color-schema-contrast bg-surface'
+        endif
+      -%}
+
+      {%- capture button_class -%}
+        h-14 px-b-lg text-ui-base rounded-full hover:opacity-90 font-normal w-full md:w-1/2 lg:w-fit md:mx-auto lg:mx-0 border-none
+      {%- endcapture -%}
+
+      <div class="flex flex-col lg:flex-row {% if layout == 'image_left' %}lg:flex-row-reverse{% endif %}" {{ block.shopify_attributes }}>
+        <div class="w-full lg:w-1/2">
+          <div class="h-full px-s-inner py-s-xs lg:py-s-sm flex flex-col justify-center gap-y-s-sm {{ text_panel_class }}">
+            {%- if block.settings.title != blank -%}
+              <h2 class="h2">
+                {{ block.settings.title }}
+              </h2>
+            {%- endif -%}
+
+            {%- if block.settings.description != blank -%}
+              <div class="rte text-body-lg">
+                {{ block.settings.description }}
+              </div>
+            {%- endif -%}
+
+            {%- if block.settings.button_label != blank and block.settings.button_url != blank -%}
+              {%- render 'a--button',
+                style: 'primary',
+                label: block.settings.button_label,
+                url: block.settings.button_url,
+                class: button_class
+              -%}
+            {%- endif -%}
+          </div>
+        </div>
+
+        <div class="w-full lg:w-1/2">
+          <div class="relative w-full aspect-375/318 lg:aspect-auto lg:h-full overflow-hidden">
+            {%- if block.settings.image != blank -%}
+              {% render 'a--image',
+                image: block.settings.image,
+                cols: 6,
+                image_class: 'w-full h-full object-cover',
+                picture_class: 'w-full h-full'
+              %}
+              <div class="absolute inset-0"></div>
+            {%- endif -%}
+          </div>
+        </div>
+      </div>
+    {%- endfor -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Split content blocks",
+  "tag": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "blocks": [
+    {
+      "type": "split_block",
+      "name": "Split block",
+      "settings": [
+        {
+          "type": "select",
+          "id": "layout",
+          "label": "Layout",
+          "default": "text_left",
+          "options": [
+            {
+              "value": "text_left",
+              "label": "Left text, right image"
+            },
+            {
+              "value": "image_left",
+              "label": "Left image, right text"
+            }
+          ]
+        },
+        {
+          "type": "select",
+          "id": "theme",
+          "label": "Theme",
+          "default": "light",
+          "options": [
+            {
+              "value": "light",
+              "label": "Light"
+            },
+            {
+              "value": "dark",
+              "label": "Dark"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Voldt: Your partner in the UK for EV charging cables"
+        },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Description",
+          "default": "<p>Voldt is a leading European manufacturer of high-quality charging cables for electric vehicles. With the growing demand for sustainable mobility, we offer you the best solutions to meet your customers' needs.</p><p><br></p><p>We are looking for partners who want to expand our network and work with us on the future of sustainable mobility in the UK. As a European manufacturer of charging cables, we are ready to support and help you grow.</p>"
+        },
+        {
+          "type": "text",
+          "id": "button_label",
+          "label": "Button label",
+          "default": "Contact us"
+        },
+        {
+          "type": "url",
+          "id": "button_url",
+          "label": "Button URL"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Split content blocks",
+      "blocks": [
+        {
+          "type": "split_block"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

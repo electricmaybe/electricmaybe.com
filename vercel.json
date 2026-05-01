@@ -1,0 +1,14 @@
+{
+  "functions": {
+    "api/reviews/etrusted-fetch.js": {
+      "maxDuration": 10
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/apps/reviews/fetch",
+      "destination": "/api/reviews/etrusted-fetch"
+    }
+  ]
+}
+

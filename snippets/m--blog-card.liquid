@@ -1,0 +1,94 @@
+{%- doc -%}
+Blog article card for blog and search listings.
+
+Renders a vertical card with image, optional tag pill, title, excerpt, and meta row.
+Designed for grid layouts in blog feed sections.
+
+@param {object} article - Article object (required)
+@param {string} [class] - Additional CSS classes for the card wrapper
+@param {boolean} [show_tag] - Whether to show the first tag (defaults to true)
+@param {boolean} [show_date] - Whether to show publish date (defaults to true)
+@param {boolean} [show_read_time] - Whether to show read time (defaults to true)
+@param {number} [excerpt_words] - Excerpt word limit (defaults to 22)
+
+@example
+{% render 'm--blog-card', article: article %}
+
+@example
+{% render 'm--blog-card',
+  article: article,
+  show_tag: false,
+  excerpt_words: 14,
+  class: 'lg:col-span-2'
+%}
+{%- enddoc -%}
+
+{%- liquid
+  assign article = article | default: empty
+  assign class = class | default: ''
+  assign show_tag = show_tag | default: true
+  assign show_date = show_date | default: true
+  assign show_read_time = show_read_time | default: true
+  assign excerpt_words = excerpt_words | default: 22
+
+  unless article != empty
+    echo '<!-- Error: article parameter required for m--blog-card -->'
+    break
+  endunless
+
+  assign tag_label = article.tags | first | default: ''
+  if tag_label == blank and article.blog != blank
+    assign tag_label = article.blog.title | default: ''
+  endif
+  assign title = article.title | default: ''
+  assign excerpt = article.excerpt_or_content | strip_html | truncatewords: excerpt_words
+  assign date_text = article.published_at | date: '%b %e, %Y'
+  assign word_count = article.content | strip_html | split: ' ' | size
+  assign minutes = word_count | divided_by: 200 | ceil
+  if minutes < 1
+    assign minutes = 1
+  endif
+-%}
+
+<a href="{{ article.url }}" class="bg-emphasis flex flex-col gap-y-b-sm items-start py-b-xs px-b-xs w-full {{ class }}">
+  {%- render 'a--image',
+    image: article.image,
+    cols: 4,
+    aspect_ratio: 1.44,
+    object_fit: 'object-cover',
+    picture_class: 'relative overflow-hidden w-full',
+    image_class: 'w-full h-full object-cover'
+  -%}
+
+  {%- if show_tag and tag_label != blank -%}
+    <div class="border border-primary rounded-full px-2 py-1 text-ui-small text-primary">
+      {{ tag_label | escape }}
+    </div>
+  {%- endif -%}
+
+  {%- if title != blank -%}
+    <h3 class="h5 text-primary font-medium">
+      {{ title | escape }}
+    </h3>
+  {%- endif -%}
+
+  {%- if excerpt != blank -%}
+    <p class="text-ui-small text-primary leading-[1.5] mt-0!">
+      {{ excerpt | escape }}
+    </p>
+  {%- endif -%}
+
+  {%- if show_date or show_read_time -%}
+    <div class="flex items-center gap-x-b-sm text-ui-small text-secondary">
+      {%- if show_date and date_text != blank -%}
+        <span>{{ date_text | escape }}</span>
+      {%- endif -%}
+      {%- if show_date and show_read_time -%}
+        <span>|</span>
+      {%- endif -%}
+      {%- if show_read_time -%}
+        <span>{{ minutes }}min</span>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+</a>

@@ -1,0 +1,80 @@
+<div id="find-my-car" class="flex flex-col items-start px-s-inner lg:px-s-whole gap-y-s-xs self-stretch md:justify-center md:items-center md:gap-y-0 lg:inline-grid lg:grid-cols-12 lg:grid-rows-1 lg:items-stretch lg:py-0 lg:gap-x-b-base lg:gap-y-0">
+  <div class="flex flex-col justify-center items-center text-center pt-s-base pb-s-xs gap-y-s-base self-stretch md:px-0 lg:items-start lg:text-left lg:py-s-base lg:px-0 lg:col-span-7 lg:justify-self-stretch">
+    <div class="space-y-s-xs">
+      <h2 class="h1">{{ section.settings.heading | default: 'Is this the right cable for your car?' }}</h2>
+      {% if section.settings.description != blank %}
+        <p class="text-ui-base/copy text-secondary max-w-md m-auto lg:m-0">
+          {{ section.settings.description }}
+        </p>
+      {% endif %}
+    </div>
+    
+    <find-my-car class="m-auto w-[-webkit-fill-available] flex justify-end items-center gap-x-b-sm self-stretch h-[52px] max-w-[448px] py-b-xs px-b-lg md:h-[52px] md:py-[12px] lg:h-16 lg:py-b-xs lg:pr-b-xs lg:pl-b-lg lg:gap-x-b-sm rounded-[48px] border border-secondary bg-white shadow-[0_2px_4px_0_rgba(0,0,0,0.15)] lg:-ml-2 focus-within:border-secondary group z-(--layer-dropdown)">
+      <input type="text" placeholder="{{ section.settings.placeholder | default: 'Search your car' }}" class="w-full h-full bg-transparent h5 font-light text-secondary placeholder:text-secondary z-10 relative aria-expanded:rounded-b-none focus:outline-none peer" aria-label="{{ section.settings.placeholder | default: 'Search for your car type' }}" aria-autocomplete="list" aria-expanded="false" autocomplete="off">
+      <div class="absolute top-2 right-2 h-[36px] w-[36px] lg:h-12 lg:w-12 rounded-full bg-subtle flex items-center justify-center group-hover:brightness-90 peer-focus:brightness-90 z-10">
+        {%- render 'a--icon', icon: 'search', width: 32, class: 'w-[20px] h-[20px] lg:w-[24px] lg:h-[24px]' %}
+      </div>
+    </find-my-car>
+  </div>
+  
+  {% if section.settings.image != blank %}
+    {%- liquid
+      assign find_my_car_image_alt = section.settings.image.alt | default: section.settings.heading | default: 'Find my car image'
+    -%}
+    <img
+      src="{{ section.settings.image | image_url: width: 800 }}"
+      srcset="
+        {{ section.settings.image | image_url: width: 448 }} 448w,
+        {{ section.settings.image | image_url: width: 800 }} 800w,
+        {{ section.settings.image | image_url: width: 1200 }} 1200w,
+        {{ section.settings.image | image_url: width: 1600 }} 1600w
+      "
+      sizes="(min-width: 1024px) 40vw, 448px"
+      width="600"
+      height="600"
+      alt="{{ find_my_car_image_alt | escape }}"
+      loading="lazy"
+      decoding="async"
+      class="w-full max-w-[448px] aspect-square object-contain -mix-blend-darken mx-auto md:w-[448px] md:h-[448px] lg:col-span-5 lg:justify-self-stretch lg:w-full lg:h-[-webkit-fill-available] lg:m-auto lg:max-w-none lg:max-h-none lg:mx-0"
+    >
+  {% endif %}
+</div>
+
+{% schema %}
+{
+  "name": "Find My Car",
+  "tag": "section",
+  "class": "section-find-my-car",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Is this the right cable for your car?"
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description",
+      "default": "Over 95% of EVs in Europe use a Type 2 cable but if you're unsure, just search your vehicle below."
+    },
+    {
+      "type": "text",
+      "id": "placeholder",
+      "label": "Search Placeholder",
+      "default": "Search your car"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image",
+      "info": "Background image displayed on desktop"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Find My Car"
+    }
+  ]
+}
+{% endschema %}

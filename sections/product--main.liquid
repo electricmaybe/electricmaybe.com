@@ -1,0 +1,288 @@
+{%- liquid
+  assign product_title = product.title
+  assign is_per_request = product.metafields.custom.is_per_request.value
+
+  comment
+    if section.settings.show_taxes_mobile == false and section.settings.show_taxes_desktop == false
+      assign taxes_wrapper_class = 'hidden'
+    elsif section.settings.show_taxes_mobile == false and section.settings.show_taxes_desktop == true
+      assign taxes_wrapper_class = 'hidden lg:block'
+    elsif section.settings.show_taxes_mobile == true and section.settings.show_taxes_desktop == false
+      assign taxes_wrapper_class = 'lg:hidden'
+    else
+      assign taxes_wrapper_class = 'block'
+    endif
+  endcomment
+-%}
+
+<div
+  class="grid md:grid-cols-2 relative w-full h-auto lg:pt-b-base gap-x-b-base px-s-outer"
+  data-section="{{ section.id }}"
+  data-product="{{ product.id }}"
+>
+  {% capture badge %}
+  <img src="{{ 'badges_on_gallery_desktop.png' | asset_img_url: '340x' }}" alt="Badge" width="170" height="53" class="absolute top-3 right-0 w-auto! h-9 lg:h-14 z-10">
+  {% endcapture %}
+
+  {% if product.metafields.custom.bag.value %}
+    {% capture cable_bag %}
+    <div class="px-b-xs absolute bottom-3 left-3 py-b-xs gap-x-b-sm text-ui-small flex items-center z-10 mix-blend-darken backdrop-blur rounded-full right-auto max-w-40! lg:max-w-48!">
+      <img src="{{ 'cable-bag.png' | asset_img_url: '340x' }}" alt="Cable Bag" width="32" height="32" class="h-auto w-8">
+      {{ metaobjects.standard_title["includes-a-premium-carry-bag"].title.value }}
+    </div>
+  {% endcapture %}
+  {% endif %}
+
+  {% capture thumbnails %}
+    {% render 'm--electric-thumbnails',
+      slider_target: 'product-main-slider',
+      items: product.media,
+      wrapper_class: 'absolute bottom-3 right-3 p-1.5 z-10 w-fit! max-w-xs overflow-scroll rounded-full bg-surface hide-scroll-bar max-lg:hidden',
+      show_indicators: true
+    %}
+  {% endcapture %}
+
+  {%- liquid
+    ## START PRODUCT SLIDER ##
+    capture feed
+      echo badge
+      echo cable_bag
+      for media in product.media
+        render 'product--slider-item', media: media
+      endfor
+      echo thumbnails
+    endcapture
+    render 'm--electric-slider', id: 'product-main-slider', feed: feed, bar: false, slider_class: 'w-full lg:h-full aspect-square', slider_navigation_wrapper_class: 'hidden', per_row_mobile: 1.2, per_row_tablet: 1, per_row_desktop: 1, properties: 'data-drag="false" data-variant-dynamic="product-slider-main"', show_dots: true, array_size: product.media.size, dots_class: 'absolute right-2 -bottom-4 max-md:hidden'
+    ## END PRODUCT SLIDER ##
+  -%}
+
+  {% # START PRODUCT MAIN AREA %}
+  <div class="px-s-inner lg:pl-s-xl space-y-b-xs text-ui-base max-md:pt-b-sm" id="product-form-wrapper">
+    {%- comment -%} Product Badges {%- endcomment -%}
+    {%- liquid
+      assign usp_1 = product.metafields.custom.usp_1.value
+      assign usp_2 = product.metafields.custom.usp_2.value
+      assign usp_3 = product.metafields.custom.usp_3.value
+    -%}
+    <div class="flex flex-wrap gap-x-b-sm gap-y-0.5 items-start">
+      {%- if usp_1 -%}
+        {%- assign usp_1_drawer_id = 'usp-1-info-' | append: section.id | append: '-' | append: product.id -%}
+        {%- render 'usp--info-badge', usp: usp_1, drawer_id: usp_1_drawer_id -%}
+      {%- endif -%}
+
+      {%- if usp_2 -%}
+        {%- assign usp_2_drawer_id = 'usp-2-info-' | append: section.id | append: '-' | append: product.id -%}
+        {%- render 'usp--info-badge', usp: usp_2, drawer_id: usp_2_drawer_id -%}
+      {%- endif -%}
+
+      {%- if usp_3 -%}
+        {%- assign usp_3_drawer_id = 'usp-3-info-' | append: section.id | append: '-' | append: product.id -%}
+        {%- render 'usp--info-badge', usp: usp_3, drawer_id: usp_3_drawer_id -%}
+      {%- endif -%}
+    </div>
+
+    <div class="space-y-b-xs">
+      <h1 class="h3" data-variant-dynamic="product-title">
+        {{ product_title }}
+      </h1>
+      {% render 'product--rating' %}
+    </div>
+    <div class="flex flex-col gap-y-4 lg:gap-y-5!">
+      {% if is_per_request %}
+        <div class="flex gap-3 items-end">
+          {%- render 'a--price-group', product: product, use_variant: true, direction: 'product-main' -%}
+        </div>
+        <div class="flex flex-col gap-y-b-base">
+          {% render 'product--request-form', product: product %}
+        </div>
+      {% else %}
+        {% render 'product--variants', product: product %}
+        <div class="flex flex-col gap-y-b-base">
+          {% render 'product--form' %}
+        </div>
+      {% endif %}
+      {% unless product.gift_card? %}
+        {%- liquid
+          assign market = localization.market
+          assign usp_1 = market.metafields.custom.shop_usp1.value | default: market.metafields.custom.shop_usp1
+          assign usp_2 = market.metafields.custom.shop_usp_2.value | default: market.metafields.custom.shop_usp_2
+          assign usp_3 = market.metafields.custom.shop_usp_3.value | default: market.metafields.custom.shop_usp_3
+        -%}
+        {% if usp_1 != blank or usp_2 != blank or usp_3 != blank %}
+          <div class="md:px-b-lg py-b-xs flex gap-x-b-base justify-center text-ui-small empty:hidden">
+            {%- for i in (1..3) -%}
+              {%- liquid
+                assign usp = blank
+                case i
+                  when 1
+                    assign usp = usp_1
+                  when 2
+                    assign usp = usp_2
+                  when 3
+                    assign usp = usp_3
+                endcase
+                assign usp_icon_ref = usp.icon.value | default: usp.icon
+                assign usp_text = usp.value | metafield_text
+                if usp_text == blank
+                  assign usp_text = usp.value.value | default: usp.value
+                endif
+                if usp_text == blank
+                  assign usp_text = usp.name | metafield_text
+                endif
+                if usp_text == blank
+                  assign usp_text = usp.name.value | default: usp.name
+                endif
+                if usp_text == blank
+                  assign usp_text = usp.title | metafield_text
+                endif
+                if usp_text == blank
+                  assign usp_text = usp.title.value | default: usp.title
+                endif
+                if usp_text == blank
+                  assign usp_text = usp.display_name | default: usp.system.handle | default: ''
+                endif
+              -%}
+              {%- if usp_text == blank -%}{%- continue -%}{%- endif -%}
+              <div class="w-full flex flex-col items-center justify-center gap-2 text-center">
+                {%- if usp_icon_ref != blank -%}
+                  {%- if usp_icon_ref.preview_image != blank -%}
+                    <img
+                      src="{{ usp_icon_ref.preview_image | image_url: width: 48 }}"
+                      alt="{{ usp_text | escape }}"
+                      width="24"
+                      height="24"
+                      loading="lazy"
+                      decoding="async"
+                      class="w-6 h-6 object-contain"
+                    >
+                  {%- elsif usp_icon_ref.width != blank and usp_icon_ref.height != blank -%}
+                    <img
+                      src="{{ usp_icon_ref | image_url: width: 48 }}"
+                      alt="{{ usp_text | escape }}"
+                      width="24"
+                      height="24"
+                      loading="lazy"
+                      decoding="async"
+                      class="w-6 h-6 object-contain"
+                    >
+                  {%- else -%}
+                    {%- liquid
+                      assign usp_icon_str = usp_icon_ref | append: ''
+                    -%}
+                    {%- if usp_icon_str contains '.png'
+                      or usp_icon_str contains '.jpg'
+                      or usp_icon_str contains '.jpeg'
+                      or usp_icon_str contains '.webp'
+                      or usp_icon_str contains '.svg'
+                    -%}
+                      <img
+                        src="{{ usp_icon_str | asset_url }}"
+                        alt="{{ usp_text | escape }}"
+                        width="24"
+                        height="24"
+                        loading="lazy"
+                        decoding="async"
+                        class="w-6 h-6 object-contain"
+                      >
+                    {%- endif -%}
+                  {%- endif -%}
+                {%- endif -%}
+                {%- if usp_text != blank -%}
+                  <span>{{ usp_text }}</span>
+                {%- endif -%}
+              </div>
+            {%- endfor -%}
+          </div>
+        {% endif %}
+      {% endunless %}
+    </div>
+  </div>
+</div>
+
+<div class="py-s-xs lg:py-s-sm space-y-s-xs">
+  <h2 class="px-s-whole">{{ metaobjects.standard_title['complete-your-charging-setup'].title.value }}</h2>
+  {%- capture feed -%}
+    {%- for product in section.settings.promoted_collection.products limit: 8 -%}
+      {%- liquid
+        assign accessory_is_per_request = product.metafields.custom.is_per_request.value
+        assign accessory_price_text = product.price | money
+        assign accessory_price_class = 'text-secondary'
+        assign accessory_atc_label = 'products.product.add_to_cart' | t: product: product.title | escape
+        assign accessory_atc_properties = 'data-add-to-cart-trigger data-product-id="' | append: product.id | append: '" data-variant-id="' | append: product.selected_or_first_available_variant.id | append: '"'
+
+        if accessory_is_per_request
+          assign accessory_price_text = 'products.product.price_on_request' | t
+          assign accessory_price_class = 'text-primary'
+        endif
+      -%}
+      <div class="px-b-sm py-b-xs rounded-full border border-secondary flex items-center gap-x-b-base h-fit">
+        <span class="rounded-full overflow-hidden shrink-0"><img src="{{ product.featured_image | image_url: width: 64 }}" alt="{{ product.title }}" width="32" height="32" class="w-8 h-8 object-contain mix-blend-darken"></span>
+        <div class="flex flex-col text-ui-small whitespace-nowrap truncate overflow-ellipsis w-full">
+          {{ product.title }}
+          <span class="{{ accessory_price_class }}">
+            {{ accessory_price_text }}
+          </span>
+        </div>
+        {% unless accessory_is_per_request %}
+          <product-card-atc class="flex justify-between items-center">
+              {% render 'a--button',
+                tag: 'button',
+                style: 'primary',
+                size: 'sm',
+                content: 'icon-only',
+                icon: 'plus',
+                icon_class: 'w-6 h-6',
+                states: true,
+                loading_label: 'spinner',
+                success_label: 'Added!',
+                error_label: 'Error',
+                aria_label: accessory_atc_label,
+                class: 'relative rounded-full',
+                properties: accessory_atc_properties
+              %}
+
+              {%- assign identifier = 'accessory' | append: forloop.index -%}
+              {%- assign form_id = 'product-form-' | append: section.id | append: '-' | append: product.id | append: '-' | append: identifier -%}
+              {%- form 'product',
+                product,
+                id: form_id,
+                class: 'hidden',
+                novalidate: 'novalidate',
+                data-type: 'add-to-cart-form'
+              -%}
+                <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+                <input type="hidden" name="quantity" value="1">
+              {%- endform -%}
+            </product-card-atc>
+        {% endunless %}
+      </div>
+    {%- endfor -%}
+{%- endcapture -%}
+  {%- render 'm--electric-slider',
+    feed_class: 'scroll-px-s-whole px-s-whole gap-y-b-lg',
+    slider_class: 'w-full',
+    per_row_desktop: 4,
+    per_row_tablet: 3,
+    per_row_mobile: 2,
+    bar: false,
+    type: 'none',
+    feed: feed
+  -%}
+</div>
+
+{% schema %}
+{
+  "name": "t:global.product_main",
+  "limit": 1,
+  "settings": [
+    {
+      "type": "collection",
+      "id": "promoted_collection",
+      "label": "Promoted collection"
+    }
+  ],
+  "enabled_on": {
+    "templates": ["product"]
+  }
+}
+{% endschema %}

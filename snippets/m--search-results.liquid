@@ -1,0 +1,80 @@
+{%- doc -%}
+  Search results product grid with collection-style layout and pagination.
+
+  Renders only product results (excludes articles/pages) using the same grid/card sizing
+  rules as the collection grid, but without collection-specific insert cards.
+
+  @param {object} results - Search results object (defaults to `search`)
+  @param {number} [limit] - Products per page (defaults to 24)
+
+  @example
+  {% render 'm--search-results' %}
+
+  @example
+  {% render 'm--search-results',
+    results: search,
+    limit: 24
+  %}
+{%- enddoc -%}
+
+{%- liquid
+  assign results = results | default: search
+  assign limit = limit | default: 24
+-%}
+
+{% paginate search.results by limit %}
+  <div
+    id="products-grid"
+    class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-x-2 md:gap-x-4 gap-y-6"
+    role="grid"
+    aria-label="Product grid"
+    data-products-per-page="{{ limit }}"
+  >
+    {%- for item in search.results -%}
+      {%- liquid
+        unless item.object_type == 'product'
+          continue
+        endunless
+
+        assign product = item
+        assign forloop_index = forloop.index | plus: paginate.current_offset
+        assign card_class = 'max-lg:order-(--nth-child)'
+        assign sm_cols = 2
+        assign md_cols = 2
+        assign lg_cols = 4
+
+        # Hero sizing:
+        # - Mobile/Tablet: first card spans full width
+        # - Desktop: first two cards span half width (2/4 columns)
+        # Higher image resolution for desktop (2 products per row = larger images)
+        if forloop_index == 1
+          assign card_class = card_class | append: ' col-span-2'
+          assign sm_cols = 1
+          assign md_cols = 1
+          assign lg_cols = 7
+        elsif forloop_index == 2
+          assign card_class = card_class | append: ' lg:col-span-2'
+          assign lg_cols = 7
+        else
+          # Other products: higher resolution for desktop (1 product per column but larger)
+          assign lg_cols = 6
+        endif
+      -%}
+
+      {%- render 'm--product-card',
+        card_product: product,
+        forloop_index: forloop_index,
+        class: card_class,
+        sm_cols: sm_cols,
+        md_cols: md_cols,
+        lg_cols: lg_cols,
+        identifier: 'search-grid'
+      -%}
+    {%- endfor -%}
+  </div>
+
+  <div data-search-pagination class="mt-8">
+    {%- render 'm--search-pagination', paginate: paginate -%}
+  </div>
+{% endpaginate %}
+

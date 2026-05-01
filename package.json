@@ -1,9 +1,24 @@
 {
+  "name": "voldt",
+  "author": "Electric Maybe <hello@electricmaybe.com>",
+  "description": "Customizable modular development environment for blazing-fast Shopify theme creation",
+  "version": "2.10.0",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/electricmaybe/electricmaybe.com.git"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.4.4",
+    "@commitlint/config-conventional": "^20.4.4",
+    "husky": "^9.1.7",
+    "tailwindcss": "latest"
+  },
   "scripts": {
-    "dev": "npx @tailwindcss/cli -i ./_style.css -o ./style.css --watch"
+    "prepare": "husky"
   },
   "dependencies": {
-    "@tailwindcss/cli": "^4.0.6",
-    "tailwindcss": "^4.0.6"
+    "brace-expansion": "^5.0.5",
+    "climaybe": "^3.2.0"
   }
 }
