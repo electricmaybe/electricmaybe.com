@@ -1,4 +1,9 @@
 /* Electric Maybe marketing homepage (ported from static site) */
+.shopify-section.section-s--electric-maybe-landing {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
 .em-landing,
 .em-landing * {
   box-sizing: border-box;
@@ -14,16 +19,22 @@
   display: flex;
   font-weight: 400;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
 }
 
 .em-landing .em-landing__container {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .em-landing .em-landing__title-wrap {
-  max-width: 85ch;
+  max-width: min(85ch, 100%);
   margin: 2rem auto 0;
-  width: fit-content;
+  width: 100%;
+  box-sizing: border-box;
   padding: 2rem;
 }
 
@@ -123,15 +134,6 @@
   transform: translateY(-1px);
 }
 
-.em-landing .em-landing__button--ghost {
-  color: #333333;
-  text-decoration: underline;
-}
-
-.em-landing .em-landing__button--ghost:hover {
-  transform: translateY(-1px);
-}
-
 .em-landing .em-landing__actions {
   display: flex;
   gap: 1rem;
@@ -142,9 +144,13 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  align-content: flex-start;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
   max-width: 100%;
+  width: 100%;
   min-width: 0;
+  box-sizing: border-box;
   scroll-snap-type: x mandatory;
   gap: 1rem;
   margin-bottom: 3rem;
@@ -160,7 +166,9 @@
 .em-landing .em-landing__work-item {
   scroll-snap-align: center;
   scroll-padding-left: 2rem;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: min(512px, calc(100vw - 3rem));
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -179,6 +187,8 @@
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   height: 512px;
+  max-width: 100%;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -186,7 +196,9 @@
 }
 
 .em-landing .em-landing__slide-el {
+  display: block;
   width: auto;
+  max-width: 100%;
   height: 100%;
   max-height: 512px;
   object-fit: contain;
