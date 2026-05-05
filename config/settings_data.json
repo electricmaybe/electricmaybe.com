@@ -97,7 +97,7 @@
           "button_color": "#000000",
           "secondary_color": "#FFFFFF",
           "ternary_color": "#6A6A6A",
-          "button_icon": "chat_bubble",
+          "button_icon": "hand_wave",
           "button_text": "chat_with_us",
           "button_horizontal_position": "bottom_right",
           "button_vertical_position": "lowest",
