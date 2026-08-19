@@ -217,15 +217,7 @@
       -%}
       <div class="flex flex-col gap-y-b-base items-start justify-center">
         <div class="flex items-center gap-x-b-sm">
-          {% render 'quick-filter--info-heading',
-            entry: heading_entry,
-            info_description: heading_description,
-            info_faqs: heading_faqs,
-            label: heading_label,
-            lookup_key: filter_key,
-            context_id: filters_id_base | append: '-' | append: filter_key | append: '-desktop',
-            label_class: 'text-ui-base text-primary leading-[1.2]'
-          %}
+          {% render 'quick-filter--info-heading', entry: heading_entry, info_description: heading_description, info_faqs: heading_faqs, label: heading_label, lookup_key: filter_key, context_id: filters_id_base, append: '-desktop', label_class: 'text-ui-base text-primary leading-[1.2]' %}
         </div>
         <div class="flex flex-wrap items-start gap-x-b-base gap-y-b-sm">
           {%- if option_values == blank -%}
@@ -289,15 +281,7 @@
       -%}
       <div class="flex flex-col gap-y-s-xs items-start w-full">
         <div class="flex items-center gap-x-b-sm">
-          {% render 'quick-filter--info-heading',
-            entry: heading_entry,
-            info_description: heading_description,
-            info_faqs: heading_faqs,
-            label: heading_label,
-            lookup_key: filter_key,
-            context_id: filters_id_base | append: '-' | append: filter_key | append: '-drawer',
-            label_class: 'text-ui-base text-primary leading-[1.2]'
-          %}
+          {% render 'quick-filter--info-heading', entry: heading_entry, info_description: heading_description, info_faqs: heading_faqs, label: heading_label, lookup_key: filter_key, context_id: filters_id_base, append: '-drawer', label_class: 'text-ui-base text-primary leading-[1.2]' %}
         </div>
         <div class="flex flex-wrap items-start gap-x-b-base gap-y-b-sm">
           {%- if option_values == blank -%}
@@ -388,3 +372,40 @@
   %}
 </div>
 
+{% comment %}
+
+This file has been rewritten to preserve the original behavior.
+
+---
+Changes:
+- from: |-
+    {% render 'quick-filter--info-heading',
+                entry: heading_entry,
+                info_description: heading_description,
+                info_faqs: heading_faqs,
+                label: heading_label,
+                lookup_key: filter_key,
+                context_id: filters_id_base | append: '-' | append: filter_key | append: '-desktop',
+                label_class: 'text-ui-base text-primary leading-[1.2]'
+              %}
+  to: "{% render 'quick-filter--info-heading', entry: heading_entry, info_description:
+    heading_description, info_faqs: heading_faqs, label: heading_label, lookup_key:
+    filter_key, context_id: filters_id_base, append: '-desktop', label_class: 'text-ui-base
+    text-primary leading-[1.2]' %}"
+  position: 9709..9987
+- from: |-
+    {% render 'quick-filter--info-heading',
+                entry: heading_entry,
+                info_description: heading_description,
+                info_faqs: heading_faqs,
+                label: heading_label,
+                lookup_key: filter_key,
+                context_id: filters_id_base | append: '-' | append: filter_key | append: '-drawer',
+                label_class: 'text-ui-base text-primary leading-[1.2]'
+              %}
+  to: "{% render 'quick-filter--info-heading', entry: heading_entry, info_description:
+    heading_description, info_faqs: heading_faqs, label: heading_label, lookup_key:
+    filter_key, context_id: filters_id_base, append: '-drawer', label_class: 'text-ui-base
+    text-primary leading-[1.2]' %}"
+  position: 12927..13204
+{% endcomment %}

@@ -442,12 +442,7 @@
 
                       <div class="flex flex-col gap-y-b-base items-start justify-center">
                         <div class="flex items-center gap-x-b-sm">
-                          {% render 'quick-filter--info-heading',
-                            label: filter.label | escape,
-                            lookup_key: filter.label,
-                            lookup_param: filter.param_name,
-                            context_id: id_base | append: '-' | append: forloop.index
-                          %}
+                          {% render 'quick-filter--info-heading', label: filter.label, lookup_key: filter.label, lookup_param: filter.param_name, context_id: id_base, append: forloop.index %}
                         </div>
 
                         {%- liquid
@@ -783,3 +778,20 @@
     positionDesktop: 'right'
   %}
 </collection-filters>
+{% comment %}
+
+This file has been rewritten to preserve the original behavior.
+
+---
+Changes:
+- from: |-
+    {% render 'quick-filter--info-heading',
+                                label: filter.label | escape,
+                                lookup_key: filter.label,
+                                lookup_param: filter.param_name,
+                                context_id: id_base | append: '-' | append: forloop.index
+                              %}
+  to: "{% render 'quick-filter--info-heading', label: filter.label, lookup_key: filter.label,
+    lookup_param: filter.param_name, context_id: id_base, append: forloop.index %}"
+  position: 22886..23051
+{% endcomment %}

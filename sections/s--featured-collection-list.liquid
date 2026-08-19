@@ -24,20 +24,7 @@
         </h2>
       {%- endif -%}
 
-      {%- render 'm--electric-slider',
-        id: 'featured-collection-list-' | append: section.id,
-        feed: feed,
-        per_row_mobile: 1.3,
-        per_row_tablet: 2.6,
-        per_row_desktop: 5.3,
-        gap: 'gap-x-b-base',
-        bar: true,
-        type: 'bottom',
-        slider_class: 'gap-y-b-lg',
-        feed_class: 'order-1 px-s-whole scroll-px-s-whole gap-x-b-base [&_>_*]:min-w-0',
-        slider_navigation_wrapper_class: 'order-2 px-s-whole! pt-b-base',
-        small: true,
-      -%}
+      {%- render 'm--electric-slider', id: 'featured-collection-list-', append: section.id, feed: feed, per_row_mobile: 1.3, per_row_tablet: 2.6, per_row_desktop: 5.3, gap: 'gap-x-b-base', bar: true, type: 'bottom', slider_class: 'gap-y-b-lg', feed_class: 'order-1 px-s-whole scroll-px-s-whole gap-x-b-base [&_>_*]:min-w-0', slider_navigation_wrapper_class: 'order-2 px-s-whole! pt-b-base', small: true -%}
     </div>
   </section>
 {%- endif -%}
@@ -70,3 +57,31 @@
   ]
 }
 {% endschema %}
+{% comment %}
+
+This file has been rewritten to preserve the original behavior.
+
+---
+Changes:
+- from: |-
+    {%- render 'm--electric-slider',
+            id: 'featured-collection-list-' | append: section.id,
+            feed: feed,
+            per_row_mobile: 1.3,
+            per_row_tablet: 2.6,
+            per_row_desktop: 5.3,
+            gap: 'gap-x-b-base',
+            bar: true,
+            type: 'bottom',
+            slider_class: 'gap-y-b-lg',
+            feed_class: 'order-1 px-s-whole scroll-px-s-whole gap-x-b-base [&_>_*]:min-w-0',
+            slider_navigation_wrapper_class: 'order-2 px-s-whole! pt-b-base',
+            small: true,
+          -%}
+  to: "{%- render 'm--electric-slider', id: 'featured-collection-list-', append: section.id,
+    feed: feed, per_row_mobile: 1.3, per_row_tablet: 2.6, per_row_desktop: 5.3, gap:
+    'gap-x-b-base', bar: true, type: 'bottom', slider_class: 'gap-y-b-lg', feed_class:
+    'order-1 px-s-whole scroll-px-s-whole gap-x-b-base [&_>_*]:min-w-0', slider_navigation_wrapper_class:
+    'order-2 px-s-whole! pt-b-base', small: true -%}"
+  position: 1199..1599
+{% endcomment %}

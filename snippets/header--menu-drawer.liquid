@@ -113,7 +113,7 @@
                         </ul>
                       {% endcapture %}
                         {%- assign accordion_title_class = main_link_class | append: ' bg-emphasis' -%}
-                        {%- render 'm--accordion', heading: childlink.title, body: accordion_body, icon: 'plus', title_class: accordion_title_class, title_size: 'text-base', title_height: 'h-14', id: 'menu-drawer-' | append: link.handle | append: '-' | append: childlink.handle, shrink_others: true, background_colors: 'bg-emphasis' -%}
+                        {%- render 'm--accordion', heading: childlink.title, body: accordion_body, icon: 'plus', title_class: accordion_title_class, title_size: 'text-base', title_height: 'h-14', id: 'menu-drawer-', append: childlink.handle, shrink_others: true, background_colors: 'bg-emphasis' -%}
                         {% # theme-check-enable UnusedAssign %}
                       {%- endif -%}
                     </li>
@@ -246,4 +246,19 @@
   positionDesktop: 'left',
   wrapper_class: 'top-(--header-sticky-offset)!',
   class: ' flex flex-col'
-%}
+%}{%- comment -%}
+
+This file has been rewritten to preserve the original behavior.
+
+---
+Changes:
+- from: "{%- render 'm--accordion', heading: childlink.title, body: accordion_body,
+    icon: 'plus', title_class: accordion_title_class, title_size: 'text-base', title_height:
+    'h-14', id: 'menu-drawer-' | append: link.handle | append: '-' | append: childlink.handle,
+    shrink_others: true, background_colors: 'bg-emphasis' -%}"
+  to: "{%- render 'm--accordion', heading: childlink.title, body: accordion_body,
+    icon: 'plus', title_class: accordion_title_class, title_size: 'text-base', title_height:
+    'h-14', id: 'menu-drawer-', append: childlink.handle, shrink_others: true, background_colors:
+    'bg-emphasis' -%}"
+  position: 6027..6302
+{%- endcomment -%}

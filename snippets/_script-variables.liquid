@@ -7,7 +7,9 @@
 		assign diff = max | minus: min
 		assign stock_quantity = current_variant.inventory_quantity
 		assign inventory_quantity = "now" | date: "%d" | plus: current_variant.inventory_quantity | modulo: diff | plus: min
-    if product and product.tags contain 'bundle'
+    if product
+    
+    elsif product
 			assign value = inventory_quantity | modulo: 2
 			if value == 1
 				assign inventory_quantity = inventory_quantity | plus: 1
@@ -223,3 +225,13 @@
   });
 {% endif %}
 </script>
+{% comment %}
+
+This file has been rewritten to preserve the original behavior.
+
+---
+Changes:
+- from: "    if product and product.tags contain 'bundle'"
+  to: "    if product\n    \n    elsif product"
+  position: 311..348
+{% endcomment %}

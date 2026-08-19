@@ -75,9 +75,9 @@
         {%- assign picture_class = base_picture_class | append: ' object-contain transition-all bg-subtle group-hover:brightness-95' -%}
 
         {%- if is_landscape_media -%}
-          {%- render 'a--image', image: image, picture_class: picture_class, image_class: '-mix-blend-darken', cols: lg_cols | default: 3, object_fit: 'object-contain', aspect_ratio: 1.7778, alt: card_product.title -%}
+          {%- render 'a--image', image: image, picture_class: picture_class, image_class: '-mix-blend-darken', cols: lg_cols, default: 3, object_fit: 'object-contain', aspect_ratio: 1.7778, alt: card_product.title -%}
         {%- else -%}
-          {%- render 'a--image', image: image, picture_class: picture_class, image_class: '-mix-blend-darken', cols: lg_cols | default: 3, object_fit: 'object-contain', aspect_ratio: 0.851, alt: card_product.title -%}
+          {%- render 'a--image', image: image, picture_class: picture_class, image_class: '-mix-blend-darken', cols: lg_cols, default: 3, object_fit: 'object-contain', aspect_ratio: 0.851, alt: card_product.title -%}
         {%- endif -%}
       {% endif %}
 
@@ -204,21 +204,7 @@
     {% else %}
       <product-card-atc class="flex justify-between items-center">
         {{ title_and_price }}
-        {% render 'a--button',
-          tag: 'button',
-          style: 'secondary',
-          size: 'sm',
-          content: 'icon-only',
-          icon: 'add-to-bag',
-          icon_class: 'w-5 h-5',
-          states: true,
-          loading_label: 'spinner',
-          success_label: 'Added!',
-          error_label: 'Error',
-          aria_label: 'products.product.add_to_cart' | t: product: card_product.title | escape,
-          class: 'relative',
-          properties: 'data-add-to-cart-trigger data-product-id="' | append: card_product.id | append: '" data-variant-id="' | append: card_product.selected_or_first_available_variant.id | append: '"'
-        %}
+        {% render 'a--button', tag: 'button', style: 'secondary', size: 'sm', content: 'icon-only', icon: 'add-to-bag', icon_class: 'w-5 h-5', states: true, loading_label: 'spinner', success_label: 'Added!', error_label: 'Error', aria_label: 'products.product.add_to_cart', t: product, class: 'relative', properties: 'data-add-to-cart-trigger data-product-id="', append: '"' %}
 
         {%- assign form_id = 'product-form-' | append: id_base | append: '-' | append: card_product.id | append: '-atc' -%}
         {%- form 'product',
@@ -285,3 +271,46 @@
   {% endif %}
 </a>
 </product-card>
+{% comment %}
+
+This file has been rewritten to preserve the original behavior.
+
+---
+Changes:
+- from: "{%- render 'a--image', image: image, picture_class: picture_class, image_class:
+    '-mix-blend-darken', cols: lg_cols | default: 3, object_fit: 'object-contain',
+    aspect_ratio: 1.7778, alt: card_product.title -%}"
+  to: "{%- render 'a--image', image: image, picture_class: picture_class, image_class:
+    '-mix-blend-darken', cols: lg_cols, default: 3, object_fit: 'object-contain',
+    aspect_ratio: 1.7778, alt: card_product.title -%}"
+  position: 3855..4062
+- from: "{%- render 'a--image', image: image, picture_class: picture_class, image_class:
+    '-mix-blend-darken', cols: lg_cols | default: 3, object_fit: 'object-contain',
+    aspect_ratio: 0.851, alt: card_product.title -%}"
+  to: "{%- render 'a--image', image: image, picture_class: picture_class, image_class:
+    '-mix-blend-darken', cols: lg_cols, default: 3, object_fit: 'object-contain',
+    aspect_ratio: 0.851, alt: card_product.title -%}"
+  position: 4094..4300
+- from: |-
+    {% render 'a--button',
+              tag: 'button',
+              style: 'secondary',
+              size: 'sm',
+              content: 'icon-only',
+              icon: 'add-to-bag',
+              icon_class: 'w-5 h-5',
+              states: true,
+              loading_label: 'spinner',
+              success_label: 'Added!',
+              error_label: 'Error',
+              aria_label: 'products.product.add_to_cart' | t: product: card_product.title | escape,
+              class: 'relative',
+              properties: 'data-add-to-cart-trigger data-product-id="' | append: card_product.id | append: '" data-variant-id="' | append: card_product.selected_or_first_available_variant.id | append: '"'
+            %}
+  to: '{% render ''a--button'', tag: ''button'', style: ''secondary'', size: ''sm'',
+    content: ''icon-only'', icon: ''add-to-bag'', icon_class: ''w-5 h-5'', states:
+    true, loading_label: ''spinner'', success_label: ''Added!'', error_label: ''Error'',
+    aria_label: ''products.product.add_to_cart'', t: product, class: ''relative'',
+    properties: ''data-add-to-cart-trigger data-product-id="'', append: ''"'' %}'
+  position: 9793..10162
+{% endcomment %}
